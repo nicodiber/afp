@@ -56,7 +56,7 @@ function fila(lista, clave, estado, titulo, detalle) {
 function actualizarTexto() {
   const ahora = new Date();
   $('resultados').value = [
-    `AFP · Pruebas de factibilidad · ${ahora.toLocaleString('es-AR')}`,
+    `AFP · Pruebas de factibilidad · ${ahora.toLocaleString('es-AR', { hour12: false })}`,
     '', '[Dispositivo]', ...resultados.entorno,
     '', '[Cotizaciones e índices]', ...resultados.fuentes,
     '', '[Datos y sin conexión]', ...resultados.datos,
@@ -142,7 +142,7 @@ async function datos(agregar = false) {
   resultados.datos = [];
   try {
     const v = await visitas(agregar);
-    const primera = new Date(v[0].fecha).toLocaleString('es-AR');
+    const primera = new Date(v[0].fecha).toLocaleString('es-AR', { hour12: false });
     fila(lista, 'datos', 'ok', 'Base local (IndexedDB)', `abriste esta página ${v.length} veces en este dispositivo · primera vez: ${primera}`);
   } catch (e) {
     fila(lista, 'datos', 'mal', 'Base local (IndexedDB)', e.message || String(e));
@@ -183,12 +183,19 @@ function pedirPermiso() {
       callback: (r) => (r.error ? mal(new Error(`Google respondió: ${r.error}`)) : ok(r.access_token)),
       error_callback: (e) => mal(new Error(`la ventana de Google se cerró o se bloqueó (${e.type})`)),
     });
-    cliente.requestAccessToken();
+    // prompt vacío: si ya diste permiso antes, Google no vuelve a preguntar.
+    cliente.requestAccessToken({ prompt: '' });
   });
 }
 
 async function drive(permiso, url, opciones = {}) {
-  const r = await fetch(url, { ...opciones, headers: { Authorization: `Bearer ${permiso}`, ...(opciones.headers || {}) } });
+  let r;
+  try {
+    r = await fetch(url, { ...opciones, signal: AbortSignal.timeout(20000),
+      headers: { Authorization: `Bearer ${permiso}`, ...(opciones.headers || {}) } });
+  } catch (e) {
+    throw new Error(e.name === 'TimeoutError' ? 'Drive no respondió en 20 segundos' : `no se pudo llegar a Drive (${e.message})`);
+  }
   if (!r.ok) throw new Error(`Drive respondió ${r.status}`);
   return r.status === 204 ? null : r.json();
 }
@@ -251,14 +258,17 @@ async function probarGoogle() {
     fila(lista, 'google', leido.veces === veces ? 'ok' : 'mal', 'Volví a leerlo', `dice ${leido.veces} veces`);
   } catch (e) {
     fila(lista, 'google', 'mal', 'Drive', e.message);
-  } finally {
-    try { google.accounts.oauth2.revoke(permiso, () => {}); } catch { /* sin dato */ }
   }
+  // El permiso de acceso vence solo en una hora y no se guarda en ningún lado.
 }
 
 $('google').addEventListener('click', async () => {
   $('google').disabled = true;
+  $('google').textContent = 'Probando… esperá a que termine';
+  const inicio = performance.now();
   await probarGoogle();
+  fila($('lista-google'), 'google', 'info', 'Prueba terminada', `${Math.round((performance.now() - inicio) / 1000)} segundos`);
+  $('google').textContent = 'Probar Google y Drive otra vez';
   actualizarTexto();
   $('google').disabled = false;
 });
