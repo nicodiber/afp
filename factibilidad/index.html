@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#11633D">
+<title>AFP · Pruebas de factibilidad</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="iconos/icono.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="iconos/icono-192.png">
+<link rel="stylesheet" href="../css/tokens.css">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:var(--color-fondo);color:var(--color-texto);font-family:var(--fuente);font-size:16px;line-height:1.5}
+main{max-width:720px;margin:0 auto;padding:16px 16px 48px;display:flex;flex-direction:column;gap:16px}
+header{display:flex;align-items:center;gap:12px}
+header img{width:44px;height:44px}
+h1{margin:0;font-size:22px;line-height:1.15}
+h2{margin:0 0 8px;font-size:18px}
+p{margin:0}
+.suave{color:var(--color-texto-suave);font-size:14px}
+.tarjeta{background:var(--color-superficie);border-radius:20px;padding:16px;box-shadow:var(--sombra-tarjeta);border:var(--borde-tarjeta, 0)}
+button{font:inherit;font-weight:800;min-height:48px;padding:0 20px;border-radius:999px;border:0;background:var(--color-acento);color:var(--color-sobre-acento);cursor:pointer;width:100%}
+button.secundario{background:var(--color-superficie);color:var(--color-texto);border:1px solid var(--color-borde-campo);font-weight:700}
+button:focus-visible{outline:2px solid var(--color-acento);outline-offset:2px}
+ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+li{display:grid;grid-template-columns:28px minmax(0,1fr);gap:8px;align-items:start}
+.estado{font-weight:800;text-align:center}
+.ok{color:var(--color-acento)}.mal{color:var(--color-egreso)}.info{color:var(--color-pendiente)}.espera{color:var(--color-texto-suave)}
+.detalle{display:block;font-size:14px;color:var(--color-texto-suave);overflow-wrap:anywhere}
+textarea{width:100%;min-height:160px;font:13px/1.4 ui-monospace,Consolas,monospace;border:1px solid var(--color-borde-campo);border-radius:14px;padding:10px;background:var(--color-fondo);color:var(--color-texto)}
+.acciones{display:flex;flex-direction:column;gap:8px}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <img src="iconos/icono.svg" alt="">
+    <div>
+      <h1>AFP · Pruebas de factibilidad</h1>
+      <p class="suave">Revisa si tu navegador y tu dispositivo pueden usar AFP. No guarda ni manda datos tuyos.</p>
+    </div>
+  </header>
+
+  <section class="tarjeta" aria-labelledby="t-probar">
+    <h2 id="t-probar">1. Probar</h2>
+    <div class="acciones">
+      <button id="probar" type="button">Probar todo</button>
+      <button id="instalar" type="button" class="secundario" hidden>Instalar AFP</button>
+    </div>
+  </section>
+
+  <section class="tarjeta" aria-labelledby="t-entorno">
+    <h2 id="t-entorno">2. Este dispositivo</h2>
+    <ul id="lista-entorno"></ul>
+  </section>
+
+  <section class="tarjeta" aria-labelledby="t-cot">
+    <h2 id="t-cot">3. Cotizaciones e índices (F-01)</h2>
+    <ul id="lista-fuentes"><li><span class="estado espera">…</span><span>Tocá «Probar todo».</span></li></ul>
+  </section>
+
+  <section class="tarjeta" aria-labelledby="t-datos">
+    <h2 id="t-datos">4. Datos guardados y sin conexión (F-03, F-06)</h2>
+    <ul id="lista-datos"></ul>
+  </section>
+
+  <section class="tarjeta" aria-labelledby="t-res">
+    <h2 id="t-res">5. Resultados</h2>
+    <p class="suave">Copialos y pegalos en el checklist E3, en el comentario del paso.</p>
+    <div class="acciones" style="margin-top:8px">
+      <button id="copiar" type="button" class="secundario">Copiar resultados</button>
+    </div>
+    <label class="suave" for="resultados" style="display:block;margin-top:8px">Resultados en texto</label>
+    <textarea id="resultados" readonly></textarea>
+  </section>
+</main>
+<script src="app.js" type="module"></script>
+</body>
+</html>

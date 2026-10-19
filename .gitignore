@@ -1,0 +1,7 @@
+*.xlsx
+*.csv
+*.json
+!*.webmanifest
+!datos-demo/**
+.nombres-prohibidos.txt
+node_modules/

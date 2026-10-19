@@ -1,0 +1,169 @@
+/*
+ * tokens.css · Tokens de diseño de AFP (manual de marca, MARCA.md)
+ *
+ * Única fuente de colores, tipografía, espaciado, radios, sombras y movimiento.
+ * Los componentes usan siempre estas variables, nunca valores sueltos.
+ * Un cambio acá necesita la aprobación del usuario (CLAUDE.md).
+ *
+ * Tema: sigue al sistema y se puede forzar con data-tema="claro" u "oscuro"
+ * en <html> (RNF-USA-02).
+ */
+
+:root {
+  color-scheme: light;
+
+  /* Color · superficies y texto (contraste medido en MARCA.md §3) */
+  --color-fondo: #F2F8F3;
+  --color-superficie: #FFFFFF;
+  --color-texto: #11251B;
+  --color-texto-suave: #4A6255;
+  --color-linea: #D2E3D7;           /* separadores decorativos */
+  --color-borde-campo: #728A7D;     /* bordes de campos y controles (≥ 3:1) */
+
+  /* Color · marca y acciones */
+  --color-acento: #11633D;          /* botones, enlaces, selección, foco */
+  --color-sobre-acento: #FFFFFF;
+  --color-sobre-acento-suave: #CFE8DA;
+  --color-foco: var(--color-acento);
+
+  /* Color · semánticos (texto y pastillas; siempre con signo, ícono o rótulo) */
+  --color-ingreso: #006B6E;
+  --color-egreso: #AE4630;
+  --color-alerta: #875A00;
+  --color-pendiente: #2C62A6;
+  --color-neutro: #57655D;
+  --color-error: var(--color-egreso);
+
+  /* Gráficos · marcas (validadas con el validador de paletas, MARCA.md §7) */
+  --grafico-ingreso: #009688;
+  --grafico-egreso: #AE4630;
+  --grafico-trama-egreso: repeating-linear-gradient(135deg, var(--grafico-egreso) 0 2px, transparent 2px 6px);
+  --grafico-grilla: var(--color-linea);
+  --grafico-cat-1: #2A78D6;
+  --grafico-cat-2: #EB6834;
+  --grafico-cat-3: #1BAF7A;
+  --grafico-cat-4: #EDA100;
+  --grafico-cat-5: #E87BA4;
+  --grafico-cat-6: #008300;
+  --grafico-cat-7: #6250D6;
+  --grafico-cat-8: #E34948;
+
+  /* Sombras */
+  --sombra-tarjeta: 0 1px 2px rgba(17, 37, 27, 0.06), 0 6px 20px rgba(17, 37, 27, 0.06);
+  --borde-tarjeta: 1px solid transparent;
+
+  /* Tipografía · Figtree (OFL), servida desde el propio sitio (DEPENDENCIAS.md) */
+  --fuente: 'Figtree', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --peso-normal: 400;
+  --peso-medio: 500;
+  --peso-semi: 600;
+  --peso-negrita: 700;
+  --peso-extra: 800;
+  --texto-xs: 0.8125rem;    /* 13 px · mínimo para textos de apoyo */
+  --texto-sm: 0.875rem;     /* 14 px */
+  --texto-md: 1rem;         /* 16 px · cuerpo */
+  --texto-lg: 1.125rem;     /* 18 px */
+  --texto-xl: 1.5rem;       /* 24 px */
+  --texto-2xl: 1.875rem;    /* 30 px */
+  --texto-monto: 2.25rem;   /* 36 px · monto destacado */
+  --interlineado-ajustado: 1.15;
+  --interlineado: 1.5;
+
+  /* Espaciado (base 4 px) */
+  --esp-1: 4px;
+  --esp-2: 8px;
+  --esp-3: 12px;
+  --esp-4: 16px;
+  --esp-5: 20px;
+  --esp-6: 24px;
+  --esp-8: 32px;
+  --esp-10: 40px;
+  --margen-lateral: 16px;
+
+  /* Radios */
+  --radio-chico: 8px;
+  --radio-campo: 14px;
+  --radio-tarjeta: 20px;
+  --radio-destacada: 24px;
+  --radio-pastilla: 999px;
+
+  /* Tamaños de interacción */
+  --objetivo-tactil: 44px;
+  --alto-boton: 48px;
+  --alto-boton-principal: 54px;
+  --ancho-maximo: 1200px;
+
+  /* Movimiento */
+  --duracion-corta: 150ms;
+  --duracion-media: 250ms;
+  --curva: cubic-bezier(0.2, 0, 0, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-tema="claro"]) {
+    color-scheme: dark;
+    --color-fondo: #0E1A14;
+    --color-superficie: #16251D;
+    --color-texto: #E7F3EB;
+    --color-texto-suave: #A1BBAC;
+    --color-linea: #284034;
+    --color-borde-campo: #638270;
+    --color-acento: #72D9A3;
+    --color-sobre-acento: #0B1D14;
+    --color-sobre-acento-suave: #1F4A33;
+    --color-ingreso: #5CD6D0;
+    --color-egreso: #F3977E;
+    --color-alerta: #ECC25C;
+    --color-pendiente: #8FB8F4;
+    --color-neutro: #A9B8AF;
+    --grafico-ingreso: #26A9A8;
+    --grafico-egreso: #E0704F;
+    --grafico-cat-1: #3987E5;
+    --grafico-cat-2: #D95926;
+    --grafico-cat-3: #199E70;
+    --grafico-cat-4: #C98500;
+    --grafico-cat-5: #D55181;
+    --grafico-cat-6: #008300;
+    --grafico-cat-7: #9085E9;
+    --grafico-cat-8: #E66767;
+    --sombra-tarjeta: none;
+    --borde-tarjeta: 1px solid #284034;
+  }
+}
+
+:root[data-tema="oscuro"] {
+  color-scheme: dark;
+  --color-fondo: #0E1A14;
+  --color-superficie: #16251D;
+  --color-texto: #E7F3EB;
+  --color-texto-suave: #A1BBAC;
+  --color-linea: #284034;
+  --color-borde-campo: #638270;
+  --color-acento: #72D9A3;
+  --color-sobre-acento: #0B1D14;
+  --color-sobre-acento-suave: #1F4A33;
+  --color-ingreso: #5CD6D0;
+  --color-egreso: #F3977E;
+  --color-alerta: #ECC25C;
+  --color-pendiente: #8FB8F4;
+  --color-neutro: #A9B8AF;
+  --grafico-ingreso: #26A9A8;
+  --grafico-egreso: #E0704F;
+  --grafico-cat-1: #3987E5;
+  --grafico-cat-2: #D95926;
+  --grafico-cat-3: #199E70;
+  --grafico-cat-4: #C98500;
+  --grafico-cat-5: #D55181;
+  --grafico-cat-6: #008300;
+  --grafico-cat-7: #9085E9;
+  --grafico-cat-8: #E66767;
+  --sombra-tarjeta: none;
+  --borde-tarjeta: 1px solid #284034;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duracion-corta: 0ms;
+    --duracion-media: 0ms;
+  }
+}

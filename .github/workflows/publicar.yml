@@ -1,0 +1,69 @@
+# Publica AFP en GitHub Pages (AA1).
+# La versión real (rama main) va en la raíz del sitio y la versión a probar
+# (rama develop) en /prueba/. No compila nada: solo copia archivos.
+name: Publicar en GitHub Pages
+
+on:
+  push:
+    branches: [main, develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.despliegue.outputs.page_url }}
+    steps:
+      - name: Traer la versión real (main)
+        id: real
+        uses: actions/checkout@v4
+        continue-on-error: true
+        with:
+          ref: main
+          path: real
+
+      - name: Traer la versión a probar (develop)
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+          path: prueba
+
+      - name: Armar el sitio
+        run: |
+          mkdir -p sitio/prueba
+          if [ "${{ steps.real.outcome }}" = "success" ] && [ -f real/index.html ]; then
+            cp -a real/. sitio/
+            rm -rf sitio/.git sitio/.github
+          else
+            cat > sitio/index.html <<'HTML'
+          <!doctype html>
+          <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+          <title>AFP</title></head>
+          <body style="font-family:system-ui,sans-serif;max-width:40rem;margin:3rem auto;padding:0 1rem">
+          <h1>AFP</h1><p>Todavía no hay una versión publicada.</p></body></html>
+          HTML
+          fi
+          cp -a prueba/. sitio/prueba/
+          rm -rf sitio/prueba/.git sitio/prueba/.github
+
+      - name: Configurar Pages
+        uses: actions/configure-pages@v5
+
+      - name: Subir el sitio
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: sitio
+
+      - name: Publicar
+        id: despliegue
+        uses: actions/deploy-pages@v4
