@@ -23,8 +23,13 @@ function historia(d) {
   return `${d.length} días, del ${fechas[0]} al ${fechas[fechas.length - 1]} · ${desde2025} desde 2025 · ${cubre}`;
 }
 
+// ID de cliente OAuth de Google (público, D-69). Vacío hasta que el usuario lo cree.
+const ID_CLIENTE = '';
+const PERMISO_DRIVE = 'https://www.googleapis.com/auth/drive.file';
+const ARCHIVO_PRUEBA = 'afp-factibilidad.json';
+
 const $ = (id) => document.getElementById(id);
-const resultados = { entorno: [], fuentes: [], datos: [] };
+const resultados = { entorno: [], fuentes: [], datos: [], google: [] };
 
 function fila(lista, clave, estado, titulo, detalle) {
   const simbolos = { ok: '✓', mal: '✗', info: 'i', espera: '…' };
@@ -54,6 +59,7 @@ function actualizarTexto() {
     '', '[Dispositivo]', ...resultados.entorno,
     '', '[Cotizaciones e índices]', ...resultados.fuentes,
     '', '[Datos y sin conexión]', ...resultados.datos,
+    '', '[Google y Drive]', ...(resultados.google.length ? resultados.google : ['(sin probar)']),
   ].join('\n');
 }
 
@@ -155,6 +161,94 @@ async function datos(agregar = false) {
   fila(lista, 'datos', sw ? 'ok' : 'info', 'Funciona sin conexión',
     sw ? 'Sí: la página quedó guardada para abrir sin internet' : 'Todavía no: volvé a cargar la página una vez');
 }
+
+// ---------- Google y Drive ----------
+function cargarGoogle() {
+  return new Promise((ok, mal) => {
+    if (window.google && google.accounts && google.accounts.oauth2) return ok();
+    const s = document.createElement('script');
+    s.src = 'https://accounts.google.com/gsi/client';
+    s.onload = ok;
+    s.onerror = () => mal(new Error('no se pudo cargar el inicio de sesión de Google (¿escudos de Brave?)'));
+    document.head.append(s);
+  });
+}
+
+function pedirPermiso() {
+  return new Promise((ok, mal) => {
+    const cliente = google.accounts.oauth2.initTokenClient({
+      client_id: ID_CLIENTE,
+      scope: PERMISO_DRIVE,
+      callback: (r) => (r.error ? mal(new Error(`Google respondió: ${r.error}`)) : ok(r.access_token)),
+      error_callback: (e) => mal(new Error(`la ventana de Google se cerró o se bloqueó (${e.type})`)),
+    });
+    cliente.requestAccessToken();
+  });
+}
+
+async function drive(permiso, url, opciones = {}) {
+  const r = await fetch(url, { ...opciones, headers: { Authorization: `Bearer ${permiso}`, ...(opciones.headers || {}) } });
+  if (!r.ok) throw new Error(`Drive respondió ${r.status}`);
+  return r.status === 204 ? null : r.json();
+}
+
+async function probarGoogle() {
+  const lista = $('lista-google');
+  lista.textContent = '';
+  resultados.google = [];
+  if (!ID_CLIENTE) {
+    fila(lista, 'google', 'info', 'Falta el ID de cliente', 'Se completa cuando crees el proyecto de Google Cloud');
+    return;
+  }
+  let permiso;
+  try {
+    await cargarGoogle();
+    fila(lista, 'google', 'ok', 'Inicio de sesión de Google cargado');
+    permiso = await pedirPermiso();
+    fila(lista, 'google', 'ok', 'Iniciaste sesión y diste permiso para los archivos de AFP');
+  } catch (e) {
+    fila(lista, 'google', 'mal', 'Inicio de sesión', e.message);
+    return;
+  }
+  try {
+    const q = encodeURIComponent(`name='${ARCHIVO_PRUEBA}' and trashed=false`);
+    const lista1 = await drive(permiso, `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`);
+    let id = lista1.files.length ? lista1.files[0].id : null;
+    let veces = 1;
+    if (id) {
+      const anterior = await drive(permiso, `https://www.googleapis.com/drive/v3/files/${id}?alt=media`);
+      veces = (Number(anterior.veces) || 0) + 1;
+      fila(lista, 'google', 'ok', 'Leí el archivo de prueba de Drive', `lo probaste ${veces - 1} veces antes`);
+    }
+    const contenido = JSON.stringify({ prueba: 'AFP factibilidad', veces });
+    if (id) {
+      await drive(permiso, `https://www.googleapis.com/upload/drive/v3/files/${id}?uploadType=media`, {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: contenido });
+      fila(lista, 'google', 'ok', 'Actualicé el archivo de prueba en Drive', `ahora dice ${veces} veces`);
+    } else {
+      const limite = 'afp' + Math.random().toString(36).slice(2);
+      const cuerpo = `--${limite}\r\nContent-Type: application/json\r\n\r\n${JSON.stringify({ name: ARCHIVO_PRUEBA, mimeType: 'application/json' })}\r\n` +
+        `--${limite}\r\nContent-Type: application/json\r\n\r\n${contenido}\r\n--${limite}--`;
+      const nuevo = await drive(permiso, 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', {
+        method: 'POST', headers: { 'Content-Type': `multipart/related; boundary=${limite}` }, body: cuerpo });
+      id = nuevo.id;
+      fila(lista, 'google', 'ok', 'Creé el archivo de prueba en tu Drive', ARCHIVO_PRUEBA);
+    }
+    const leido = await drive(permiso, `https://www.googleapis.com/drive/v3/files/${id}?alt=media`);
+    fila(lista, 'google', leido.veces === veces ? 'ok' : 'mal', 'Volví a leerlo', `dice ${leido.veces} veces`);
+  } catch (e) {
+    fila(lista, 'google', 'mal', 'Drive', e.message);
+  } finally {
+    try { google.accounts.oauth2.revoke(permiso, () => {}); } catch { /* sin dato */ }
+  }
+}
+
+$('google').addEventListener('click', async () => {
+  $('google').disabled = true;
+  await probarGoogle();
+  actualizarTexto();
+  $('google').disabled = false;
+});
 
 // ---------- Instalación ----------
 let pedidoInstalar = null;
