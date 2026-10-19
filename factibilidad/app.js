@@ -24,9 +24,10 @@ function historia(d) {
 }
 
 // ID de cliente OAuth de Google (público, D-69). Vacío hasta que el usuario lo cree.
-const ID_CLIENTE = '';
+const ID_CLIENTE = '495538558633-svrbv6gqjo79t8ke1gvs1m9l9sa2cb40.apps.googleusercontent.com';
 const PERMISO_DRIVE = 'https://www.googleapis.com/auth/drive.file';
 const ARCHIVO_PRUEBA = 'afp-factibilidad.json';
+const CARPETA = 'AFP';
 
 const $ = (id) => document.getElementById(id);
 const resultados = { entorno: [], fuentes: [], datos: [], google: [] };
@@ -211,7 +212,19 @@ async function probarGoogle() {
     return;
   }
   try {
-    const q = encodeURIComponent(`name='${ARCHIVO_PRUEBA}' and trashed=false`);
+    const qc = encodeURIComponent(`name='${CARPETA}' and mimeType='application/vnd.google-apps.folder' and trashed=false`);
+    const carpetas = await drive(permiso, `https://www.googleapis.com/drive/v3/files?q=${qc}&fields=files(id)`);
+    let carpeta = carpetas.files.length ? carpetas.files[0].id : null;
+    if (carpeta) {
+      fila(lista, 'google', 'ok', 'Encontré la carpeta AFP en tu Drive');
+    } else {
+      const nueva = await drive(permiso, 'https://www.googleapis.com/drive/v3/files?fields=id', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: CARPETA, mimeType: 'application/vnd.google-apps.folder' }) });
+      carpeta = nueva.id;
+      fila(lista, 'google', 'ok', 'Creé la carpeta AFP en tu Drive');
+    }
+    const q = encodeURIComponent(`name='${ARCHIVO_PRUEBA}' and '${carpeta}' in parents and trashed=false`);
     const lista1 = await drive(permiso, `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`);
     let id = lista1.files.length ? lista1.files[0].id : null;
     let veces = 1;
@@ -227,12 +240,12 @@ async function probarGoogle() {
       fila(lista, 'google', 'ok', 'Actualicé el archivo de prueba en Drive', `ahora dice ${veces} veces`);
     } else {
       const limite = 'afp' + Math.random().toString(36).slice(2);
-      const cuerpo = `--${limite}\r\nContent-Type: application/json\r\n\r\n${JSON.stringify({ name: ARCHIVO_PRUEBA, mimeType: 'application/json' })}\r\n` +
+      const cuerpo = `--${limite}\r\nContent-Type: application/json\r\n\r\n${JSON.stringify({ name: ARCHIVO_PRUEBA, mimeType: 'application/json', parents: [carpeta] })}\r\n` +
         `--${limite}\r\nContent-Type: application/json\r\n\r\n${contenido}\r\n--${limite}--`;
       const nuevo = await drive(permiso, 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', {
         method: 'POST', headers: { 'Content-Type': `multipart/related; boundary=${limite}` }, body: cuerpo });
       id = nuevo.id;
-      fila(lista, 'google', 'ok', 'Creé el archivo de prueba en tu Drive', ARCHIVO_PRUEBA);
+      fila(lista, 'google', 'ok', 'Creé el archivo de prueba en la carpeta AFP', ARCHIVO_PRUEBA);
     }
     const leido = await drive(permiso, `https://www.googleapis.com/drive/v3/files/${id}?alt=media`);
     fila(lista, 'google', leido.veces === veces ? 'ok' : 'mal', 'Volví a leerlo', `dice ${leido.veces} veces`);

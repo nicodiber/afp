@@ -1,5 +1,5 @@
 // Service worker de la página de pruebas: guarda la página para abrirla sin conexión.
-const CACHE = 'afp-factibilidad-v2';
+const CACHE = 'afp-factibilidad-v3';
 const ARCHIVOS = ['./', 'index.html', 'app.js', 'manifest.webmanifest', '../css/tokens.css',
   'iconos/icono.svg', 'iconos/icono-192.png', 'iconos/icono-512.png', 'iconos/icono-maskable-512.png'];
 
