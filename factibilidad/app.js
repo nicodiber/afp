@@ -29,6 +29,7 @@ const PERMISO_DRIVE = 'https://www.googleapis.com/auth/drive.file';
 const ARCHIVO_PRUEBA = 'afp-factibilidad.json';
 const CARPETA = 'AFP';
 
+const VERSION_PAGINA = 5;
 const $ = (id) => document.getElementById(id);
 const resultados = { entorno: [], fuentes: [], datos: [], google: [] };
 
@@ -80,6 +81,7 @@ async function entorno() {
       if (marca) navegador += ` (motor Chromium ${marca.version})`;
     }
   } catch { /* sin dato */ }
+  fila(lista, 'entorno', 'info', 'Versión de esta página', String(VERSION_PAGINA));
   fila(lista, 'entorno', 'info', 'Navegador', navegador);
   fila(lista, 'entorno', 'info', 'Sistema', sistema);
   const app = matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: minimal-ui)').matches;
@@ -175,11 +177,16 @@ function cargarGoogle() {
   });
 }
 
+// La cuenta usada la última vez se guarda solo en este dispositivo, para que Google la elija sola.
+const CLAVE_CUENTA = 'afp-factibilidad-cuenta';
+function cuentaGuardada() { try { return localStorage.getItem(CLAVE_CUENTA) || ''; } catch { return ''; } }
+
 function pedirPermiso() {
   return new Promise((ok, mal) => {
     const cliente = google.accounts.oauth2.initTokenClient({
       client_id: ID_CLIENTE,
       scope: PERMISO_DRIVE,
+      hint: cuentaGuardada() || undefined,
       callback: (r) => (r.error ? mal(new Error(`Google respondió: ${r.error}`)) : ok(r.access_token)),
       error_callback: (e) => mal(new Error(`la ventana de Google se cerró o se bloqueó (${e.type})`)),
     });
@@ -213,7 +220,13 @@ async function probarGoogle() {
     await cargarGoogle();
     fila(lista, 'google', 'ok', 'Inicio de sesión de Google cargado');
     permiso = await pedirPermiso();
-    fila(lista, 'google', 'ok', 'Iniciaste sesión y diste permiso para los archivos de AFP');
+    const conPista = Boolean(cuentaGuardada());
+    fila(lista, 'google', 'ok', 'Iniciaste sesión y diste permiso para los archivos de AFP',
+      conPista ? 'Google ya sabía qué cuenta usar' : 'primera vez: Google te pidió la cuenta');
+    try {
+      const yo = await drive(permiso, 'https://www.googleapis.com/drive/v3/about?fields=user(emailAddress)');
+      localStorage.setItem(CLAVE_CUENTA, yo.user.emailAddress);
+    } catch { /* si no se puede guardar, la próxima vez Google vuelve a preguntar */ }
   } catch (e) {
     fila(lista, 'google', 'mal', 'Inicio de sesión', e.message);
     return;
@@ -311,5 +324,7 @@ $('copiar').addEventListener('click', async () => {
   }
 });
 
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js', { scope: './' });
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js', { scope: './' }).then((r) => r.update()).catch(() => {});
+}
 entorno().then(() => datos(true)).then(actualizarTexto);
