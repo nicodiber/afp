@@ -1,0 +1,5 @@
+,,,Ingreso,,,,,,,,Egreso,,,,,,,,,Billetera,,,Banco,,,Billetera virtual,,,Cuentas por cobrar,,,,Cuentas por pagar,,,,USD,,,,
+Marca temporal,Fecha,Descripción,💼 Trabajo,👪 Aporte familiar,🐛 Mantenido,📈 Rendimiento,📝 i_Préstamo,🧾 i_Deuda,🔙 i_Inversión,🎁 i_Regalo,🛒 Supermercado,🥦 Verdulería,🍫 Kiosco,🏠 Vivienda: Alquiler,🏖️ Vacaciones,📝 e_Préstamo,🧾 e_Deuda,🔜 e_Inversión,🔧 Reparación,👛➕ Billetera Entrada,👛➖ Billetera Salida,Saldo,🏛️➕ Banco Entrada,🏛️➖ Banco Salida,Saldo,🤝➕ Billetera virtual Entrada,🤝➖ Billetera virtual Salida,Saldo,👤 Persona,📤 Debe,📥 Haber,Saldo,👤 Persona,📥 Debe,📤 Haber,Saldo,📥 Debe,📤 Haber,Saldo,Ocultar (Email),Acción
+10/30/2026 10:15:30,30/10/2026,Compra rápida,,,,,,,,,6000,,,,,,,,,,,,,,,,6000,,,,,,,,,,,,,,💸 Egreso
+10/30/2026 11:15:30,30/10/2026,Golosinas,,,,,,,,,,,1500,,,,,,,,1500,,,,,,,,,,,,,,,,,,,,💸 Egreso
+10/30/2026 12:15:30,30/10/2026,Changa,20000,,,,,,,,,,,,,,,,,20000,,,,,,,,,,,,,,,,,,,,,💰 Ingreso

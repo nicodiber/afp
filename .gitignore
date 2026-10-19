@@ -5,3 +5,5 @@
 !datos-demo/**
 .nombres-prohibidos.txt
 node_modules/
+!package-lock.json
+!.claude/launch.json
