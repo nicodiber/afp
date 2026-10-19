@@ -1,7 +1,7 @@
 // Service worker de la página de pruebas: guarda la página para abrirla sin conexión.
-const CACHE = 'afp-factibilidad-v5';
+const CACHE = 'afp-factibilidad-v6';
 const ARCHIVOS = ['./', 'index.html', 'app.js', 'manifest.webmanifest', '../css/tokens.css',
-  'iconos/icono.svg', 'iconos/icono-192.png', 'iconos/icono-512.png', 'iconos/icono-maskable-512.png'];
+  'iconos/icono.svg', 'xlsx.html', 'xlsx/lector-xlsx.js', 'iconos/icono-192.png', 'iconos/icono-512.png', 'iconos/icono-maskable-512.png'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ARCHIVOS)).then(() => self.skipWaiting()));

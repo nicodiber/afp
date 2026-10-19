@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AFP · Prueba de lectura de .xlsx</title>
+<link rel="icon" href="iconos/icono.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../css/tokens.css">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:var(--color-fondo);color:var(--color-texto);font-family:var(--fuente);line-height:1.5}
+main{max-width:720px;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:16px}
+h1{margin:0;font-size:22px}
+.tarjeta{background:var(--color-superficie);border-radius:20px;padding:16px;box-shadow:var(--sombra-tarjeta);border:var(--borde-tarjeta,0)}
+.suave{color:var(--color-texto-suave);font-size:14px}
+input[type=file]{font:inherit;width:100%}
+ul{margin:8px 0 0;padding-left:20px}
+textarea{width:100%;min-height:140px;font:13px/1.4 ui-monospace,Consolas,monospace;border:1px solid var(--color-borde-campo);border-radius:14px;padding:10px;background:var(--color-fondo);color:var(--color-texto)}
+</style>
+</head>
+<body>
+<main>
+  <h1>AFP · Prueba de lectura de .xlsx (F-04)</h1>
+  <section class="tarjeta">
+    <p>Elegí tu planilla de AEP v3 descargada como .xlsx. Se lee <strong>solo en este dispositivo</strong>: no se manda a ningún lado y la página no muestra ningún dato, solo cuántas filas y columnas encontró.</p>
+    <p class="suave">En Google Sheets: Archivo → Descargar → Microsoft Excel (.xlsx).</p>
+    <label for="archivo" class="suave">Archivo</label>
+    <input id="archivo" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+    <ul id="lista"></ul>
+  </section>
+  <section class="tarjeta">
+    <p class="suave">Resultados para copiar en el checklist (sin datos tuyos)</p>
+    <textarea id="resultados" readonly aria-label="Resultados"></textarea>
+  </section>
+</main>
+<script type="module">
+import { leerXlsx } from './xlsx/lector-xlsx.js';
+const lista = document.getElementById('lista');
+const res = document.getElementById('resultados');
+function linea(t) { const li = document.createElement('li'); li.textContent = t; lista.append(li); return t; }
+document.getElementById('archivo').addEventListener('change', async (e) => {
+  lista.textContent = '';
+  const archivo = e.target.files[0];
+  if (!archivo) return;
+  const salida = [`Archivo de ${Math.round(archivo.size / 1024)} KB`];
+  try {
+    const inicio = performance.now();
+    const { hojas } = await leerXlsx(await archivo.arrayBuffer());
+    salida.push(`Leído en ${Math.round(performance.now() - inicio)} ms`);
+    salida.push(`${hojas.length} hojas`);
+    const mov = hojas.find((h) => h.nombre === 'movimientos');
+    if (mov) {
+      const enc = (mov.filas[1] || []).map(String);
+      const ok = ['Marca temporal', 'Fecha', 'Descripción'].every((t, i) => enc[i] === t);
+      const datos = mov.filas.slice(2).filter((f) => f.some((v) => v !== null));
+      const fechas = datos.filter((f) => f[1] && f[1].fecha).length;
+      salida.push(`Hoja «movimientos»: ${mov.filas.length} filas, ${Math.max(...mov.filas.map((f) => f.length))} columnas`);
+      salida.push(`Encabezados en dos filas como en v3: ${ok ? 'sí' : 'no'}`);
+      salida.push(`Filas con datos: ${datos.length} · con fecha reconocida: ${fechas}`);
+    } else {
+      salida.push('No encontré la hoja «movimientos»');
+    }
+  } catch (err) {
+    salida.push(`No se pudo leer: ${err.message}`);
+  }
+  salida.forEach(linea);
+  res.value = 'AFP · Prueba de lectura de .xlsx\n' + salida.join('\n');
+});
+</script>
+</body>
+</html>
