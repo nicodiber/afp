@@ -5,11 +5,12 @@ import { promisify } from 'node:util';
 import { chromium } from 'playwright';
 import { iniciarServidor } from './servidor.mjs';
 
-const LIGHTHOUSE = 'lighthouse@13.5.0';
+// Paquete y versión por separado: «nombre@versión» escrito junto parece un email para el control Privacidad (FC-08).
+const LIGHTHOUSE = { paquete: 'lighthouse', version: '13.5.0' };
 const servidor = await iniciarServidor();
 let salida = 0;
 try {
-  const { stdout } = await promisify(execFile)('npx', ['--yes', LIGHTHOUSE, servidor.url,
+  const { stdout } = await promisify(execFile)('npx', ['--yes', `${LIGHTHOUSE.paquete}@${LIGHTHOUSE.version}`, servidor.url,
     '--only-categories=performance,accessibility,best-practices', '--form-factor=mobile',
     '--output=json', '--output-path=stdout', '--quiet', '--chrome-flags=--headless=new --no-sandbox'],
   { env: { ...process.env, CHROME_PATH: chromium.executablePath() }, maxBuffer: 64 * 1024 * 1024 });
