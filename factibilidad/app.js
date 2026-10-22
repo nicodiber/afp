@@ -1,3 +1,4 @@
+/* global google */
 // Pruebas de factibilidad de AFP (E3: F-01, F-03, F-06).
 // Página de prueba, no es código de la app: no guarda ni manda datos personales.
 

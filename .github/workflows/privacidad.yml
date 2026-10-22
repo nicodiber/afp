@@ -1,0 +1,24 @@
+# Control «Privacidad» (aep#1 CA-5, RNF-SEG-07): nada personal en el repo público.
+name: Privacidad
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  privacidad:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Buscar datos personales
+        env:
+          NOMBRES_PROHIBIDOS: ${{ secrets.NOMBRES_PROHIBIDOS }}
+        run: node .github/scripts/control-privacidad.mjs

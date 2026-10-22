@@ -54,7 +54,7 @@ jobs:
           HTML
           fi
           cp -a prueba/. sitio/prueba/
-          rm -rf sitio/prueba/.git sitio/prueba/.github sitio/prueba/.claude sitio/prueba/pruebas sitio/prueba/package.json sitio/prueba/package-lock.json
+          rm -rf sitio/prueba/.git sitio/prueba/.github sitio/prueba/.claude sitio/prueba/pruebas sitio/prueba/package.json sitio/prueba/package-lock.json sitio/prueba/eslint.config.js sitio/prueba/AGENTS.md sitio/prueba/CLAUDE.md
 
       - name: Configurar Pages
         uses: actions/configure-pages@v5
