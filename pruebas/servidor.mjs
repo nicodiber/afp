@@ -14,6 +14,8 @@ const TIPOS = {
 };
 
 export function iniciarServidor() {
+  // Sustituciones de contenido por ruta (por ejemplo, para simular la versión anterior de un archivo).
+  const sustituciones = new Map();
   const servidor = createServer(async (pedido, respuesta) => {
     const ruta = decodeURIComponent(new URL(pedido.url, 'http://x').pathname);
     if (!ruta.startsWith('/prueba/')) { respuesta.writeHead(404).end(); return; }
@@ -21,7 +23,9 @@ export function iniciarServidor() {
     if (!archivo.startsWith(RAIZ)) { respuesta.writeHead(403).end(); return; }
     if (ruta.endsWith('/')) archivo = join(archivo, 'index.html');
     try {
-      const contenido = await readFile(archivo);
+      let contenido = await readFile(archivo);
+      const sustituir = sustituciones.get(ruta);
+      if (sustituir) contenido = Buffer.from(sustituir(contenido.toString('utf8')));
       respuesta.writeHead(200, { 'Content-Type': TIPOS[extname(archivo)] || 'application/octet-stream', 'Cache-Control': 'no-cache' });
       respuesta.end(contenido);
     } catch {
@@ -31,5 +35,7 @@ export function iniciarServidor() {
   return new Promise((ok) => servidor.listen(0, '127.0.0.1', () => ok({
     url: `http://127.0.0.1:${servidor.address().port}/prueba/`,
     cerrar: () => new Promise((fin) => servidor.close(fin)),
+    sustituir: (ruta, funcion) => sustituciones.set(ruta, funcion),
+    restaurar: () => sustituciones.clear(),
   })));
 }

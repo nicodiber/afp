@@ -76,12 +76,13 @@ test('aep#2 CA-7 · Ajustes → «Acerca de» muestra el nombre completo y la ve
   await pagina.getByRole('heading', { name: 'Acerca de' }).waitFor();
   const texto = await textoPrincipal(pagina);
   assert.match(texto, /AFP · Administración Financiera Personal/);
-  assert.match(texto, /v0\.1\.0-1/);
+  assert.match(texto, /v0\.1\.0-2/, 'versión de la entrega actual (aep#3)');
   assert.deepEqual(errores, []);
   await contexto.close();
 });
 
-test('aep#2 CA-11 · en la PC: barra lateral compacta que se expande con el mouse o el teclado sin mover el contenido', async () => {
+// La parte «sin mover el contenido» de este criterio la reemplazó aep#3 CA-1 (D-101): se prueba en ajustes-base.test.js.
+test('aep#2 CA-11 · en la PC: barra lateral compacta que se expande con el mouse o el teclado', async () => {
   const { contexto, pagina, errores } = await abrir(entorno.navegador, entorno.servidor, { viewport: ESCRITORIO });
   const nav = pagina.getByRole('navigation', { name: 'Principal' });
   // Playwright arranca con el puntero en (0, 0), encima de la barra: se lo corre al contenido.
@@ -98,19 +99,16 @@ test('aep#2 CA-11 · en la PC: barra lateral compacta que se expande con el mous
   const cargarY = ys.find(([n]) => n === 'Cargar')[1];
   assert.ok(ys.every(([n, y]) => n === 'Cargar' || y < cargarY), 'Cargar abajo');
 
-  const contenido = async () => (await pagina.locator('main h1').boundingBox()).x;
-  const antes = await contenido();
   await nav.hover();
   await pagina.waitForFunction(() => document.querySelector('nav').getBoundingClientRect().width > 200);
   assert.equal(await nombreVisible(), true, 'con el mouse: nombres a la vista');
-  assert.equal(await contenido(), antes, 'el contenido no se mueve');
 
   await pagina.mouse.move(ESCRITORIO.width - 10, ESCRITORIO.height / 2);
   await pagina.waitForFunction(() => document.querySelector('nav').getBoundingClientRect().width <= 96);
   await pagina.getByRole('link', { name: 'Inicio' }).focus();
   await pagina.keyboard.press('Tab');
   await pagina.waitForFunction(() => document.querySelector('nav').getBoundingClientRect().width > 200);
-  assert.equal(await contenido(), antes, 'el contenido no se mueve con el teclado');
+  assert.equal(await nombreVisible(), true, 'con el teclado: nombres a la vista');
 
   await pagina.setViewportSize({ width: 700, height: 800 });
   const angosta = await nav.boundingBox();
