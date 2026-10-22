@@ -1,7 +1,7 @@
 /*
- * app.css · Pantallas de AFP (aep#2). Solo usa los tokens de tokens.css (manual de marca).
+ * app.css · Pantallas de AFP (aep#2, aep#3). Solo usa los tokens de tokens.css (manual de marca).
  * Celular (< 720 px): cabecera con el logotipo, contenido y barra inferior (D-94).
- * PC (≥ 720 px): barra lateral compacta que se expande con el mouse o el teclado, sobre el contenido (D-95).
+ * PC (≥ 720 px): barra lateral compacta que se abre con el mouse o el teclado y corre el contenido (D-95, D-101).
  */
 
 @font-face {
@@ -369,11 +369,16 @@ main {
     clip-path: none;
   }
 
+  /* La barra abierta corre el contenido en vez de taparlo (D-101); el contenido va en una columna centrada (D-102). */
   main {
     min-height: 100dvh;
     margin-left: var(--ancho-nav-compacta);
     padding: var(--esp-8) var(--esp-10);
+    align-items: center;
+    transition: margin-left var(--duracion-media) var(--curva);
   }
+  body:has(.navegacion:hover, .navegacion:focus-within) main { margin-left: var(--ancho-nav-abierta); }
+  main > * { width: min(100%, 480px); }
   .titulo-inicio {
     position: static;
     width: auto;
@@ -384,7 +389,6 @@ main {
     white-space: normal;
   }
   .boton-principal { width: auto; }
-  .seccion { max-width: 480px; }
   .aviso-version { bottom: var(--esp-6); left: calc(50% + var(--ancho-nav-compacta) / 2); }
 }
 
