@@ -1,0 +1,149 @@
+// aep#2: pantalla inicial, navegación, destinos que todavía no existen, «Acerca de» y manifiesto.
+// Los textos y valores esperados salen de la spec (aep harness/specs/2-base-instalable/spec.md).
+import { test, before, after } from 'node:test';
+import assert from 'node:assert/strict';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { chromium } from 'playwright';
+import { prepararEntorno, abrir, CELULAR, ESCRITORIO, textoPrincipal } from './comun.mjs';
+
+let entorno;
+before(async () => { entorno = await prepararEntorno(); });
+after(async () => { await entorno.cerrar(); });
+
+const DESTINOS = ['Inicio', 'Movimientos', 'Cargar', 'Análisis', 'Ajustes'];
+
+test('aep#2 CA-1 · en el celular: logotipo, barra inferior con los cinco destinos, Inicio marcado y pantalla sin datos', async () => {
+  const { contexto, pagina, errores } = await abrir(entorno.navegador, entorno.servidor);
+  const cabecera = pagina.locator('header');
+  assert.equal((await cabecera.innerText()).trim(), 'AFP');
+  assert.ok(await cabecera.locator('img').isVisible(), 'se ve el ícono del brote');
+
+  const nav = pagina.getByRole('navigation', { name: 'Principal' });
+  const caja = await nav.boundingBox();
+  assert.ok(caja.y + caja.height >= CELULAR.height - 2 && caja.y > CELULAR.height / 2, 'la barra está abajo');
+  // Orden visual de izquierda a derecha.
+  const enOrden = await nav.getByRole('link').evaluateAll((enlaces) => enlaces
+    .map((a) => ({ nombre: a.innerText.trim() || a.getAttribute('aria-label'), x: a.getBoundingClientRect().x }))
+    .sort((a, b) => a.x - b.x).map((a) => a.nombre));
+  assert.deepEqual(enOrden, DESTINOS);
+  for (const nombre of DESTINOS) assert.ok(await nav.getByRole('link', { name: nombre }).isVisible(), nombre);
+
+  const cargar = nav.getByRole('link', { name: 'Cargar' });
+  const cajaCargar = await cargar.boundingBox();
+  assert.ok(Math.abs(cajaCargar.width - 56) <= 1 && Math.abs(cajaCargar.height - 56) <= 1, 'Cargar es un botón redondo de 56 px');
+  assert.equal(await cargar.evaluate((a) => getComputedStyle(a).borderRadius), '50%');
+
+  const inicio = nav.getByRole('link', { name: 'Inicio' });
+  assert.equal(await inicio.getAttribute('aria-current'), 'page');
+  const pastilla = await inicio.locator('.nav-icono').evaluate((e) => getComputedStyle(e).backgroundColor);
+  assert.notEqual(pastilla, 'rgba(0, 0, 0, 0)', 'pastilla de color detrás del ícono del destino actual');
+  const sinPastilla = await nav.getByRole('link', { name: 'Movimientos' }).locator('.nav-icono').evaluate((e) => getComputedStyle(e).backgroundColor);
+  assert.equal(sinPastilla, 'rgba(0, 0, 0, 0)');
+
+  assert.match(await textoPrincipal(pagina), /Todavía no cargaste movimientos\./);
+  assert.ok(await pagina.getByRole('link', { name: 'Cargar el primero' }).isVisible());
+  assert.equal(await pagina.evaluate(() => document.documentElement.scrollWidth - innerWidth), 0, 'sin desplazamiento horizontal');
+  assert.deepEqual(errores, []);
+  await contexto.close();
+});
+
+test('aep#2 CA-10 · Movimientos, Cargar, Análisis y «Cargar el primero» muestran el aviso y vuelven al inicio', async () => {
+  const { contexto, pagina, errores } = await abrir(entorno.navegador, entorno.servidor);
+  const nav = pagina.getByRole('navigation', { name: 'Principal' });
+  const casos = [
+    [() => nav.getByRole('link', { name: 'Movimientos' }), 'Movimientos'],
+    [() => nav.getByRole('link', { name: 'Cargar' }), 'Cargar'],
+    [() => nav.getByRole('link', { name: 'Análisis' }), 'Análisis'],
+    [() => pagina.getByRole('link', { name: 'Cargar el primero' }), 'Cargar'],
+  ];
+  for (const [boton, titulo] of casos) {
+    await boton().click();
+    await pagina.waitForFunction((t) => document.querySelector('main h1')?.textContent === t, titulo);
+    assert.match(await textoPrincipal(pagina), /Esta parte llega en una próxima entrega\./, titulo);
+    await pagina.getByRole('link', { name: 'Volver al inicio' }).click();
+    await pagina.waitForFunction(() => /Todavía no cargaste movimientos\./.test(document.querySelector('main').innerText));
+    assert.equal(await nav.getByRole('link', { name: 'Inicio' }).getAttribute('aria-current'), 'page');
+  }
+  assert.deepEqual(errores, []);
+  await contexto.close();
+});
+
+test('aep#2 CA-7 · Ajustes → «Acerca de» muestra el nombre completo y la versión', async () => {
+  const { contexto, pagina, errores } = await abrir(entorno.navegador, entorno.servidor);
+  await pagina.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Ajustes' }).click();
+  await pagina.getByRole('heading', { name: 'Acerca de' }).waitFor();
+  const texto = await textoPrincipal(pagina);
+  assert.match(texto, /AFP · Administración Financiera Personal/);
+  assert.match(texto, /v0\.1\.0-1/);
+  assert.deepEqual(errores, []);
+  await contexto.close();
+});
+
+test('aep#2 CA-11 · en la PC: barra lateral compacta que se expande con el mouse o el teclado sin mover el contenido', async () => {
+  const { contexto, pagina, errores } = await abrir(entorno.navegador, entorno.servidor, { viewport: ESCRITORIO });
+  const nav = pagina.getByRole('navigation', { name: 'Principal' });
+  // Playwright arranca con el puntero en (0, 0), encima de la barra: se lo corre al contenido.
+  await pagina.mouse.move(ESCRITORIO.width - 10, ESCRITORIO.height / 2);
+  const compacta = await nav.boundingBox();
+  assert.equal(compacta.x, 0, 'la barra está a la izquierda');
+  assert.ok(compacta.width <= 96, `barra compacta (${compacta.width} px)`);
+  assert.ok(compacta.height >= ESCRITORIO.height - 1, 'ocupa todo el alto');
+  for (const nombre of DESTINOS) assert.equal(await nav.getByRole('link', { name: nombre }).count(), 1, `nombre accesible ${nombre}`);
+  const nombreVisible = () => nav.locator('.nav-nombre').first().evaluate((e) => e.getBoundingClientRect().width > 1);
+  assert.equal(await nombreVisible(), false, 'compacta: sin nombres a la vista');
+  // «Cargar» abajo de todo.
+  const ys = await nav.getByRole('link').evaluateAll((enlaces) => enlaces.map((a) => [a.innerText.trim() || a.getAttribute('aria-label'), a.getBoundingClientRect().y]));
+  const cargarY = ys.find(([n]) => n === 'Cargar')[1];
+  assert.ok(ys.every(([n, y]) => n === 'Cargar' || y < cargarY), 'Cargar abajo');
+
+  const contenido = async () => (await pagina.locator('main h1').boundingBox()).x;
+  const antes = await contenido();
+  await nav.hover();
+  await pagina.waitForFunction(() => document.querySelector('nav').getBoundingClientRect().width > 200);
+  assert.equal(await nombreVisible(), true, 'con el mouse: nombres a la vista');
+  assert.equal(await contenido(), antes, 'el contenido no se mueve');
+
+  await pagina.mouse.move(ESCRITORIO.width - 10, ESCRITORIO.height / 2);
+  await pagina.waitForFunction(() => document.querySelector('nav').getBoundingClientRect().width <= 96);
+  await pagina.getByRole('link', { name: 'Inicio' }).focus();
+  await pagina.keyboard.press('Tab');
+  await pagina.waitForFunction(() => document.querySelector('nav').getBoundingClientRect().width > 200);
+  assert.equal(await contenido(), antes, 'el contenido no se mueve con el teclado');
+
+  await pagina.setViewportSize({ width: 700, height: 800 });
+  const angosta = await nav.boundingBox();
+  assert.ok(angosta.y > 400 && angosta.width >= 699, 'con menos de 720 px, barra inferior');
+  assert.deepEqual(errores, []);
+  await contexto.close();
+});
+
+test('aep#2 CA-2 · manifiesto válido y sin errores de instalabilidad', async () => {
+  const perfil = await mkdtemp(join(tmpdir(), 'afp-instalable-'));
+  const contexto = await chromium.launchPersistentContext(perfil, { viewport: CELULAR });
+  try {
+    const pagina = await contexto.newPage();
+    await pagina.goto(entorno.servidor.url);
+    await pagina.waitForSelector('main h1');
+    const manifiesto = await pagina.evaluate(async () => {
+      const enlace = document.querySelector('link[rel="manifest"]');
+      const datos = await (await fetch(enlace.href)).json();
+      const absoluta = (u) => new URL(u, enlace.href).pathname;
+      return { ...datos, scope: absoluta(datos.scope), start_url: absoluta(datos.start_url) };
+    });
+    assert.equal(manifiesto.name, 'AFP · Administración Financiera Personal');
+    assert.equal(manifiesto.short_name, 'AFP');
+    assert.equal(manifiesto.display, 'standalone');
+    assert.equal(manifiesto.scope, '/prueba/', 'alcance: la carpeta de la versión a probar (/afp/prueba/ en GitHub Pages)');
+    assert.ok(manifiesto.icons.some((i) => i.sizes === '512x512' && (i.purpose ?? 'any').split(' ').includes('any')), 'ícono de 512 px');
+    assert.ok(manifiesto.icons.some((i) => i.sizes === '512x512' && (i.purpose ?? '').split(' ').includes('maskable')), 'ícono maskable');
+    await pagina.evaluate(() => navigator.serviceWorker.ready);
+    const cdp = await contexto.newCDPSession(pagina);
+    const { installabilityErrors } = await cdp.send('Page.getInstallabilityErrors');
+    assert.deepEqual(installabilityErrors, []);
+  } finally {
+    await contexto.close();
+    await rm(perfil, { recursive: true, force: true });
+  }
+});

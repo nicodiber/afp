@@ -22,7 +22,12 @@ export default [
     },
   },
   {
-    files: ['factibilidad/sw.js'],
+    // tema-temprano.js es un script clásico (no módulo), cargado antes de dibujar.
+    files: ['src/adaptadores/tema-temprano.js'],
+    languageOptions: { sourceType: 'script' },
+  },
+  {
+    files: ['factibilidad/sw.js', 'sw.js'],
     languageOptions: { globals: { ...globals.serviceworker } },
   },
   {

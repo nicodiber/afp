@@ -1,0 +1,68 @@
+// Interfaz de AFP (aep#2): rutas por «#destino», navegación, tema y aviso de versión nueva.
+import { pantallaInicio } from './pantallas/inicio.js';
+import { pantallaAjustes } from './pantallas/ajustes.js';
+import { pantallaProximamente } from './pantallas/proximamente.js';
+
+const DESTINOS = { inicio: 'Inicio', movimientos: 'Movimientos', cargar: 'Cargar', analisis: 'Análisis', ajustes: 'Ajustes' };
+const PC = '(min-width: 720px)';
+const SISTEMA_OSCURO = '(prefers-color-scheme: dark)';
+
+export function iniciarInterfaz({ preferencias, version }) {
+  const principal = document.getElementById('contenido');
+  const enlaces = [...document.querySelectorAll('.nav-lista a[data-destino]')];
+  const cargar = document.querySelector('.nav-item-cargar');
+  const lista = cargar.parentElement;
+
+  const aplicarTema = () => {
+    const eleccion = preferencias.temaElegido();
+    if (eleccion === 'sistema') delete document.documentElement.dataset.tema;
+    else document.documentElement.dataset.tema = eleccion;
+    const fondo = getComputedStyle(document.documentElement).getPropertyValue('--color-fondo').trim();
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', fondo);
+  };
+
+  const destinoActual = () => {
+    const destino = location.hash.slice(1);
+    return Object.hasOwn(DESTINOS, destino) ? destino : 'inicio';
+  };
+
+  const mostrar = (moverFoco) => {
+    const destino = destinoActual();
+    let pantalla;
+    if (destino === 'inicio') pantalla = pantallaInicio();
+    else if (destino === 'ajustes') {
+      pantalla = pantallaAjustes({
+        preferencias, version,
+        alElegirTema: (tema) => { preferencias.elegirTema(tema); aplicarTema(); },
+      });
+    } else pantalla = pantallaProximamente(DESTINOS[destino]);
+    principal.replaceChildren(...pantalla);
+    document.title = `${DESTINOS[destino]} · AFP`;
+    for (const enlace of enlaces) {
+      if (enlace.dataset.destino === destino) enlace.setAttribute('aria-current', 'page');
+      else enlace.removeAttribute('aria-current');
+    }
+    if (moverFoco) principal.querySelector('h1')?.focus({ preventScroll: true });
+    window.scrollTo(0, 0);
+  };
+
+  // En el celular «Cargar» va en el centro; en la PC, al final (abajo), y el orden del teclado sigue al visual.
+  const ordenarNavegacion = () => {
+    if (matchMedia(PC).matches) lista.append(cargar);
+    else lista.insertBefore(cargar, lista.children[2] === cargar ? cargar : lista.children[2]);
+  };
+
+  aplicarTema();
+  ordenarNavegacion();
+  mostrar(false);
+  window.addEventListener('hashchange', () => mostrar(true));
+  matchMedia(PC).addEventListener('change', ordenarNavegacion);
+  matchMedia(SISTEMA_OSCURO).addEventListener('change', aplicarTema);
+}
+
+/** Muestra «Hay una versión nueva · Actualizar» (FC-01). */
+export function avisarVersionNueva(actualizar) {
+  const aviso = document.querySelector('.aviso-version');
+  aviso.hidden = false;
+  document.getElementById('actualizar').addEventListener('click', actualizar, { once: true });
+}

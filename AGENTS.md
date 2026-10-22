@@ -6,7 +6,7 @@ Este repo (público) tiene el código de AFP, una app web instalable para admini
 
 ## Cómo entra un cambio
 
-Todo cambio de comportamiento parte de una **spec aprobada**: una issue de `nicodiber/aep` con criterios `CA-n` y la etiqueta `spec:aprobada`, que solo pone el usuario. Se trabaja en la rama `spec/<N>-<nombre>` y entra a `develop` por PR, con la tabla de evidencia. Detalle en `aep/harness/docs/implementacion-tecnica/07-desarrollo-guiado-por-specs.md`.
+Todo cambio de comportamiento parte de una **spec aprobada**: un archivo `harness/specs/<N>-<nombre>/spec.md` del repo `nicodiber/aep`, con criterios `CA-n` y la aprobación del usuario anotada. En el código, las pruebas y los PR, la spec N se cita `aep#N`. Se trabaja en la rama `spec/<N>-<nombre>` y entra a `develop` por PR, con la tabla de evidencia. Detalle en `aep/harness/docs/implementacion-tecnica/07-desarrollo-guiado-por-specs.md`.
 
 ```markdown
 Resuelve nicodiber/aep#N
@@ -49,6 +49,10 @@ Controles en cada PR: **Pruebas**, **Lint**, **Spec** y **Privacidad**. Claude m
 ## Estructura
 
 ```
+index.html         la app (pantalla inicial), con manifest.webmanifest y sw.js (service worker)
+src/               código por capas: dominio, puertos, aplicacion, adaptadores, ui (arquitectura de aep)
+css/app.css        estilos de las pantallas, solo con los tokens de css/tokens.css
+fuentes/ iconos/   Figtree (OFL, con su licencia) e íconos del manual de marca
 factibilidad/      página de pruebas de factibilidad (E3) y lector .xlsx propio
 datos-demo/        datos de ejemplo y archivos ficticios de v3, con sus generadores
 pruebas/           unitarias, recorridos en navegador, reglas de arquitectura y controles
@@ -63,4 +67,5 @@ css/tokens.css     tokens del manual de marca
 npm ci             dependencias de prueba (ESLint, Playwright)
 npm run lint       lint
 npm test           todas las pruebas (unitarias y en navegador)
+npm run medir      Lighthouse móvil sobre la pantalla inicial (no corre con npm test)
 ```
