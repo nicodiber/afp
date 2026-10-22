@@ -4,6 +4,12 @@ Cada entrega a la versión a probar (`/prueba/`) sube el número dentro del hito
 
 ## v0.1.0 · Base instalable (en curso)
 
+### v0.1.0-4 · 22/10/2026 · aep#5 y aep#6
+
+- Modo prueba en Ajustes: franja fija «MODO PRUEBA · fecha simulada DD/MM/AAAA», fecha simulada editable (31/10/2026 por defecto) y datos aparte de los reales.
+- «Hoy» sale del puerto Reloj: la fecha simulada en modo prueba y la del dispositivo fuera de él.
+- Tarjeta de instalación: «Ahora no» a la izquierda e «Instalar» a la derecha.
+
 ### v0.1.0-3 · 22/10/2026 · aep#4
 
 - Al entrar desde el navegador, una tarjeta arriba en Inicio sugiere instalar AFP («Instalar» y «Ahora no»), hasta instalarla o descartarla.

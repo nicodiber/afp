@@ -14,7 +14,18 @@ for (const [nombre, viewport] of [['celular', CELULAR], ['escritorio', ESCRITORI
     test(`aep#2 CA-8 · axe-core sin problemas graves ni críticos (${nombre}, ${colorScheme === 'light' ? 'claro' : 'oscuro'})`, async () => {
       // bypassCSP: axe-core se inyecta solo en la prueba; la página no permite scripts ajenos.
       const { contexto, pagina } = await abrir(entorno.navegador, entorno.servidor, { viewport, colorScheme, bypassCSP: true });
-      for (const ruta of ['#inicio', '#movimientos', '#ajustes']) {
+      // aep#6 CA-7: también con el modo prueba activo (franja e interruptor).
+      for (const ruta of ['#inicio', '#movimientos', '#ajustes', 'modo-prueba']) {
+        if (ruta === 'modo-prueba') {
+          await pagina.goto(entorno.servidor.url + '#ajustes');
+          await pagina.getByRole('switch', { name: 'Modo prueba' }).click();
+          await pagina.locator('.franja-prueba').waitFor();
+          await pagina.addScriptTag({ path: AXE });
+          const graves = await pagina.evaluate(async () => (await window.axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }))
+            .violations.filter((v) => ['serious', 'critical'].includes(v.impact)).map((v) => `${v.id}: ${v.nodes.map((n) => n.target).join(' | ')}`));
+          assert.deepEqual(graves, [], 'modo prueba');
+          continue;
+        }
         await pagina.goto(entorno.servidor.url + ruta);
         await pagina.waitForSelector('main h1');
         await pagina.addScriptTag({ path: AXE });

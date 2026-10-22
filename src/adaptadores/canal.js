@@ -4,6 +4,11 @@ export function canal(ruta = location.pathname) {
   return /\/prueba\//.test(ruta) ? 'dev' : 'real';
 }
 
+/** Base de datos según el canal y el modo prueba (modelo de datos §6.1, aep#6 CA-6). */
+export function nombreDeBase({ modoPrueba, ruta }) {
+  return nombreConCanal(modoPrueba ? 'prueba' : '', ruta).replace(/-$/, '');
+}
+
 /** Nombre de una clave o base del navegador para este canal: «afp-tema» o «afp-dev-tema». */
 export function nombreConCanal(nombre, ruta) {
   return canal(ruta) === 'dev' ? `afp-dev-${nombre}` : `afp-${nombre}`;

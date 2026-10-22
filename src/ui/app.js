@@ -2,12 +2,13 @@
 import { pantallaInicio } from './pantallas/inicio.js';
 import { pantallaAjustes } from './pantallas/ajustes.js';
 import { pantallaProximamente } from './pantallas/proximamente.js';
+import { actualizarFranja } from './franja-prueba.js';
 
 const DESTINOS = { inicio: 'Inicio', movimientos: 'Movimientos', cargar: 'Cargar', analisis: 'Análisis', ajustes: 'Ajustes' };
 const PC = '(min-width: 720px)';
 const SISTEMA_OSCURO = '(prefers-color-scheme: dark)';
 
-export function iniciarInterfaz({ preferencias, instalacion, version }) {
+export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, version }) {
   const principal = document.getElementById('contenido');
   const enlaces = [...document.querySelectorAll('.nav-lista a[data-destino]')];
   const cargar = document.querySelector('.nav-item-cargar');
@@ -41,7 +42,13 @@ export function iniciarInterfaz({ preferencias, instalacion, version }) {
     if (destino === 'inicio') pantalla = pantallaInicio({ instalacion, ...acciones });
     else if (destino === 'ajustes') {
       pantalla = pantallaAjustes({
-        preferencias, version, instalacion, alInstalar: acciones.alInstalar,
+        preferencias, version, instalacion, alInstalar: acciones.alInstalar, modoPrueba,
+        alCambiarModoPrueba: () => {
+          actualizarFranja(modoPrueba.estado());
+          const foco = document.activeElement?.id;
+          mostrar(false);
+          if (foco) document.getElementById(foco)?.focus();
+        },
         alElegirTema: (tema) => { preferencias.elegirTema(tema); aplicarTema(); },
       });
     } else pantalla = pantallaProximamente(DESTINOS[destino]);
@@ -62,6 +69,7 @@ export function iniciarInterfaz({ preferencias, instalacion, version }) {
   };
 
   aplicarTema();
+  actualizarFranja(modoPrueba.estado());
   ordenarNavegacion();
   mostrar(false);
   window.addEventListener('hashchange', () => mostrar(true));

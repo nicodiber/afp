@@ -11,15 +11,16 @@ const PASOS = {
 const pasosAMano = (forma) => [crear('p', { texto: PASOS[forma] }), crear('p', { class: 'apoyo', texto: YA_INSTALADA })];
 
 export function tarjetaInstalar({ forma, alInstalar, alDescartar }) {
+  // Descartar a la izquierda y la acción positiva a la derecha, también en el orden del teclado (D-108).
   const acciones = crear('div', { class: 'acciones' });
+  const ahoraNo = crear('button', { type: 'button', class: 'boton-texto', texto: 'Ahora no' });
+  ahoraNo.addEventListener('click', alDescartar);
+  acciones.append(ahoraNo);
   if (forma === 'un-toque') {
     const instalar = crear('button', { type: 'button', class: 'boton-secundario', texto: 'Instalar' });
     instalar.addEventListener('click', alInstalar);
     acciones.append(instalar);
   }
-  const ahoraNo = crear('button', { type: 'button', class: 'boton-texto', texto: 'Ahora no' });
-  ahoraNo.addEventListener('click', alDescartar);
-  acciones.append(ahoraNo);
   return crear('section', { class: 'tarjeta tarjeta-instalar', 'aria-labelledby': 'titulo-instalar' }, [
     crear('h2', { class: 'subtitulo', id: 'titulo-instalar', texto: 'Instalá AFP' }),
     crear('p', { texto: BENEFICIO }),

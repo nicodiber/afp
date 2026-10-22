@@ -1,10 +1,10 @@
-// Ajustes (aep#2 CA-4 y CA-7, aep#4): tema, instalación y «Acerca de».
+// Ajustes (aep#2 CA-4 y CA-7, aep#4, aep#6): tema, instalación, modo prueba y «Acerca de».
 import { crear } from '../dom.js';
 import { seccionInstalacion } from '../instalacion.js';
 
 const NOMBRES_TEMA = { claro: 'Claro', oscuro: 'Oscuro', sistema: 'Como el sistema' };
 
-export function pantallaAjustes({ preferencias, version, alElegirTema, instalacion, alInstalar }) {
+export function pantallaAjustes({ preferencias, version, alElegirTema, instalacion, alInstalar, modoPrueba, alCambiarModoPrueba }) {
   const elegido = preferencias.temaElegido();
   const botones = preferencias.opcionesDeTema().map((tema) => {
     const boton = crear('button', { type: 'button', 'aria-pressed': String(tema === elegido), texto: NOMBRES_TEMA[tema] });
@@ -21,6 +21,7 @@ export function pantallaAjustes({ preferencias, version, alElegirTema, instalaci
       crear('div', { class: 'segmentado', role: 'group', 'aria-labelledby': 'titulo-tema' }, botones),
     ]),
     seccionInstalacion({ forma: instalacion.estado().forma, alInstalar }),
+    seccionModoPrueba({ modoPrueba, alCambiar: alCambiarModoPrueba }),
     crear('section', { class: 'seccion', 'aria-labelledby': 'titulo-acerca' }, [
       crear('h2', { class: 'subtitulo', id: 'titulo-acerca', texto: 'Acerca de' }),
       crear('div', { class: 'tarjeta' }, [
@@ -29,4 +30,32 @@ export function pantallaAjustes({ preferencias, version, alElegirTema, instalaci
       ]),
     ]),
   ];
+}
+
+// Modo prueba (aep#6, D-111, D-112): interruptor directo y, con el modo activo, la fecha simulada.
+function seccionModoPrueba({ modoPrueba, alCambiar }) {
+  const estado = modoPrueba.estado();
+  const interruptor = crear('button', { type: 'button', role: 'switch', class: 'interruptor', 'aria-checked': String(estado.activo), id: 'interruptor-prueba' }, [
+    crear('span', { class: 'interruptor-texto', texto: 'Modo prueba' }),
+    crear('span', { class: 'interruptor-pista', 'aria-hidden': 'true' }),
+  ]);
+  interruptor.addEventListener('click', () => {
+    if (modoPrueba.estado().activo) modoPrueba.desactivar(); else modoPrueba.activar();
+    alCambiar();
+  });
+  const contenido = [
+    crear('h2', { class: 'subtitulo', id: 'titulo-prueba', texto: 'Modo prueba' }),
+    interruptor,
+    crear('p', { class: 'apoyo', texto: 'Usa datos aparte y una fecha simulada. Tus datos reales no se tocan.' }),
+  ];
+  if (estado.activo) {
+    const campo = crear('input', { type: 'date', id: 'fecha-simulada', value: estado.fechaSimulada, required: '' });
+    campo.addEventListener('change', () => {
+      try { modoPrueba.cambiarFecha(campo.value); alCambiar(); } catch { campo.value = modoPrueba.estado().fechaSimulada; }
+    });
+    const volver = crear('button', { type: 'button', class: 'boton-texto', texto: 'Volver al 31/10/2026' });
+    volver.addEventListener('click', () => { modoPrueba.volverAFechaPorDefecto(); alCambiar(); });
+    contenido.push(crear('div', { class: 'campo' }, [crear('label', { for: 'fecha-simulada', texto: 'Fecha simulada' }), campo]), volver);
+  }
+  return crear('section', { class: 'seccion seccion-prueba', 'aria-labelledby': 'titulo-prueba' }, contenido);
 }
