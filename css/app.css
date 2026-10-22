@@ -1,0 +1,393 @@
+/*
+ * app.css · Pantallas de AFP (aep#2). Solo usa los tokens de tokens.css (manual de marca).
+ * Celular (< 720 px): cabecera con el logotipo, contenido y barra inferior (D-94).
+ * PC (≥ 720 px): barra lateral compacta que se expande con el mouse o el teclado, sobre el contenido (D-95).
+ */
+
+@font-face {
+  font-family: 'Figtree';
+  src: url('../fuentes/figtree.woff2') format('woff2');
+  font-weight: 300 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* Derivado del acento: fondo de la pastilla del destino actual (D-94). */
+  --color-acento-tenue: color-mix(in srgb, var(--color-acento) 14%, transparent);
+  --ancho-nav-compacta: 72px;
+  --ancho-nav-abierta: 232px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+[hidden] { display: none !important; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  background: var(--color-fondo);
+  color: var(--color-texto);
+  font-family: var(--fuente);
+  font-size: var(--texto-md);
+  line-height: var(--interlineado);
+}
+
+img, svg { display: block; }
+
+:focus-visible {
+  outline: 2px solid var(--color-foco);
+  outline-offset: 2px;
+}
+
+main:focus, h1:focus { outline: none; }
+
+.solo-lectores {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Ir al contenido: solo aparece con el teclado. */
+.saltar {
+  position: fixed;
+  top: calc(var(--esp-2) + env(safe-area-inset-top, 0px));
+  left: var(--esp-2);
+  z-index: 30;
+  padding: var(--esp-2) var(--esp-4);
+  border-radius: var(--radio-pastilla);
+  background: var(--color-superficie);
+  color: var(--color-acento);
+  font-weight: var(--peso-negrita);
+  text-decoration: none;
+  transform: translateY(-200%);
+}
+.saltar:focus-visible { transform: none; }
+
+/* Logotipo (manual §2.1): «AFP» a medio ícono de distancia. */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-4);
+  font-size: var(--texto-xl);
+  font-weight: var(--peso-extra);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.logo img { width: 32px; height: 32px; flex: 0 0 auto; }
+
+.cabecera {
+  padding: calc(var(--esp-4) + env(safe-area-inset-top, 0px)) max(var(--margen-lateral), env(safe-area-inset-right, 0px)) var(--esp-2) max(var(--margen-lateral), env(safe-area-inset-left, 0px));
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: var(--esp-2) max(var(--margen-lateral), env(safe-area-inset-right, 0px)) calc(112px + env(safe-area-inset-bottom, 0px)) max(var(--margen-lateral), env(safe-area-inset-left, 0px));
+}
+
+.titulo {
+  margin: var(--esp-1) 0 var(--esp-4);
+  font-size: var(--texto-2xl);
+  font-weight: var(--peso-negrita);
+  line-height: var(--interlineado-ajustado);
+}
+/* En el celular, Inicio no muestra el título: lo dice el destino marcado (prototipo A). */
+.titulo-inicio {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.subtitulo {
+  margin: 0;
+  font-size: var(--texto-lg);
+  font-weight: var(--peso-negrita);
+  line-height: var(--interlineado-ajustado);
+}
+
+/* Pantalla sin datos (manual §10): una frase y un botón, centrados. */
+.vacio {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--esp-4);
+  text-align: center;
+}
+.vacio p { margin: 0; }
+
+.boton-principal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: var(--alto-boton-principal);
+  padding: 0 var(--esp-6);
+  border-radius: var(--radio-pastilla);
+  background: var(--color-acento);
+  color: var(--color-sobre-acento);
+  font-weight: var(--peso-extra);
+  text-decoration: none;
+}
+
+.boton-texto {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--objetivo-tactil);
+  padding: 0 var(--esp-1);
+  border: 0;
+  background: none;
+  color: var(--color-acento);
+  font: inherit;
+  font-weight: var(--peso-negrita);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* Ajustes */
+.seccion { display: grid; gap: var(--esp-2); margin-bottom: var(--esp-6); }
+
+.segmentado {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--color-borde-campo);
+  border-radius: var(--radio-pastilla);
+  background: var(--color-superficie);
+}
+.segmentado button {
+  flex: 1;
+  min-height: var(--objetivo-tactil);
+  padding: 0 var(--esp-2);
+  border: 0;
+  border-radius: var(--radio-pastilla);
+  background: none;
+  color: var(--color-texto);
+  font: inherit;
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-semi);
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background-color var(--duracion-corta) var(--curva);
+}
+.segmentado button[aria-pressed="true"] {
+  background: var(--color-acento);
+  color: var(--color-sobre-acento);
+}
+
+.tarjeta {
+  display: grid;
+  gap: 2px;
+  padding: var(--esp-4);
+  border: var(--borde-tarjeta);
+  border-radius: var(--radio-tarjeta);
+  background: var(--color-superficie);
+  box-shadow: var(--sombra-tarjeta);
+}
+.tarjeta p { margin: 0; }
+.tarjeta .apoyo { color: var(--color-texto-suave); font-size: var(--texto-sm); }
+
+/* Navegación · celular: barra fija abajo, «Cargar» redondo que sobresale (D-94). */
+.navegacion {
+  position: fixed;
+  inset: auto 0 0 0;
+  z-index: 20;
+  padding: var(--esp-2) max(var(--esp-2), env(safe-area-inset-right, 0px)) calc(var(--esp-2) + env(safe-area-inset-bottom, 0px)) max(var(--esp-2), env(safe-area-inset-left, 0px));
+  border-top: 1px solid var(--color-linea);
+  background: var(--color-superficie);
+}
+.nav-logo { display: none; }
+.nav-lista {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.nav-lista li { flex: 1 1 0; min-width: 0; display: flex; justify-content: center; }
+.nav-lista a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 100%;
+  min-height: 52px;
+  border-radius: var(--radio-chico);
+  color: var(--color-texto-suave);
+  font-size: 12px;
+  font-weight: var(--peso-semi);
+  line-height: 1.2;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.nav-icono {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 30px;
+  border-radius: var(--radio-pastilla);
+  transition: background-color var(--duracion-corta) var(--curva);
+}
+.icono {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.nav-lista a[aria-current="page"] { color: var(--color-acento); font-weight: var(--peso-extra); }
+.nav-lista a[aria-current="page"] .nav-icono { background: var(--color-acento-tenue); }
+
+.nav-item-cargar { flex: 0 0 auto !important; }
+.nav-lista a.nav-cargar {
+  width: 56px;
+  height: 56px;
+  min-height: 0;
+  margin-inline: var(--esp-1);
+  border-radius: 50%;
+  background: var(--color-acento);
+  color: var(--color-sobre-acento);
+  box-shadow: 0 0 0 5px var(--color-fondo);
+  transform: translateY(-14px);
+}
+.nav-lista a.nav-cargar .nav-icono { width: auto; height: auto; background: none; }
+.nav-cargar .icono { width: 28px; height: 28px; stroke-width: 2.6; }
+.nav-cargar .nav-nombre {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+}
+
+/* Aviso de versión nueva (FC-01), arriba de la barra. */
+.aviso-version {
+  position: fixed;
+  left: 50%;
+  bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  z-index: 25;
+  display: flex;
+  align-items: center;
+  gap: var(--esp-3);
+  max-width: calc(100% - 2 * var(--margen-lateral));
+  padding: var(--esp-1) var(--esp-2) var(--esp-1) var(--esp-4);
+  border: 1px solid var(--color-borde-campo);
+  border-radius: var(--radio-pastilla);
+  background: var(--color-superficie);
+  box-shadow: var(--sombra-tarjeta);
+  font-size: var(--texto-sm);
+  transform: translateX(-50%);
+}
+
+/* Navegación · PC: barra lateral compacta que se expande sobre el contenido (D-95). */
+@media (min-width: 720px) {
+  body { display: block; }
+  .cabecera { display: none; }
+
+  .navegacion {
+    inset: 0 auto 0 0;
+    display: flex;
+    flex-direction: column;
+    width: var(--ancho-nav-compacta);
+    padding: var(--esp-5) var(--esp-3);
+    overflow: hidden;
+    border-top: 0;
+    border-right: 1px solid var(--color-linea);
+    transition: width var(--duracion-media) var(--curva), box-shadow var(--duracion-media) var(--curva);
+  }
+  .navegacion:hover, .navegacion:focus-within {
+    width: var(--ancho-nav-abierta);
+    box-shadow: var(--sombra-tarjeta);
+  }
+  .nav-logo { display: flex; padding: 0 var(--esp-2) var(--esp-6); }
+
+  .nav-lista { flex: 1; flex-direction: column; align-items: stretch; gap: var(--esp-1); }
+  .nav-lista li { flex: 0 0 auto; display: block; }
+  .nav-item-cargar { margin-top: auto; }
+  .nav-lista a {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: var(--esp-3);
+    min-height: var(--alto-boton);
+    padding: 0 var(--esp-3);
+    border-radius: var(--radio-pastilla);
+    font-size: var(--texto-md);
+  }
+  .nav-icono { width: 24px; height: 24px; flex: 0 0 auto; }
+  .nav-lista a[aria-current="page"] { background: var(--color-acento-tenue); }
+  .nav-lista a[aria-current="page"] .nav-icono { background: none; }
+  .nav-lista a.nav-cargar {
+    width: 100%;
+    height: auto;
+    min-height: var(--alto-boton);
+    margin: 0;
+    border-radius: var(--radio-pastilla);
+    box-shadow: none;
+    transform: none;
+    font-weight: var(--peso-extra);
+  }
+  .nav-cargar .icono { width: 24px; height: 24px; }
+
+  /* Compacta: los nombres quedan para los lectores de pantalla; al abrirse, a la vista. */
+  .nav-nombre, .nav-logo .logo-texto,
+  .nav-cargar .nav-nombre {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .navegacion:hover .nav-nombre, .navegacion:focus-within .nav-nombre,
+  .navegacion:hover .nav-logo .logo-texto, .navegacion:focus-within .nav-logo .logo-texto {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+    clip-path: none;
+  }
+
+  main {
+    min-height: 100dvh;
+    margin-left: var(--ancho-nav-compacta);
+    padding: var(--esp-8) var(--esp-10);
+  }
+  .titulo-inicio {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+    clip-path: none;
+    white-space: normal;
+  }
+  .boton-principal { width: auto; }
+  .seccion { max-width: 480px; }
+  .aviso-version { bottom: var(--esp-6); left: calc(50% + var(--ancho-nav-compacta) / 2); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0s !important; }
+}

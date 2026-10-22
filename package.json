@@ -4,10 +4,12 @@
   "type": "module",
   "scripts": {
     "test": "node --test \"pruebas/**/*.test.js\"",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "medir": "node pruebas/medir.mjs"
   },
   "devDependencies": {
     "@eslint/js": "9.39.5",
+    "axe-core": "4.14.0",
     "eslint": "9.39.5",
     "globals": "17.13.0",
     "playwright": "1.56.0"

@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="description" content="AFP · Administración Financiera Personal">
+<meta name="theme-color" content="#F2F8F3">
+<title>Inicio · AFP</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="iconos/icono.svg" type="image/svg+xml">
+<link rel="icon" href="iconos/icono-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="iconos/icono-192.png">
+<link rel="preload" href="fuentes/figtree.woff2" as="font" type="font/woff2" crossorigin>
+<script src="src/adaptadores/tema-temprano.js"></script>
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/app.css">
+<script type="module" src="src/arranque.js"></script>
+</head>
+<body>
+<a class="saltar" href="#contenido">Ir al contenido</a>
+
+<header class="cabecera">
+  <span class="logo"><img src="iconos/icono.svg" alt="" width="32" height="32"><span class="logo-texto">AFP</span></span>
+</header>
+
+<nav class="navegacion" aria-label="Principal">
+  <span class="logo nav-logo" aria-hidden="true"><img src="iconos/icono.svg" alt="" width="32" height="32"><span class="logo-texto">AFP</span></span>
+  <ul class="nav-lista">
+    <li><a href="#inicio" data-destino="inicio"><span class="nav-icono"><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5 12 5l8 6.5"/><path d="M6 10v9h12v-9"/><path d="M10 19v-5h4v5"/></svg></span><span class="nav-nombre">Inicio</span></a></li>
+    <li><a href="#movimientos" data-destino="movimientos"><span class="nav-icono"><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4v16"/><path d="m4.5 7.5 3.5-3.5 3.5 3.5"/><path d="M16 20V4"/><path d="m12.5 16.5 3.5 3.5 3.5-3.5"/></svg></span><span class="nav-nombre">Movimientos</span></a></li>
+    <li class="nav-item-cargar"><a href="#cargar" data-destino="cargar" class="nav-cargar"><span class="nav-icono"><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg></span><span class="nav-nombre">Cargar</span></a></li>
+    <li><a href="#analisis" data-destino="analisis"><span class="nav-icono"><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V12"/><path d="M12 20V5"/><path d="M19 20v-9"/><path d="M3 20h18"/></svg></span><span class="nav-nombre">Análisis</span></a></li>
+    <li><a href="#ajustes" data-destino="ajustes"><span class="nav-icono"><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10"/><path d="M18 7h2"/><circle cx="16" cy="7" r="2"/><path d="M4 17h2"/><path d="M10 17h10"/><circle cx="8" cy="17" r="2"/></svg></span><span class="nav-nombre">Ajustes</span></a></li>
+  </ul>
+</nav>
+
+<main id="contenido" tabindex="-1"><h1 class="titulo titulo-inicio">Inicio</h1></main>
+
+<div class="aviso-version" role="status" hidden>
+  <span>Hay una versión nueva</span>
+  <button type="button" class="boton-texto" id="actualizar">Actualizar</button>
+</div>
+</body>
+</html>
