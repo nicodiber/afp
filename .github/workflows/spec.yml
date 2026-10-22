@@ -1,0 +1,20 @@
+# Control «Spec» (aep#1 CA-4): cada PR cita su spec y trae la tabla de evidencia completa.
+name: Spec
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  spec:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Revisar la spec y la evidencia del PR
+        run: node .github/scripts/control-spec.mjs
