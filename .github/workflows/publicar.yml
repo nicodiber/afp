@@ -26,14 +26,14 @@ jobs:
     steps:
       - name: Traer la versión real (main)
         id: real
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         continue-on-error: true
         with:
           ref: main
           path: real
 
       - name: Traer la versión a probar (develop)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: develop
           path: prueba
