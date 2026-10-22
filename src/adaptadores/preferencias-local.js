@@ -4,7 +4,12 @@ import { nombreConCanal } from './canal.js';
 
 export function crearPreferenciasLocales(ruta) {
   const claveTema = nombreConCanal('tema', ruta);
+  const claveSugerencia = nombreConCanal('sugerencia-instalacion', ruta);
+  const leer = (clave) => { try { return localStorage.getItem(clave); } catch { return null; } };
+  const guardar = (clave, valor) => { try { localStorage.setItem(clave, valor); } catch { /* sin almacenamiento */ } };
   return {
+    leerSugerenciaInstalacion: () => leer(claveSugerencia),
+    guardarSugerenciaInstalacion: (valor) => guardar(claveSugerencia, valor),
     leerTema() {
       try { return localStorage.getItem(claveTema); } catch { return null; }
     },

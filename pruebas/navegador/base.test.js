@@ -76,7 +76,7 @@ test('aep#2 CA-7 · Ajustes → «Acerca de» muestra el nombre completo y la ve
   await pagina.getByRole('heading', { name: 'Acerca de' }).waitFor();
   const texto = await textoPrincipal(pagina);
   assert.match(texto, /AFP · Administración Financiera Personal/);
-  assert.match(texto, /v0\.1\.0-2/, 'versión de la entrega actual (aep#3)');
+  assert.match(texto, /v0\.1\.0-3/, 'versión de la entrega actual (aep#4 CA-8)');
   assert.deepEqual(errores, []);
   await contexto.close();
 });

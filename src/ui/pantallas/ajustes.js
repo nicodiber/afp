@@ -1,9 +1,10 @@
-// Ajustes (aep#2 CA-4 y CA-7): tema y «Acerca de».
+// Ajustes (aep#2 CA-4 y CA-7, aep#4): tema, instalación y «Acerca de».
 import { crear } from '../dom.js';
+import { seccionInstalacion } from '../instalacion.js';
 
 const NOMBRES_TEMA = { claro: 'Claro', oscuro: 'Oscuro', sistema: 'Como el sistema' };
 
-export function pantallaAjustes({ preferencias, version, alElegirTema }) {
+export function pantallaAjustes({ preferencias, version, alElegirTema, instalacion, alInstalar }) {
   const elegido = preferencias.temaElegido();
   const botones = preferencias.opcionesDeTema().map((tema) => {
     const boton = crear('button', { type: 'button', 'aria-pressed': String(tema === elegido), texto: NOMBRES_TEMA[tema] });
@@ -19,6 +20,7 @@ export function pantallaAjustes({ preferencias, version, alElegirTema }) {
       crear('h2', { class: 'subtitulo', id: 'titulo-tema', texto: 'Tema' }),
       crear('div', { class: 'segmentado', role: 'group', 'aria-labelledby': 'titulo-tema' }, botones),
     ]),
+    seccionInstalacion({ forma: instalacion.estado().forma, alInstalar }),
     crear('section', { class: 'seccion', 'aria-labelledby': 'titulo-acerca' }, [
       crear('h2', { class: 'subtitulo', id: 'titulo-acerca', texto: 'Acerca de' }),
       crear('div', { class: 'tarjeta' }, [

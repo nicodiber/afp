@@ -145,6 +145,21 @@ main {
   text-decoration: none;
 }
 
+.boton-secundario {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--alto-boton);
+  padding: 0 var(--esp-5);
+  border: 1px solid var(--color-borde-campo);
+  border-radius: var(--radio-pastilla);
+  background: var(--color-superficie);
+  color: var(--color-texto);
+  font: inherit;
+  font-weight: var(--peso-negrita);
+  cursor: pointer;
+}
+
 .boton-texto {
   display: inline-flex;
   align-items: center;
@@ -200,7 +215,13 @@ main {
   box-shadow: var(--sombra-tarjeta);
 }
 .tarjeta p { margin: 0; }
-.tarjeta .apoyo { color: var(--color-texto-suave); font-size: var(--texto-sm); }
+.tarjeta .apoyo, .seccion .apoyo { margin: 0; color: var(--color-texto-suave); font-size: var(--texto-sm); }
+.seccion p { margin: 0; }
+.seccion .boton-secundario { justify-self: start; }
+
+/* Sugerencia de instalación en Inicio (aep#4, D-105). */
+.tarjeta-instalar { gap: var(--esp-2); margin-bottom: var(--esp-4); }
+.tarjeta-instalar .acciones { display: flex; flex-wrap: wrap; align-items: center; gap: var(--esp-2) var(--esp-4); margin-top: var(--esp-1); }
 
 /* Navegación · celular: barra fija abajo, «Cargar» redondo que sobresale (D-94). */
 .navegacion {
@@ -296,6 +317,8 @@ main {
   background: var(--color-superficie);
   box-shadow: var(--sombra-tarjeta);
   font-size: var(--texto-sm);
+  white-space: nowrap;
+  width: max-content;
   transform: translateX(-50%);
 }
 
