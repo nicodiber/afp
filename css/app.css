@@ -12,7 +12,26 @@
   font-display: swap;
 }
 
+/* Franja del modo prueba (aep#6, D-110): fija arriba; su lugar se reserva desde el primer dibujo. */
+.franja-prueba {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(var(--alto-franja) + env(safe-area-inset-top, 0px));
+  padding: env(safe-area-inset-top, 0px) var(--margen-lateral) 0;
+  background: var(--color-alerta);
+  color: var(--color-sobre-acento);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-negrita);
+  letter-spacing: 0.02em;
+}
+html[data-modo-prueba] body { padding-top: var(--alto-franja); }
+
 :root {
+  --alto-franja: 32px;
   /* Derivado del acento: fondo de la pastilla del destino actual (D-94). */
   --color-acento-tenue: color-mix(in srgb, var(--color-acento) 14%, transparent);
   --ancho-nav-compacta: 72px;
@@ -221,7 +240,60 @@ main {
 
 /* Sugerencia de instalación en Inicio (aep#4, D-105). */
 .tarjeta-instalar { gap: var(--esp-2); margin-bottom: var(--esp-4); }
-.tarjeta-instalar .acciones { display: flex; flex-wrap: wrap; align-items: center; gap: var(--esp-2) var(--esp-4); margin-top: var(--esp-1); }
+.tarjeta-instalar .acciones { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--esp-2) var(--esp-4); margin-top: var(--esp-1); }
+
+/* Interruptor (aep#6): pastilla con un círculo que se corre; el estado también lo dice aria-checked. */
+.interruptor {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-4);
+  width: 100%;
+  min-height: var(--objetivo-tactil);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-texto);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.interruptor-pista {
+  position: relative;
+  flex: 0 0 auto;
+  width: 52px;
+  height: 32px;
+  border: 2px solid var(--color-borde-campo);
+  border-radius: var(--radio-pastilla);
+  background: var(--color-superficie);
+  transition: background-color var(--duracion-corta) var(--curva);
+}
+.interruptor-pista::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-borde-campo);
+  transition: transform var(--duracion-corta) var(--curva);
+}
+.interruptor[aria-checked="true"] .interruptor-pista { border-color: var(--color-acento); background: var(--color-acento); }
+.interruptor[aria-checked="true"] .interruptor-pista::after { background: var(--color-sobre-acento); transform: translateX(20px); }
+
+.campo { display: grid; gap: var(--esp-1); }
+.campo label { color: var(--color-texto-suave); font-size: var(--texto-sm); }
+.campo input {
+  min-height: var(--objetivo-tactil);
+  padding: 0 var(--esp-3);
+  border: 1px solid var(--color-borde-campo);
+  border-radius: var(--radio-campo);
+  background: var(--color-superficie);
+  color: var(--color-texto);
+  font: inherit;
+}
+.seccion-prueba .boton-texto { justify-self: start; }
 
 /* Navegación · celular: barra fija abajo, «Cargar» redondo que sobresale (D-94). */
 .navegacion {
@@ -326,6 +398,8 @@ main {
 @media (min-width: 720px) {
   body { display: block; }
   .cabecera { display: none; }
+  html[data-modo-prueba] .navegacion { top: var(--alto-franja); }
+  html[data-modo-prueba] main { min-height: calc(100dvh - var(--alto-franja)); }
 
   .navegacion {
     inset: 0 auto 0 0;
