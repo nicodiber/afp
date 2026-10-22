@@ -3,6 +3,7 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { prepararEntorno, abrir, ESCRITORIO, textoPrincipal } from './comun.mjs';
+import { VERSION } from '../../src/version.js';
 
 let entorno;
 before(async () => { entorno = await prepararEntorno(); });
@@ -80,8 +81,11 @@ test('aep#3 CA-3 · el manifiesto pinta la barra de Android con el color de la b
   await contexto.close();
 });
 
-test('aep#3 CA-4 · con la v0.1.0-1 activa, al publicarse la v0.1.0-2 aparece el aviso y «Actualizar» la instala', async () => {
-  const anterior = (texto) => texto.replace(/v0\.1\.0-2/g, 'v0.1.0-1');
+// La spec lo dice con v0.1.0-1 → v0.1.0-2; la prueba usa la versión actual y una anterior simulada,
+// para seguir valiendo en cada entrega nueva.
+test('aep#3 CA-4 · con la versión anterior activa, al publicarse la nueva aparece el aviso y «Actualizar» la instala', async () => {
+  const VIEJA = 'v0.0.0-anterior';
+  const anterior = (texto) => texto.replaceAll(VERSION, VIEJA);
   entorno.servidor.sustituir('/prueba/sw.js', anterior);
   entorno.servidor.sustituir('/prueba/src/version.js', anterior);
   try {
@@ -89,17 +93,17 @@ test('aep#3 CA-4 · con la v0.1.0-1 activa, al publicarse la v0.1.0-2 aparece el
     await pagina.evaluate(() => navigator.serviceWorker.ready);
     await pagina.reload();
     await pagina.waitForSelector('main h1');
-    assert.match(await textoPrincipal(pagina), /v0\.1\.0-1/, 'arranca en la versión anterior');
+    assert.ok((await textoPrincipal(pagina)).includes(VIEJA), 'arranca en la versión anterior');
     assert.equal(await pagina.locator('.aviso-version').isVisible(), false);
 
-    entorno.servidor.restaurar(); // Se publica la v0.1.0-2.
+    entorno.servidor.restaurar(); // Se publica la versión nueva.
     await pagina.evaluate(() => document.dispatchEvent(new Event('visibilitychange'))); // AFP vuelve a quedar a la vista.
     await pagina.getByText('Hay una versión nueva').waitFor({ timeout: 15000 });
     await Promise.all([pagina.waitForEvent('load'), pagina.getByRole('button', { name: 'Actualizar' }).click()]);
     await pagina.waitForSelector('main h1');
     await pagina.goto(entorno.servidor.url + '#ajustes');
     await pagina.getByRole('heading', { name: 'Acerca de' }).waitFor();
-    assert.match(await textoPrincipal(pagina), /v0\.1\.0-2/);
+    assert.ok((await textoPrincipal(pagina)).includes(VERSION));
     assert.deepEqual(errores, []);
     await contexto.close();
   } finally {

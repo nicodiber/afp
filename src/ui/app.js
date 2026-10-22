@@ -7,7 +7,7 @@ const DESTINOS = { inicio: 'Inicio', movimientos: 'Movimientos', cargar: 'Cargar
 const PC = '(min-width: 720px)';
 const SISTEMA_OSCURO = '(prefers-color-scheme: dark)';
 
-export function iniciarInterfaz({ preferencias, version }) {
+export function iniciarInterfaz({ preferencias, instalacion, version }) {
   const principal = document.getElementById('contenido');
   const enlaces = [...document.querySelectorAll('.nav-lista a[data-destino]')];
   const cargar = document.querySelector('.nav-item-cargar');
@@ -26,13 +26,22 @@ export function iniciarInterfaz({ preferencias, version }) {
     return Object.hasOwn(DESTINOS, destino) ? destino : 'inicio';
   };
 
+  const acciones = {
+    alInstalar: () => instalacion.instalar().then(() => mostrar(false)),
+    alDescartar: () => {
+      instalacion.descartar();
+      mostrar(false);
+      principal.querySelector('h1')?.focus({ preventScroll: true });
+    },
+  };
+
   const mostrar = (moverFoco) => {
     const destino = destinoActual();
     let pantalla;
-    if (destino === 'inicio') pantalla = pantallaInicio();
+    if (destino === 'inicio') pantalla = pantallaInicio({ instalacion, ...acciones });
     else if (destino === 'ajustes') {
       pantalla = pantallaAjustes({
-        preferencias, version,
+        preferencias, version, instalacion, alInstalar: acciones.alInstalar,
         alElegirTema: (tema) => { preferencias.elegirTema(tema); aplicarTema(); },
       });
     } else pantalla = pantallaProximamente(DESTINOS[destino]);
@@ -56,6 +65,8 @@ export function iniciarInterfaz({ preferencias, version }) {
   ordenarNavegacion();
   mostrar(false);
   window.addEventListener('hashchange', () => mostrar(true));
+  // Si el navegador pasa a ofrecer instalar con un toque (o termina de instalar), se actualiza la pantalla.
+  instalacion.alCambiar(() => { if (['inicio', 'ajustes'].includes(destinoActual())) mostrar(false); });
   matchMedia(PC).addEventListener('change', ordenarNavegacion);
   matchMedia(SISTEMA_OSCURO).addEventListener('change', aplicarTema);
 }

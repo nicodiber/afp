@@ -4,6 +4,12 @@ Cada entrega a la versión a probar (`/prueba/`) sube el número dentro del hito
 
 ## v0.1.0 · Base instalable (en curso)
 
+### v0.1.0-3 · 22/10/2026 · aep#4
+
+- Al entrar desde el navegador, una tarjeta arriba en Inicio sugiere instalar AFP («Instalar» y «Ahora no»), hasta instalarla o descartarla.
+- Ajustes → «Instalación»: instalar con un toque, los pasos a mano si el navegador no lo ofrece, o «AFP está instalada en este dispositivo».
+- El aviso «Hay una versión nueva · Actualizar» va en una sola línea.
+
 ### v0.1.0-2 · 22/10/2026 · aep#3
 
 - PC: la barra lateral, al abrirse, corre el contenido en vez de taparlo.
