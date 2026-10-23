@@ -57,6 +57,8 @@ jobs:
           fi
           cp -a prueba/. sitio/prueba/
           limpiar sitio/prueba
+          # Deja constancia (visible en las anotaciones del control) de qué se publicó en cada lugar.
+          echo "::notice title=Publicar::raíz: $( [ -f sitio/manifest.webmanifest ] && echo app || echo aviso ) (checkout de main: ${{ steps.real.outcome }}, real/index.html: $( [ -f real/index.html ] && echo sí || echo no )) · /prueba/: $( [ -f sitio/prueba/index.html ] && echo app || echo falta )"
 
       - name: Configurar Pages
         uses: actions/configure-pages@v5
