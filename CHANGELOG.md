@@ -2,7 +2,13 @@
 
 Cada entrega a la versión a probar (`/prueba/`) sube el número dentro del hito (v0.1.0-1, v0.1.0-2…). Al completar un hito, la versión real (`main`) pasa a vX.Y.Z. Las specs se citan `aep#N` (repo privado de documentación).
 
-## v0.1.0 · Base instalable (en curso)
+## v0.1.0 · Base instalable · 22/10/2026
+
+Primera versión real (`nicodiber.github.io/afp/`): AFP se instala en el celular y en la PC, abre sin conexión, tiene tema claro y oscuro, sugiere instalarse, tiene modo prueba con fecha simulada y guarda su configuración en el dispositivo. Por dentro: formatos y núcleo de partida doble listos para las próximas versiones. Specs aep#2 a aep#10.
+
+### v0.1.0 · aep#10
+
+- La versión real no publica archivos de prueba, y su service worker no toca la versión a probar.
 
 ### v0.1.0-5 · 22/10/2026 · aep#7, aep#8 y aep#9
 
