@@ -18,3 +18,12 @@ export function formatearFecha(valor) {
   const [a, m, d] = valor.split('-');
   return `${d}/${m}/${a}`;
 }
+
+/** En contexto: «hoy, 31/10» si es hoy; si no, DD/MM/AAAA (manual §8.2). «hoy» lo da el puerto Reloj. */
+export function formatearFechaEnContexto(valor, hoy) {
+  if (valor === hoy) {
+    const [, m, d] = valor.split('-');
+    return `hoy, ${d}/${m}`;
+  }
+  return formatearFecha(valor);
+}

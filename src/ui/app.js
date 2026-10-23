@@ -8,7 +8,7 @@ const DESTINOS = { inicio: 'Inicio', movimientos: 'Movimientos', cargar: 'Cargar
 const PC = '(min-width: 720px)';
 const SISTEMA_OSCURO = '(prefers-color-scheme: dark)';
 
-export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, version }) {
+export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, datosDispositivo, alCambiarModoPrueba = () => {}, version }) {
   const principal = document.getElementById('contenido');
   const enlaces = [...document.querySelectorAll('.nav-lista a[data-destino]')];
   const cargar = document.querySelector('.nav-item-cargar');
@@ -42,9 +42,10 @@ export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, version
     if (destino === 'inicio') pantalla = pantallaInicio({ instalacion, ...acciones });
     else if (destino === 'ajustes') {
       pantalla = pantallaAjustes({
-        preferencias, version, instalacion, alInstalar: acciones.alInstalar, modoPrueba,
+        preferencias, version, instalacion, alInstalar: acciones.alInstalar, modoPrueba, datosDispositivo,
         alCambiarModoPrueba: () => {
           actualizarFranja(modoPrueba.estado());
+          alCambiarModoPrueba();
           const foco = document.activeElement?.id;
           mostrar(false);
           if (foco) document.getElementById(foco)?.focus();
@@ -77,6 +78,15 @@ export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, version
   instalacion.alCambiar(() => { if (['inicio', 'ajustes'].includes(destinoActual())) mostrar(false); });
   matchMedia(PC).addEventListener('change', ordenarNavegacion);
   matchMedia(SISTEMA_OSCURO).addEventListener('change', aplicarTema);
+  return {
+    // Vuelve a dibujar Ajustes cuando cambia el estado de los datos del dispositivo, sin perder el foco.
+    refrescar() {
+      if (destinoActual() !== 'ajustes') return;
+      const foco = document.activeElement?.id;
+      mostrar(false);
+      if (foco) document.getElementById(foco)?.focus();
+    },
+  };
 }
 
 /** Muestra «Hay una versión nueva · Actualizar» (FC-01). */
