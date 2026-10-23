@@ -46,3 +46,22 @@ export function formatearHora(instante) {
   const hora = (Number(hh) + 24 - 3) % 24;
   return `${String(hora).padStart(2, '0')}:${mm}`;
 }
+
+/**
+ * Lee un monto escrito por el usuario (aep#12 CA-8, D-123): «1.234,5» → 123450 centavos, «-5000» → −500000.
+ * Punto para los miles (en grupos de 3) y coma para hasta 2 decimales. null si no es un monto así.
+ */
+export function leerMonto(texto) {
+  const limpio = String(texto ?? '').trim().replace(/^[−-]/, '-');
+  if (!/^-?(\d{1,3}(\.\d{3})+|\d+)(,\d{1,2})?$/.test(limpio)) return null;
+  const negativo = limpio.startsWith('-');
+  const [entero, decimales = ''] = limpio.replace('-', '').replaceAll('.', '').split(',');
+  const centavos = Number(entero) * 100 + Number(decimales.padEnd(2, '0'));
+  return negativo && centavos !== 0 ? -centavos : centavos;
+}
+
+/** Centavos → texto para editar en un campo: 15000 → «150,00», −500000 → «-5.000,00» (lo lee leerMonto). */
+export function montoParaEditar(centavos) {
+  const absoluto = Math.abs(centavos).toString().padStart(3, '0');
+  return `${centavos < 0 ? '-' : ''}${miles(absoluto.slice(0, -2))},${absoluto.slice(-2)}`;
+}

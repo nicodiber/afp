@@ -2,6 +2,16 @@
 
 Cada entrega a la versión a probar (`/prueba/`) sube el número dentro del hito (v0.1.0-1, v0.1.0-2…). Al completar un hito, la versión real (`main`) pasa a vX.Y.Z. Las specs se citan `aep#N` (repo privado de documentación).
 
+## v0.2.0 · Cuentas y categorías (en curso)
+
+### v0.2.0-1 · aep#12
+
+- Cuentas: Inicio las muestra como tarjetas con su saldo; Ajustes → «Cuentas» permite crear, editar, ordenar (arrastrando o con ↑ y ↓), archivar, reactivar y eliminar.
+- Formulario de cuenta con nombre, tipo, moneda, saldo inicial (también negativo) y su fecha, «tiene rendimiento», emoji, notas y propósito.
+- Ajustes → «Monedas»: ARS y USD; USD no se desactiva mientras la use una cuenta.
+- Modo prueba: «Cargar datos de ejemplo», «Restablecer» y «Borrar», con las 6 cuentas de ejemplo.
+- La base del dispositivo pasa al esquema 2 sin perder la configuración.
+
 ## v0.1.1 · Dos apps separadas · 22/10/2026 · aep#11
 
 - La versión real pasa a `nicodiber.github.io/afp/app/`. `nicodiber.github.io/afp/` lleva sola ahí y quita el service worker de la v0.1.0. Así la versión a probar ya no queda dentro de la real y Brave ofrece instalar las dos en la PC.

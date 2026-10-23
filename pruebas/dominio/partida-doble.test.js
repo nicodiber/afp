@@ -92,8 +92,8 @@ const cuentas = datos.cuentas.map((c) => ({ id: c.id, saldoInicial: c.saldoInici
 const saldos = (fecha) => Object.fromEntries(cuentas.map((c) => [c.id, saldo(c, fecha, movimientos)]));
 
 test('aep#8 CA-4 · saldos de los datos de ejemplo (roadmap §5.6)', () => {
-  assert.deepEqual(saldos('2026-09-30'), { billetera: 1200000, caja: 20000000, banco: 130500000, 'billetera-virtual': 39000000, dolares: 50000, 'tarjeta-transporte': 1500000 });
-  assert.deepEqual(saldos('2026-10-31'), { billetera: 4850000, caja: 17000000, banco: 169300000, 'billetera-virtual': 43500000, dolares: 60000, 'tarjeta-transporte': 300000 });
+  assert.deepEqual(saldos('2026-09-30'), { 'cue-billetera': 1200000, 'cue-caja': 20000000, 'cue-banco': 130500000, 'cue-billetera-virtual': 39000000, 'cue-dolares': 50000, 'cue-tarjeta-transporte': 1500000 });
+  assert.deepEqual(saldos('2026-10-31'), { 'cue-billetera': 4850000, 'cue-caja': 17000000, 'cue-banco': 169300000, 'cue-billetera-virtual': 43500000, 'cue-dolares': 60000, 'cue-tarjeta-transporte': 300000 });
 });
 
 test('aep#8 CA-5 · quién me debe al 31/10/2026 (roadmap §5.6)', () => {
