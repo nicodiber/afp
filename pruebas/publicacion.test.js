@@ -69,3 +69,24 @@ test('aep#10 CA-3 · el service worker de la versión real no atiende /prueba/',
   const prueba = manejadorDePedidos('https://nicodiber.github.io/afp/prueba/');
   assert.equal(atiende(prueba, 'https://nicodiber.github.io/afp/prueba/', 'navigate'), true);
 });
+
+test('aep#11 · mientras main sea de antes de D-118 (sin publicacion/), la versión real sigue en la raíz', () => {
+  const flujo = readFileSync(new URL('.github/workflows/publicar.yml', raiz), 'utf8');
+  const paso = flujo.split('- name: Armar el sitio')[1].split('- name:')[0];
+  const guion = paso.split('run: |')[1].split('\n').map((l) => l.replace(/^ {10}/, '')).join('\n')
+    .replaceAll('${{ steps.real.outcome }}', 'success');
+  const dir = mkdtempSync(join(tmpdir(), 'afp-publicar-'));
+  try {
+    for (const rama of ['real', 'prueba']) {
+      mkdirSync(join(dir, rama, 'pruebas'), { recursive: true });
+      for (const archivo of ['index.html', 'manifest.webmanifest', 'package.json', 'pruebas/x.test.js']) writeFileSync(join(dir, rama, archivo), `${rama}:${archivo}`);
+    }
+    const salida = execFileSync('bash', ['-e', '-c', guion], { cwd: dir, encoding: 'utf8' });
+    assert.equal(readFileSync(join(dir, 'sitio/index.html'), 'utf8'), 'real:index.html', 'la versión real de antes, en la raíz');
+    assert.equal(readFileSync(join(dir, 'sitio/prueba/index.html'), 'utf8'), 'prueba:index.html');
+    for (const archivo of ['pruebas', 'package.json']) assert.equal(existsSync(join(dir, 'sitio', archivo)), false, `${archivo} no se publica`);
+    assert.match(salida, /raíz: app-anterior/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
