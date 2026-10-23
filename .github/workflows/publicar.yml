@@ -40,13 +40,21 @@ jobs:
 
       - name: Armar el sitio
         run: |
-          # Lo que no se publica, ni en la versión real ni en la versión a probar (aep#10).
-          limpiar() { rm -rf "$1/.git" "$1/.github" "$1/.claude" "$1/pruebas" "$1/package.json" "$1/package-lock.json" "$1/eslint.config.js" "$1/AGENTS.md" "$1/CLAUDE.md"; }
+          # Lo que no se publica, ni en la versión real ni en la versión a probar (aep#10, aep#11).
+          limpiar() { rm -rf "$1/.git" "$1/.github" "$1/.claude" "$1/pruebas" "$1/publicacion" "$1/package.json" "$1/package-lock.json" "$1/eslint.config.js" "$1/AGENTS.md" "$1/CLAUDE.md"; }
+          # La versión real va en app/ y la de prueba en prueba/: ninguna queda dentro de la otra (D-118).
           mkdir -p sitio/prueba
           if [ "${{ steps.real.outcome }}" = "success" ] && [ -f real/index.html ]; then
-            cp -a real/. sitio/
-            limpiar sitio
-          else
+            mkdir -p sitio/app
+            cp -a real/. sitio/app/
+            if [ -f real/publicacion/raiz.html ]; then
+              cp real/publicacion/raiz.html sitio/index.html
+              cp real/publicacion/desregistrar.js sitio/desregistrar.js
+              cp real/publicacion/sw.js sitio/sw.js
+            fi
+            limpiar sitio/app
+          fi
+          if [ ! -f sitio/index.html ]; then
             cat > sitio/index.html <<'HTML'
           <!doctype html>
           <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -58,7 +66,7 @@ jobs:
           cp -a prueba/. sitio/prueba/
           limpiar sitio/prueba
           # Deja constancia (visible en las anotaciones del control) de qué se publicó en cada lugar.
-          echo "::notice title=Publicar::raíz: $( [ -f sitio/manifest.webmanifest ] && echo app || echo aviso ) (checkout de main: ${{ steps.real.outcome }}, real/index.html: $( [ -f real/index.html ] && echo sí || echo no )) · /prueba/: $( [ -f sitio/prueba/index.html ] && echo app || echo falta )"
+          echo "::notice title=Publicar::real (/app/): $( [ -f sitio/app/manifest.webmanifest ] && echo app || echo aviso ) · raíz: $( [ -f sitio/desregistrar.js ] && echo lleva-a-app || echo aviso ) (checkout de main: ${{ steps.real.outcome }}) · /prueba/: $( [ -f sitio/prueba/index.html ] && echo app || echo falta )"
 
       - name: Configurar Pages
         uses: actions/configure-pages@v5

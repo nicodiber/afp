@@ -29,7 +29,7 @@ Controles en cada PR: **Pruebas**, **Lint**, **Spec** y **Privacidad**. Claude m
 
 ## Límites
 
-- **Nunca a `main`** sin que el usuario confirme que probó: es la versión real (`nicodiber.github.io/afp/`). `develop` se publica en `/prueba/`.
+- **Nunca a `main`** sin que el usuario confirme que probó: es la versión real (`nicodiber.github.io/afp/app/`, D-118). `develop` se publica en `/prueba/`; la raíz solo lleva a `/app/` (`publicacion/`).
 - **Nunca `push --force`.**
 - **No debilitar pruebas** para que pasen.
 - **Credenciales:** el ID de cliente OAuth es público y puede ir en el código; nada más.
@@ -54,6 +54,7 @@ src/               código por capas: dominio, puertos, aplicacion, adaptadores,
 css/app.css        estilos de las pantallas, solo con los tokens de css/tokens.css
 fuentes/ iconos/   Figtree (OFL, con su licencia) e íconos del manual de marca
 factibilidad/      página de pruebas de factibilidad (E3) y lector .xlsx propio
+publicacion/       lo que va en la raíz del sitio: la página y el service worker que llevan a /app/
 datos-demo/        datos de ejemplo y archivos ficticios de v3, con sus generadores
 pruebas/           unitarias, recorridos en navegador, reglas de arquitectura y controles
 css/tokens.css     tokens del manual de marca
