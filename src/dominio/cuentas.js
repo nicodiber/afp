@@ -1,6 +1,7 @@
 // Reglas de las cuentas (RF-CUE-01, modelo de datos §3.4, aep#12). Funciones puras: sin navegador ni almacenamiento.
 import { leerMonto } from './formato.js';
 import { esFechaValida } from './fecha.js';
+import { capitalizarInicial } from './texto.js';
 
 /** Tipos que se eligen a mano; «Préstamos a cobrar» y «Deuda» las crea AFP sola (INV-17). */
 export const TIPOS_ELEGIBLES = Object.freeze(['efectivo', 'billetera_virtual', 'banco', 'broker', 'transporte', 'cripto']);
@@ -41,12 +42,14 @@ export function nombreOcupado(nombre, cuentas, salvoId) {
  */
 export function validarCuenta(formulario, { cuentas, hoy, monedasActivas, id }) {
   const errores = {};
-  const nombre = String(formulario.nombre ?? '').trim();
+  const nombre = capitalizarInicial(String(formulario.nombre ?? '').trim());
   if (nombre.length < 1 || nombre.length > 40) errores.nombre = MENSAJES.nombreLargo;
   else if (nombreOcupado(nombre, cuentas, id)) errores.nombre = MENSAJES.nombreRepetido;
   if (!TIPOS_ELEGIBLES.includes(formulario.tipo)) errores.tipo = MENSAJES.tipo;
   if (!monedasActivas.includes(formulario.monedaId)) errores.monedaId = MENSAJES.moneda;
-  const saldoInicial = leerMonto(formulario.saldoInicial);
+  // Vacío cuenta como 0 (D-135).
+  const textoSaldo = String(formulario.saldoInicial ?? '').trim();
+  const saldoInicial = textoSaldo === '' ? 0 : leerMonto(textoSaldo);
   if (saldoInicial === null) errores.saldoInicial = MENSAJES.monto;
   const fecha = formulario.fechaSaldoInicial;
   if (!esFechaValida(fecha)) errores.fechaSaldoInicial = MENSAJES.fechaInvalida;

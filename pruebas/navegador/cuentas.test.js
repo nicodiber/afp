@@ -170,19 +170,20 @@ for (const [nombre, viewport] of [['celular', CELULAR], ['PC', ESCRITORIO]]) {
     await caja.getByRole('button', { name: 'Cancelar' }).click();
     // CA-7: largo del nombre.
     await pagina.getByRole('button', { name: 'Nueva cuenta' }).click();
-    for (const malo of ['', '   ', 'x'.repeat(41)]) {
+    for (const malo of ['', '   ', `X${'x'.repeat(40)}`]) {
       const g = await completar(pagina, { nombre: malo });
       await g.locator('.error-campo', { hasText: 'El nombre tiene que tener entre 1 y 40 caracteres.' }).waitFor();
     }
     // CA-8: saldo inicial.
-    for (const malo of ['12,345', 'abc', '']) {
-      const g = await completar(pagina, { nombre: 'x'.repeat(40), saldo: malo });
+    // El campo vacío ya no da error: cuenta como 0 (aep#13 CA-6, D-135); se prueba en ajustes-cuentas.test.js.
+    for (const malo of ['12,345', 'abc']) {
+      const g = await completar(pagina, { nombre: `X${'x'.repeat(39)}`, saldo: malo });
       await g.locator('.error-campo', { hasText: 'Escribí un monto con hasta 2 decimales.' }).waitFor();
     }
-    await completar(pagina, { nombre: 'x'.repeat(40), saldo: '-5000' });
+    await completar(pagina, { nombre: `X${'x'.repeat(39)}`, saldo: '-5000' });
     await ventana(pagina).waitFor({ state: 'detached' });
-    assert.deepEqual((await filas(pagina)).at(-1), ['x'.repeat(40), 'Efectivo · ARS', `${MENOS}$${E}5.000,00`]);
-    assert.equal(await pagina.locator('.fila-cuenta', { hasText: 'x'.repeat(40) }).locator('.fila-monto').evaluate((e) => e.classList.contains('negativo')), true);
+    assert.deepEqual((await filas(pagina)).at(-1), [`X${'x'.repeat(39)}`, 'Efectivo · ARS', `${MENOS}$${E}5.000,00`]);
+    assert.equal(await pagina.locator('.fila-cuenta', { hasText: `X${'x'.repeat(39)}` }).locator('.fila-monto').evaluate((e) => e.classList.contains('negativo')), true);
     for (const [texto, esperado] of [['1.234,5', `$${E}1.234,50`], ['0', `$${E}0,00`]]) {
       await pagina.getByRole('button', { name: 'Nueva cuenta' }).click();
       await completar(pagina, { nombre: `Saldo ${texto}`, saldo: texto });
