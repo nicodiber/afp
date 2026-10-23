@@ -71,6 +71,8 @@ for (const [conserva, texto] of [[true, 'El navegador no los borra aunque le fal
     const pagina = await contexto.newPage();
     await pagina.goto(entorno.servidor.url + '#ajustes');
     await esperarDatos(pagina);
+    // Mientras se comprueba, Ajustes dice «Comprobando…»: se espera el resultado (la base ahora prepara más cosas).
+    await pagina.waitForFunction((esperado) => document.querySelector('main').innerText.includes(esperado), texto);
     const t = await textoPrincipal(pagina);
     assert.ok(t.includes('Tus datos se guardan en este dispositivo.') && t.includes(texto), t);
     await contexto.close();

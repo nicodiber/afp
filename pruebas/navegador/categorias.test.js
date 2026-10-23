@@ -22,7 +22,8 @@ async function enModoPrueba(opciones = {}, { cargar = true } = {}) {
 }
 const irACategorias = async (pagina) => {
   await pagina.goto(entorno.servidor.url + '#ajustes/categorias');
-  await pagina.getByRole('heading', { name: 'Categorías', level: 1 }).waitFor();
+  // La pantalla se carga al abrirla (aep#15): se espera su contenido, no solo el título.
+  await pagina.locator('#titulo-egreso').waitFor();
 };
 // [nombre, nivel] de cada fila del árbol de un tipo.
 const arbol = (pagina, tipo) => pagina.locator(`ul[aria-labelledby="titulo-${tipo}"] > li`).evaluateAll((li) => li.map((x) => [x.querySelector('.fila-nombre').textContent, Number(x.style.getPropertyValue('--nivel'))]));
