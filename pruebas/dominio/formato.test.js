@@ -41,3 +41,14 @@ test('aep#7 CA-5 · horas de 24 h en UTC−3', () => {
   assert.equal(formatearHora('2026-11-01T02:05:00.000Z'), '23:05');
   assert.equal(formatearHora('2026-10-31T03:00:00.000Z'), '00:00');
 });
+
+test('aep#12 CA-8 · leer un monto escrito: hasta 2 decimales, con signo menos (D-123)', async () => {
+  const { leerMonto } = await import('../../src/dominio/formato.js');
+  assert.equal(leerMonto('1.234,5'), 123450);
+  assert.equal(leerMonto('1234,56'), 123456);
+  assert.equal(leerMonto('0'), 0);
+  assert.equal(leerMonto('150'), 15000);
+  assert.equal(leerMonto('-5000'), -500000);
+  assert.equal(leerMonto(' 250.000 '), 25000000);
+  for (const malo of ['12,345', 'abc', '', '1,2,3', '1.23', '-', '12.34.5']) assert.equal(leerMonto(malo), null, malo);
+});
