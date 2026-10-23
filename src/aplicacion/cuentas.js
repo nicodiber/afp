@@ -98,14 +98,7 @@ export function crearCasosCuentas({ almacen, reloj, nuevoId, movimientos = async
       return { ok: true };
     },
 
-    /** Datos de ejemplo (RF-DAT-07, D-112): solo en la base de prueba; reemplazan cuentas y monedas. */
-    async cargarEjemplo(datos) {
-      await almacen.reemplazar({ cuentas: datos.cuentas, monedas: datos.monedas });
-      await recargar();
-    },
-    async borrarTodo() {
-      await almacen.reemplazar({ cuentas: [], monedas: MONEDAS_POR_DEFECTO.map((m) => ({ ...m })) });
-      await recargar();
-    },
+    /** Vuelve a leer la base (por ejemplo, después de cargar los datos de ejemplo). */
+    recargar,
   };
 }

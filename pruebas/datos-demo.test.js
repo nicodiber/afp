@@ -45,7 +45,8 @@ test('saldos al 31/10/2026 (PLAN §5.6)', () => {
 });
 
 test('toda categoría usada existe y toda cuenta usada existe', () => {
-  const hojas = new Set(datos.categorias.map((x) => x.hoja));
+  // Hojas: categorías que no son padre de otra (modelo §3.6, aep#15).
+  const hojas = new Set(datos.categorias.filter((x) => !datos.categorias.some((y) => y.padreId === x.id)).map((x) => x.nombre));
   const cuentas = new Set(datos.cuentas.map((x) => x.id));
   for (const m of datos.movimientos) {
     for (const p of m.partes || []) assert.ok(hojas.has(p.categoria), `${m.id}: ${p.categoria}`);

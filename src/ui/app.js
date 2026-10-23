@@ -4,15 +4,16 @@ import { pantallaAjustes } from './pantallas/ajustes.js';
 import { pantallaProximamente } from './pantallas/proximamente.js';
 import { pantallaCuentas, reiniciarCuentas } from './pantallas/cuentas.js';
 import { pantallaMonedas } from './pantallas/monedas.js';
+import { pantallaCategorias, reiniciarCategorias } from './pantallas/categorias.js';
 import { actualizarFranja } from './franja-prueba.js';
 
 const DESTINOS = { inicio: 'Inicio', movimientos: 'Movimientos', cargar: 'Cargar', analisis: 'Análisis', ajustes: 'Ajustes' };
 // Pantallas dentro de Ajustes (aep#12): «#ajustes/cuentas» y «#ajustes/monedas».
-const SUBPANTALLAS = { 'ajustes/cuentas': 'Cuentas', 'ajustes/monedas': 'Monedas' };
+const SUBPANTALLAS = { 'ajustes/cuentas': 'Cuentas', 'ajustes/categorias': 'Categorías', 'ajustes/monedas': 'Monedas' };
 const PC = '(min-width: 720px)';
 const SISTEMA_OSCURO = '(prefers-color-scheme: dark)';
 
-export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, datosDispositivo, cuentas, datosDeEjemplo, alCambiarModoPrueba = () => {}, version }) {
+export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, datosDispositivo, cuentas, categorias, ejemplo, alCambiarModoPrueba = () => {}, version }) {
   const principal = document.getElementById('contenido');
   const enlaces = [...document.querySelectorAll('.nav-lista a[data-destino]')];
   const cargar = document.querySelector('.nav-item-cargar');
@@ -54,14 +55,16 @@ export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, datosDi
     const ruta = rutaActual();
     const destino = destinoActual();
     if (ruta !== rutaAnterior && rutaAnterior === 'ajustes/cuentas') reiniciarCuentas();
+    if (ruta !== rutaAnterior && rutaAnterior === 'ajustes/categorias') reiniciarCategorias();
     rutaAnterior = ruta;
     let pantalla;
     if (ruta === 'ajustes/cuentas') pantalla = pantallaCuentas({ cuentas, esPC: esPC(), redibujar });
     else if (ruta === 'ajustes/monedas') pantalla = pantallaMonedas({ cuentas, redibujar });
+    else if (ruta === 'ajustes/categorias') pantalla = pantallaCategorias({ categorias, esPC: esPC(), redibujar });
     else if (destino === 'inicio') pantalla = pantallaInicio({ instalacion, ...acciones, cuentas, esPC: esPC(), redibujar });
     else if (destino === 'ajustes') {
       pantalla = pantallaAjustes({
-        preferencias, version, instalacion, alInstalar: acciones.alInstalar, modoPrueba, datosDispositivo, cuentas, datosDeEjemplo, redibujar,
+        preferencias, version, instalacion, alInstalar: acciones.alInstalar, modoPrueba, datosDispositivo, cuentas, ejemplo, redibujar,
         alCambiarModoPrueba: () => {
           actualizarFranja(modoPrueba.estado());
           alCambiarModoPrueba();

@@ -1,6 +1,6 @@
 """Genera datos-ejemplo.json: los datos de ejemplo ficticios de 05-roadmap.md §5 (repo aep).
 
-Las cuentas y las monedas tienen el formato del modelo de datos (D-128): AFP las carga tal cual con
+Las cuentas, las monedas y las categorías tienen el formato del modelo de datos (D-128, aep#15): AFP las carga tal cual con
 «Cargar datos de ejemplo» en modo prueba (RF-DAT-07). Los movimientos y el resto pasan al formato del
 modelo con la spec que los use (v0.3.0 en adelante). Montos en centavos (enteros).
 Fecha simulada: 31/10/2026. Ninguna persona, cuenta ni monto es real.
@@ -30,22 +30,38 @@ MONEDAS = [
     {'id': 'USD', 'nombre': 'Dólar estadounidense', 'simbolo': 'US$', 'decimales': 2, 'clase': 'fiat', 'cotizacion': 'diaria', 'activa': True},
 ]
 
-def cat(raiz, familia, hoja, **clasif):
-    return {'raiz': raiz, 'familia': familia, 'hoja': hoja, **clasif}
-CATEGORIAS = [
-    cat('Ingresos', None, 'Trabajo', naturaleza='ganado'),
-    cat('Ingresos', None, 'Ventas', naturaleza='ganado'),
-    cat('Ingresos', None, 'Rendimientos', naturaleza='ganado'),
-    cat('Ingresos', None, 'Aporte familiar', naturaleza='aporte_de_terceros'),
-    cat('Ingresos', None, 'Regalos recibidos', naturaleza='otro'),
-    *[cat('Egresos', 'Vivienda', h, frecuencia='fijo', necesidad='necesidad') for h in ('Alquiler', 'Electricidad', 'Internet')],
-    cat('Egresos', 'Vivienda', 'Limpieza', frecuencia='variable', necesidad='necesidad'),
-    *[cat('Egresos', 'Alimentación', h, frecuencia='variable', necesidad='necesidad') for h in ('Supermercado', 'Verdulería')],
-    cat('Egresos', 'Alimentación', 'Kiosco', frecuencia='variable', necesidad='deseo', hormiga=True),
-    cat('Egresos', 'Transporte', 'Transporte público', frecuencia='variable', necesidad='necesidad'),
-    *[cat('Egresos', 'Ocio', h, frecuencia='variable', necesidad='deseo') for h in ('Juntada', 'Vacaciones')],
-    cat('Egresos', None, 'Salud', frecuencia='variable', necesidad='necesidad'),
-]
+# Categorías con los campos del modelo de datos (§3.6) y su ubicación (§3.15), como D-128. Las familias no
+# llevan clasificación propia; las hojas sí (RF-CAT-02).
+import unicodedata
+def _slug(nombre):
+    base = unicodedata.normalize('NFKD', nombre).encode('ascii', 'ignore').decode().lower()
+    return 'cat-' + '-'.join(base.split())
+CATEGORIAS = []
+def cat(tipo, nombre, padre=None, **clasif):
+    campos = {'fijoVariable': None, 'necesidadDeseo': None, 'hormiga': None, 'naturaleza': None}
+    campos.update({k: v for k, v in clasif.items()})
+    CATEGORIAS.append({'id': _slug(nombre), 'nombre': nombre, 'tipo': tipo, 'padreId': _slug(padre) if padre else None,
+                       'emoji': '', 'orden': len(CATEGORIAS) + 1, 'estado': 'activa', 'esSistema': False, 'esHistorica': False, **campos})
+for hoja in ('Trabajo', 'Ventas', 'Rendimientos'):
+    cat('ingreso', hoja, naturaleza='ganado')
+cat('ingreso', 'Aporte familiar', naturaleza='aporte_terceros')
+cat('ingreso', 'Regalos recibidos', naturaleza='otro')
+egreso = lambda fv, nd, hormiga=False: {'fijoVariable': fv, 'necesidadDeseo': nd, 'hormiga': hormiga}
+cat('egreso', 'Vivienda')
+for hoja in ('Alquiler', 'Electricidad', 'Internet'):
+    cat('egreso', hoja, 'Vivienda', **egreso('fijo', 'necesidad'))
+cat('egreso', 'Limpieza', 'Vivienda', **egreso('variable', 'necesidad'))
+cat('egreso', 'Alimentación')
+for hoja in ('Supermercado', 'Verdulería'):
+    cat('egreso', hoja, 'Alimentación', **egreso('variable', 'necesidad'))
+cat('egreso', 'Kiosco', 'Alimentación', **egreso('variable', 'deseo', hormiga=True))
+cat('egreso', 'Transporte')
+cat('egreso', 'Transporte público', 'Transporte', **egreso('variable', 'necesidad'))
+cat('egreso', 'Ocio')
+for hoja in ('Juntada', 'Vacaciones'):
+    cat('egreso', hoja, 'Ocio', **egreso('variable', 'deseo'))
+cat('egreso', 'Salud', **egreso('variable', 'necesidad'))
+UBICACIONES = [{'id': 'ubi-' + c['id'][4:], 'categoriaId': c['id'], 'padreId': c['padreId'], 'desde': None} for c in CATEGORIAS]
 
 def mov(id, fecha, tipo, **k):
     m = {'id': id, 'fecha': fecha, 'tipo': tipo, 'estado': k.pop('estado', 'confirmado'), 'origen': 'datos_de_ejemplo'}
@@ -110,9 +126,9 @@ COTIZACIONES = [
 IPC = [{'mes': '2026-08', 'valor': '100.00'}, {'mes': '2026-09', 'valor': '102.00'}, {'mes': '2026-10', 'valor': '104.04'}]
 
 datos = {
-    'formato': 'afp-datos-de-ejemplo', 'version': 2, 'fechaSimulada': '2026-10-31',
+    'formato': 'afp-datos-de-ejemplo', 'version': 3, 'fechaSimulada': '2026-10-31',
     'nota': 'Datos ficticios (05-roadmap.md §5 del repo aep). Ninguna persona, cuenta ni monto es real.',
-    'cuentas': CUENTAS, 'monedas': MONEDAS, 'categorias': CATEGORIAS,
+    'cuentas': CUENTAS, 'monedas': MONEDAS, 'categorias': CATEGORIAS, 'ubicacionesCategoria': UBICACIONES,
     'movimientos': MOVIMIENTOS, 'recurrentes': {'desde': '2026-09-01', 'lista': RECURRENTES},
     'cotizaciones': {'estado': 'corregida_a_mano', 'compraIgualVenta': True, 'periodos': COTIZACIONES},
     'indices': {'ipcGeneral': {'estado': 'corregida_a_mano', 'valores': IPC}},

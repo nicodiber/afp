@@ -1,6 +1,6 @@
 {
  "formato": "afp-datos-de-ejemplo",
- "version": 2,
+ "version": 3,
  "fechaSimulada": "2026-10-31",
  "nota": "Datos ficticios (05-roadmap.md §5 del repo aep). Ninguna persona, cuenta ni monto es real.",
  "cuentas": [
@@ -111,112 +111,426 @@
  ],
  "categorias": [
   {
-   "raiz": "Ingresos",
-   "familia": null,
-   "hoja": "Trabajo",
+   "id": "cat-trabajo",
+   "nombre": "Trabajo",
+   "tipo": "ingreso",
+   "padreId": null,
+   "emoji": "",
+   "orden": 1,
+   "estado": "activa",
+   "esSistema": false,
+   "esHistorica": false,
+   "fijoVariable": null,
+   "necesidadDeseo": null,
+   "hormiga": null,
    "naturaleza": "ganado"
   },
   {
-   "raiz": "Ingresos",
-   "familia": null,
-   "hoja": "Ventas",
+   "id": "cat-ventas",
+   "nombre": "Ventas",
+   "tipo": "ingreso",
+   "padreId": null,
+   "emoji": "",
+   "orden": 2,
+   "estado": "activa",
+   "esSistema": false,
+   "esHistorica": false,
+   "fijoVariable": null,
+   "necesidadDeseo": null,
+   "hormiga": null,
    "naturaleza": "ganado"
   },
   {
-   "raiz": "Ingresos",
-   "familia": null,
-   "hoja": "Rendimientos",
+   "id": "cat-rendimientos",
+   "nombre": "Rendimientos",
+   "tipo": "ingreso",
+   "padreId": null,
+   "emoji": "",
+   "orden": 3,
+   "estado": "activa",
+   "esSistema": false,
+   "esHistorica": false,
+   "fijoVariable": null,
+   "necesidadDeseo": null,
+   "hormiga": null,
    "naturaleza": "ganado"
   },
   {
-   "raiz": "Ingresos",
-   "familia": null,
-   "hoja": "Aporte familiar",
-   "naturaleza": "aporte_de_terceros"
+   "id": "cat-aporte-familiar",
+   "nombre": "Aporte familiar",
+   "tipo": "ingreso",
+   "padreId": null,
+   "emoji": "",
+   "orden": 4,
+   "estado": "activa",
+   "esSistema": false,
+   "esHistorica": false,
+   "fijoVariable": null,
+   "necesidadDeseo": null,
+   "hormiga": null,
+   "naturaleza": "aporte_terceros"
   },
   {
-   "raiz": "Ingresos",
-   "familia": null,
-   "hoja": "Regalos recibidos",
+   "id": "cat-regalos-recibidos",
+   "nombre": "Regalos recibidos",
+   "tipo": "ingreso",
+   "padreId": null,
+   "emoji": "",
+   "orden": 5,
+   "estado": "activa",
+   "esSistema": false,
+   "esHistorica": false,
+   "fijoVariable": null,
+   "necesidadDeseo": null,
+   "hormiga": null,
    "naturaleza": "otro"
   },
   {
-   "raiz": "Egresos",
-   "familia": "Vivienda",
-   "hoja": "Alquiler",
-   "frecuencia": "fijo",
-   "necesidad": "necesidad"
+   "id": "cat-vivienda",
+   "nombre": "Vivienda",
+   "tipo": "egreso",
+   "padreId": null,
+   "emoji": "",
+   "orden": 6,
+   "estado": "activa",
+   "esSistema": false,
+   "esHistorica": false,
+   "fijoVariable": null,
+   "necesidadDeseo": null,
+   "hormiga": null,
+   "naturaleza": null
   },
   {
-   "raiz": "Egresos",
-   "familia": "Vivienda",
-   "hoja": "Electricidad",
-   "frecuencia": "fijo",
-   "necesidad": "necesidad"
+   "id": "cat-alquiler",
+   "nombre": "Alquiler",
+   "tipo": "egreso",
+   "padreId": "cat-vivienda",
+   "emoji": "",
+   "orden": 7,
+   "estado": "activa",
+   "esSistema": false,
+   "esHistorica": false,
+   "fijoVariable": "fijo",
+   "necesidadDeseo": "necesidad",
+   "hormiga": false,
+   "naturaleza": null
   },
   {
-   "raiz": "Egresos",
-   "familia": "Vivienda",
-   "hoja": "Internet",
-   "frecuencia": "fijo",
-   "necesidad": "necesidad"
+   "id": "cat-electricidad",
+   "nombre": "Electricidad",
+   "tipo": "egreso",
+   "padreId": "cat-vivienda",
+   "emoji": "",
+   "orden": 8,
+   "estado": "activa",
+   "esSistema": false,
+   "esHistorica": false,
+   "fijoVariable": "fijo",
+   "necesidadDeseo": "necesidad",
+   "hormiga": false,
+   "naturaleza": null
   },
   {
-   "raiz": "Egresos",
-   "familia": "Vivienda",
-   "hoja": "Limpieza",
-   "frecuencia": "variable",
-   "necesidad": "necesidad"
+   "id": "cat-internet",
+   "nombre": "Internet",
+   "tipo": "egreso",
+   "padreId": "cat-vivienda",
+   "emoji": "",
+   "orden": 9,
+   "estado": "activa",
+   "esSistema": false,
+   "esHistorica": false,
+   "fijoVariable": "fijo",
+   "necesidadDeseo": "necesidad",
+   "hormiga": false,
+   "naturaleza": null
   },
   {
-   "raiz": "Egresos",
-   "familia": "Alimentación",
-   "hoja": "Supermercado",
-   "frecuencia": "variable",
-   "necesidad": "necesidad"
+   "id": "cat-limpieza",
+   "nombre": "Limpieza",
+   "tipo": "egreso",
+   "padreId": "cat-vivienda",
+   "emoji": "",
+   "orden": 10,
+   "estado": "activa",
+   "esSistema": false,
+   "esHistorica": false,
+   "fijoVariable": "variable",
+   "necesidadDeseo": "necesidad",
+   "hormiga": false,
+   "naturaleza": null
   },
   {
-   "raiz": "Egresos",
-   "familia": "Alimentación",
-   "hoja": "Verdulería",
-   "frecuencia": "variable",
-   "necesidad": "necesidad"
+   "id": "cat-alimentacion",
+   "nombre": "Alimentación",
+   "tipo": "egreso",
+   "padreId": null,
+   "emoji": "",
+   "orden": 11,
+   "estado": "activa",
+   "esSistema": false,
+   "esHistorica": false,
+   "fijoVariable": null,
+   "necesidadDeseo": null,
+   "hormiga": null,
+   "naturaleza": null
   },
   {
-   "raiz": "Egresos",
-   "familia": "Alimentación",
-   "hoja": "Kiosco",
-   "frecuencia": "variable",
-   "necesidad": "deseo",
-   "hormiga": true
+   "id": "cat-supermercado",
+   "nombre": "Supermercado",
+   "tipo": "egreso",
+   "padreId": "cat-alimentacion",
+   "emoji": "",
+   "orden": 12,
+   "estado": "activa",
+   "esSistema": false,
+   "esHistorica": false,
+   "fijoVariable": "variable",
+   "necesidadDeseo": "necesidad",
+   "hormiga": false,
+   "naturaleza": null
   },
   {
-   "raiz": "Egresos",
-   "familia": "Transporte",
-   "hoja": "Transporte público",
-   "frecuencia": "variable",
-   "necesidad": "necesidad"
+   "id": "cat-verduleria",
+   "nombre": "Verdulería",
+   "tipo": "egreso",
+   "padreId": "cat-alimentacion",
+   "emoji": "",
+   "orden": 13,
+   "estado": "activa",
+   "esSistema": false,
+   "esHistorica": false,
+   "fijoVariable": "variable",
+   "necesidadDeseo": "necesidad",
+   "hormiga": false,
+   "naturaleza": null
   },
   {
-   "raiz": "Egresos",
-   "familia": "Ocio",
-   "hoja": "Juntada",
-   "frecuencia": "variable",
-   "necesidad": "deseo"
+   "id": "cat-kiosco",
+   "nombre": "Kiosco",
+   "tipo": "egreso",
+   "padreId": "cat-alimentacion",
+   "emoji": "",
+   "orden": 14,
+   "estado": "activa",
+   "esSistema": false,
+   "esHistorica": false,
+   "fijoVariable": "variable",
+   "necesidadDeseo": "deseo",
+   "hormiga": true,
+   "naturaleza": null
   },
   {
-   "raiz": "Egresos",
-   "familia": "Ocio",
-   "hoja": "Vacaciones",
-   "frecuencia": "variable",
-   "necesidad": "deseo"
+   "id": "cat-transporte",
+   "nombre": "Transporte",
+   "tipo": "egreso",
+   "padreId": null,
+   "emoji": "",
+   "orden": 15,
+   "estado": "activa",
+   "esSistema": false,
+   "esHistorica": false,
+   "fijoVariable": null,
+   "necesidadDeseo": null,
+   "hormiga": null,
+   "naturaleza": null
   },
   {
-   "raiz": "Egresos",
-   "familia": null,
-   "hoja": "Salud",
-   "frecuencia": "variable",
-   "necesidad": "necesidad"
+   "id": "cat-transporte-publico",
+   "nombre": "Transporte público",
+   "tipo": "egreso",
+   "padreId": "cat-transporte",
+   "emoji": "",
+   "orden": 16,
+   "estado": "activa",
+   "esSistema": false,
+   "esHistorica": false,
+   "fijoVariable": "variable",
+   "necesidadDeseo": "necesidad",
+   "hormiga": false,
+   "naturaleza": null
+  },
+  {
+   "id": "cat-ocio",
+   "nombre": "Ocio",
+   "tipo": "egreso",
+   "padreId": null,
+   "emoji": "",
+   "orden": 17,
+   "estado": "activa",
+   "esSistema": false,
+   "esHistorica": false,
+   "fijoVariable": null,
+   "necesidadDeseo": null,
+   "hormiga": null,
+   "naturaleza": null
+  },
+  {
+   "id": "cat-juntada",
+   "nombre": "Juntada",
+   "tipo": "egreso",
+   "padreId": "cat-ocio",
+   "emoji": "",
+   "orden": 18,
+   "estado": "activa",
+   "esSistema": false,
+   "esHistorica": false,
+   "fijoVariable": "variable",
+   "necesidadDeseo": "deseo",
+   "hormiga": false,
+   "naturaleza": null
+  },
+  {
+   "id": "cat-vacaciones",
+   "nombre": "Vacaciones",
+   "tipo": "egreso",
+   "padreId": "cat-ocio",
+   "emoji": "",
+   "orden": 19,
+   "estado": "activa",
+   "esSistema": false,
+   "esHistorica": false,
+   "fijoVariable": "variable",
+   "necesidadDeseo": "deseo",
+   "hormiga": false,
+   "naturaleza": null
+  },
+  {
+   "id": "cat-salud",
+   "nombre": "Salud",
+   "tipo": "egreso",
+   "padreId": null,
+   "emoji": "",
+   "orden": 20,
+   "estado": "activa",
+   "esSistema": false,
+   "esHistorica": false,
+   "fijoVariable": "variable",
+   "necesidadDeseo": "necesidad",
+   "hormiga": false,
+   "naturaleza": null
+  }
+ ],
+ "ubicacionesCategoria": [
+  {
+   "id": "ubi-trabajo",
+   "categoriaId": "cat-trabajo",
+   "padreId": null,
+   "desde": null
+  },
+  {
+   "id": "ubi-ventas",
+   "categoriaId": "cat-ventas",
+   "padreId": null,
+   "desde": null
+  },
+  {
+   "id": "ubi-rendimientos",
+   "categoriaId": "cat-rendimientos",
+   "padreId": null,
+   "desde": null
+  },
+  {
+   "id": "ubi-aporte-familiar",
+   "categoriaId": "cat-aporte-familiar",
+   "padreId": null,
+   "desde": null
+  },
+  {
+   "id": "ubi-regalos-recibidos",
+   "categoriaId": "cat-regalos-recibidos",
+   "padreId": null,
+   "desde": null
+  },
+  {
+   "id": "ubi-vivienda",
+   "categoriaId": "cat-vivienda",
+   "padreId": null,
+   "desde": null
+  },
+  {
+   "id": "ubi-alquiler",
+   "categoriaId": "cat-alquiler",
+   "padreId": "cat-vivienda",
+   "desde": null
+  },
+  {
+   "id": "ubi-electricidad",
+   "categoriaId": "cat-electricidad",
+   "padreId": "cat-vivienda",
+   "desde": null
+  },
+  {
+   "id": "ubi-internet",
+   "categoriaId": "cat-internet",
+   "padreId": "cat-vivienda",
+   "desde": null
+  },
+  {
+   "id": "ubi-limpieza",
+   "categoriaId": "cat-limpieza",
+   "padreId": "cat-vivienda",
+   "desde": null
+  },
+  {
+   "id": "ubi-alimentacion",
+   "categoriaId": "cat-alimentacion",
+   "padreId": null,
+   "desde": null
+  },
+  {
+   "id": "ubi-supermercado",
+   "categoriaId": "cat-supermercado",
+   "padreId": "cat-alimentacion",
+   "desde": null
+  },
+  {
+   "id": "ubi-verduleria",
+   "categoriaId": "cat-verduleria",
+   "padreId": "cat-alimentacion",
+   "desde": null
+  },
+  {
+   "id": "ubi-kiosco",
+   "categoriaId": "cat-kiosco",
+   "padreId": "cat-alimentacion",
+   "desde": null
+  },
+  {
+   "id": "ubi-transporte",
+   "categoriaId": "cat-transporte",
+   "padreId": null,
+   "desde": null
+  },
+  {
+   "id": "ubi-transporte-publico",
+   "categoriaId": "cat-transporte-publico",
+   "padreId": "cat-transporte",
+   "desde": null
+  },
+  {
+   "id": "ubi-ocio",
+   "categoriaId": "cat-ocio",
+   "padreId": null,
+   "desde": null
+  },
+  {
+   "id": "ubi-juntada",
+   "categoriaId": "cat-juntada",
+   "padreId": "cat-ocio",
+   "desde": null
+  },
+  {
+   "id": "ubi-vacaciones",
+   "categoriaId": "cat-vacaciones",
+   "padreId": "cat-ocio",
+   "desde": null
+  },
+  {
+   "id": "ubi-salud",
+   "categoriaId": "cat-salud",
+   "padreId": null,
+   "desde": null
   }
  ],
  "movimientos": [

@@ -375,7 +375,7 @@ test('aep#12 CA-18 · una base del esquema 1 pasa al 2 sin perder la configuraci
   await pagina.waitForSelector('main h1');
   await pagina.waitForFunction(() => new Promise((ok) => {
     const p = indexedDB.open('afp-dev');
-    p.onsuccess = () => { const v = p.result.version; p.result.close(); ok(v === 2); };
+    p.onsuccess = () => { const v = p.result.version; p.result.close(); ok(v >= 2); };
   }));
   const base = await pagina.evaluate(() => new Promise((ok) => {
     const p = indexedDB.open('afp-dev');
@@ -387,7 +387,9 @@ test('aep#12 CA-18 · una base del esquema 1 pasa al 2 sin perder la configuraci
       tx.oncomplete = () => { const r = { almacenes: [...db.objectStoreNames].sort(), meses: c.result.mesesFondoEmergencia, monedas: m.result.map((x) => [x.id, x.activa]) }; db.close(); ok(r); };
     };
   }));
-  assert.deepEqual(base, { almacenes: ['configuracion', 'cuentas', 'monedas'], meses: 9, monedas: [['ARS', true], ['USD', true]] });
+  // Desde aep#15 la base está en el esquema 3 (se suman categorías): lo que importa acá es que la configuración
+  // del esquema 1 sigue y que están los almacenes de cuentas y monedas.
+  assert.deepEqual({ ...base, almacenes: base.almacenes.filter((a) => ['configuracion', 'cuentas', 'monedas'].includes(a)) }, { almacenes: ['configuracion', 'cuentas', 'monedas'], meses: 9, monedas: [['ARS', true], ['USD', true]] });
   assert.deepEqual(errores, []);
   await contexto.close();
 });

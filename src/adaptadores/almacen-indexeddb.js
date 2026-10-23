@@ -1,8 +1,9 @@
 // Adaptador del puerto Almacen con IndexedDB (RF-DAT-01, aep#9, aep#12). Una base por canal y modo
 // (modelo de datos §6.1): afp, afp-prueba, afp-dev o afp-dev-prueba.
-// Esquema 1: configuracion. Esquema 2 (aep#12): + cuentas y monedas; la migración conserva lo anterior.
-const VERSION_ESQUEMA = 2;
-const ALMACENES = ['configuracion', 'cuentas', 'monedas'];
+// Esquema 1: configuracion. Esquema 2 (aep#12): + cuentas y monedas. Esquema 3 (aep#15): + categorias y
+// ubicacionesCategoria. Cada migración conserva lo anterior.
+const VERSION_ESQUEMA = 3;
+const ALMACENES = ['configuracion', 'cuentas', 'monedas', 'categorias', 'ubicacionesCategoria'];
 
 function abrir(nombre) {
   return new Promise((resolver, rechazar) => {

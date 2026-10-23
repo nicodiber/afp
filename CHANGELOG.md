@@ -4,6 +4,13 @@ Cada entrega a la versión a probar (`/prueba/`) sube el número dentro del hito
 
 ## v0.2.0 · Cuentas y categorías (en curso)
 
+### v0.2.0-4 · aep#15
+
+- Categorías: Ajustes → «Categorías» muestra Ingresos y Egresos como un árbol con familias que se pliegan; crear, editar, mover (todo el historial o desde una fecha), ordenar, archivar, reactivar y eliminar.
+- Clasificación de cada hoja (fijo o variable, necesidad o deseo, hormiga; o la naturaleza del ingreso), que una hoja nueva toma de su familia.
+- Los datos de ejemplo suman las categorías.
+- La base del dispositivo pasa al esquema 3.
+
 ### v0.2.0-3 · aep#14
 
 - Al abrir una cuenta ya creada, el formulario no pone el cursor en el nombre: en el celular, el teclado no se abre hasta que tocás un campo.
