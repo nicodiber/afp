@@ -4,6 +4,12 @@ Cada entrega a la versión a probar (`/prueba/`) sube el número dentro del hito
 
 ## v0.1.0 · Base instalable (en curso)
 
+### v0.1.0-5 · 22/10/2026 · aep#7, aep#8 y aep#9
+
+- Formatos de montos, decimales (redondeo comercial), porcentajes, fechas y horas, listos para las pantallas.
+- Núcleo de partida doble: asientos de los 11 tipos de movimiento, control de que cuadren y saldos; con los datos de ejemplo da los saldos esperados.
+- Base de datos del dispositivo con la configuración, separada por canal y modo prueba; Ajustes → «Datos de este dispositivo».
+
 ### v0.1.0-4 · 22/10/2026 · aep#5 y aep#6
 
 - Modo prueba en Ajustes: franja fija «MODO PRUEBA · fecha simulada DD/MM/AAAA», fecha simulada editable (31/10/2026 por defecto) y datos aparte de los reales.
