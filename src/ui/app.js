@@ -2,13 +2,17 @@
 import { pantallaInicio } from './pantallas/inicio.js';
 import { pantallaAjustes } from './pantallas/ajustes.js';
 import { pantallaProximamente } from './pantallas/proximamente.js';
+import { pantallaCuentas, reiniciarCuentas } from './pantallas/cuentas.js';
+import { pantallaMonedas } from './pantallas/monedas.js';
 import { actualizarFranja } from './franja-prueba.js';
 
 const DESTINOS = { inicio: 'Inicio', movimientos: 'Movimientos', cargar: 'Cargar', analisis: 'Análisis', ajustes: 'Ajustes' };
+// Pantallas dentro de Ajustes (aep#12): «#ajustes/cuentas» y «#ajustes/monedas».
+const SUBPANTALLAS = { 'ajustes/cuentas': 'Cuentas', 'ajustes/monedas': 'Monedas' };
 const PC = '(min-width: 720px)';
 const SISTEMA_OSCURO = '(prefers-color-scheme: dark)';
 
-export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, datosDispositivo, alCambiarModoPrueba = () => {}, version }) {
+export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, datosDispositivo, cuentas, datosDeEjemplo, alCambiarModoPrueba = () => {}, version }) {
   const principal = document.getElementById('contenido');
   const enlaces = [...document.querySelectorAll('.nav-lista a[data-destino]')];
   const cargar = document.querySelector('.nav-item-cargar');
@@ -22,10 +26,20 @@ export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, datosDi
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', fondo);
   };
 
-  const destinoActual = () => {
-    const destino = location.hash.slice(1);
-    return Object.hasOwn(DESTINOS, destino) ? destino : 'inicio';
+  const rutaActual = () => {
+    const ruta = location.hash.slice(1);
+    return Object.hasOwn(DESTINOS, ruta) || Object.hasOwn(SUBPANTALLAS, ruta) ? ruta : 'inicio';
   };
+  const destinoActual = () => rutaActual().split('/')[0];
+  const esPC = () => matchMedia(PC).matches;
+  // Vuelve a dibujar la pantalla y pone el foco en el control indicado (si sigue existiendo).
+  const redibujar = (foco) => {
+    const anterior = document.activeElement?.id;
+    mostrar(false);
+    const destino = (foco && document.getElementById(foco)) || (anterior && document.getElementById(anterior));
+    if (destino) destino.focus(); else if (foco !== undefined) principal.querySelector('h1')?.focus({ preventScroll: true });
+  };
+  let rutaAnterior = null;
 
   const acciones = {
     alInstalar: () => instalacion.instalar().then(() => mostrar(false)),
@@ -37,12 +51,17 @@ export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, datosDi
   };
 
   const mostrar = (moverFoco) => {
+    const ruta = rutaActual();
     const destino = destinoActual();
+    if (ruta !== rutaAnterior && rutaAnterior === 'ajustes/cuentas') reiniciarCuentas();
+    rutaAnterior = ruta;
     let pantalla;
-    if (destino === 'inicio') pantalla = pantallaInicio({ instalacion, ...acciones });
+    if (ruta === 'ajustes/cuentas') pantalla = pantallaCuentas({ cuentas, esPC: esPC(), redibujar });
+    else if (ruta === 'ajustes/monedas') pantalla = pantallaMonedas({ cuentas, redibujar });
+    else if (destino === 'inicio') pantalla = pantallaInicio({ instalacion, ...acciones, cuentas, esPC: esPC(), redibujar });
     else if (destino === 'ajustes') {
       pantalla = pantallaAjustes({
-        preferencias, version, instalacion, alInstalar: acciones.alInstalar, modoPrueba, datosDispositivo,
+        preferencias, version, instalacion, alInstalar: acciones.alInstalar, modoPrueba, datosDispositivo, cuentas, datosDeEjemplo, redibujar,
         alCambiarModoPrueba: () => {
           actualizarFranja(modoPrueba.estado());
           alCambiarModoPrueba();
@@ -54,7 +73,8 @@ export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, datosDi
       });
     } else pantalla = pantallaProximamente(DESTINOS[destino]);
     principal.replaceChildren(...pantalla);
-    document.title = `${DESTINOS[destino]} · AFP`;
+    principal.classList.toggle('principal-ancho', ruta === 'ajustes/cuentas');
+    document.title = `${SUBPANTALLAS[ruta] ?? DESTINOS[destino]} · AFP`;
     for (const enlace of enlaces) {
       if (enlace.dataset.destino === destino) enlace.setAttribute('aria-current', 'page');
       else enlace.removeAttribute('aria-current');
@@ -79,9 +99,8 @@ export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, datosDi
   matchMedia(PC).addEventListener('change', ordenarNavegacion);
   matchMedia(SISTEMA_OSCURO).addEventListener('change', aplicarTema);
   return {
-    // Vuelve a dibujar Ajustes cuando cambia el estado de los datos del dispositivo, sin perder el foco.
+    // Vuelve a dibujar la pantalla cuando cambian los datos del dispositivo (base preparada, cuentas), sin perder el foco.
     refrescar() {
-      if (destinoActual() !== 'ajustes') return;
       const foco = document.activeElement?.id;
       mostrar(false);
       if (foco) document.getElementById(foco)?.focus();

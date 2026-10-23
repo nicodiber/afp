@@ -52,3 +52,12 @@ test('aep#12 CA-8 · leer un monto escrito: hasta 2 decimales, con signo menos (
   assert.equal(leerMonto(' 250.000 '), 25000000);
   for (const malo of ['12,345', 'abc', '', '1,2,3', '1.23', '-', '12.34.5']) assert.equal(leerMonto(malo), null, malo);
 });
+
+test('aep#12 CA-10 · un monto guardado vuelve al campo para editarlo y se lee igual', async () => {
+  const { montoParaEditar, leerMonto } = await import('../../src/dominio/formato.js');
+  assert.equal(montoParaEditar(15000), '150,00');
+  assert.equal(montoParaEditar(25000000), '250.000,00');
+  assert.equal(montoParaEditar(-500000), '-5.000,00');
+  assert.equal(montoParaEditar(5), '0,05');
+  for (const c of [0, 5, 15000, -500000, 123456789]) assert.equal(leerMonto(montoParaEditar(c)), c);
+});

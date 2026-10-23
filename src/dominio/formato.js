@@ -59,3 +59,9 @@ export function leerMonto(texto) {
   const centavos = Number(entero) * 100 + Number(decimales.padEnd(2, '0'));
   return negativo && centavos !== 0 ? -centavos : centavos;
 }
+
+/** Centavos → texto para editar en un campo: 15000 → «150,00», −500000 → «-5.000,00» (lo lee leerMonto). */
+export function montoParaEditar(centavos) {
+  const absoluto = Math.abs(centavos).toString().padStart(3, '0');
+  return `${centavos < 0 ? '-' : ''}${miles(absoluto.slice(0, -2))},${absoluto.slice(-2)}`;
+}

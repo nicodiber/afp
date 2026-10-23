@@ -10,6 +10,8 @@ import { crearCasosPreferencias } from './aplicacion/preferencias.js';
 import { crearCasosInstalacion } from './aplicacion/instalacion.js';
 import { crearCasosModoPrueba } from './aplicacion/modo-prueba.js';
 import { crearCasosDatosDispositivo } from './aplicacion/datos-dispositivo.js';
+import { crearCasosCuentas } from './aplicacion/cuentas.js';
+import { leerDatosDeEjemplo } from './adaptadores/datos-ejemplo.js';
 import { iniciarInterfaz, avisarVersionNueva } from './ui/app.js';
 
 const almacen = crearPreferenciasLocales();
@@ -18,12 +20,28 @@ const instalacion = crearCasosInstalacion({ instalacion: crearInstalacionNavegad
 // El reloj de todo AFP: la fecha simulada en modo prueba, la del dispositivo fuera de él (aep#6 CA-5).
 const modoPrueba = crearCasosModoPrueba({ preferencias: almacen, relojDelDispositivo: crearRelojDelDispositivo() });
 // La base del dispositivo depende del canal y del modo prueba (aep#9, modelo de datos §6.1).
-const basePara = () => crearCasosDatosDispositivo(crearAlmacenIndexedDB(nombreDeBase({ modoPrueba: modoPrueba.estado().activo, ruta: location.pathname })));
-let datosDispositivo = basePara();
-const datosParaInterfaz = { estado: () => datosDispositivo.estado() };
+// Las cuentas (aep#12) usan la misma base; al cambiar el modo prueba se cambian las dos.
+const nuevoId = () => `cue-${crypto.randomUUID()}`;
+const basePara = () => {
+  const almacenDatos = crearAlmacenIndexedDB(nombreDeBase({ modoPrueba: modoPrueba.estado().activo, ruta: location.pathname }));
+  return { dispositivo: crearCasosDatosDispositivo(almacenDatos), cuentas: crearCasosCuentas({ almacen: almacenDatos, reloj: modoPrueba.reloj, nuevoId }) };
+};
+let base = basePara();
+const datosParaInterfaz = { estado: () => base.dispositivo.estado() };
+// La interfaz ve siempre las cuentas de la base actual.
+const cuentasParaInterfaz = new Proxy({}, { get: (_, nombre) => base.cuentas[nombre] });
+// Se redibuja apenas se sabe el estado de la base y otra vez con las cuentas.
+const preparar = async (alAvanzar) => {
+  await base.dispositivo.preparar();
+  alAvanzar();
+  // Si la base no se puede abrir (por ejemplo, bloqueada por otra pestaña), AFP sigue sin cuentas.
+  if (base.dispositivo.estado() !== 'sin-almacenamiento') await base.cuentas.preparar().catch(() => {});
+  alAvanzar();
+};
 const interfaz = iniciarInterfaz({
   preferencias, instalacion, modoPrueba, datosDispositivo: datosParaInterfaz, version: VERSION,
-  alCambiarModoPrueba: () => { datosDispositivo = basePara(); datosDispositivo.preparar().then(() => interfaz.refrescar()); },
+  cuentas: cuentasParaInterfaz, datosDeEjemplo: leerDatosDeEjemplo,
+  alCambiarModoPrueba: () => { base = basePara(); preparar(() => interfaz.refrescar()); },
 });
-datosDispositivo.preparar().then(() => interfaz.refrescar());
+preparar(() => interfaz.refrescar());
 registrarServiceWorker({ alHaberVersionNueva: avisarVersionNueva });

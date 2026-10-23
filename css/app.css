@@ -295,6 +295,78 @@ main {
 }
 .seccion-prueba .boton-texto { justify-self: start; }
 
+/* Cuentas (aep#12, D-132): tarjetas en Inicio, lista en Ajustes → «Cuentas», ordenar, formulario y ventanas. */
+.volver { align-self: flex-start; display: inline-flex; align-items: center; min-height: var(--objetivo-tactil); color: var(--color-acento); font-weight: var(--peso-negrita); text-decoration: none; }
+.cabecera-lista { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--esp-2); margin-bottom: var(--esp-2); }
+.botones-lista { display: flex; flex-wrap: wrap; gap: var(--esp-2); }
+.boton-principal.boton-chico, .boton-secundario.boton-chico { width: auto; min-height: var(--objetivo-tactil); padding: 0 var(--esp-4); font: inherit; font-weight: var(--peso-extra); border: 0; cursor: pointer; }
+.boton-secundario.boton-chico { border: 1px solid var(--color-borde-campo); font-weight: var(--peso-negrita); }
+button.boton-principal { border: 0; font: inherit; font-weight: var(--peso-extra); cursor: pointer; }
+.boton-peligro { color: var(--color-error); }
+
+.lista-cuentas { margin: 0; padding: 0; list-style: none; display: grid; overflow: hidden; border: var(--borde-tarjeta); border-radius: var(--radio-tarjeta); background: var(--color-superficie); box-shadow: var(--sombra-tarjeta); }
+.lista-cuentas > li + li { border-top: 1px solid var(--color-linea); }
+.fila-cuenta { display: flex; align-items: center; gap: var(--esp-3); width: 100%; min-height: 60px; padding: var(--esp-2) var(--esp-4); border: 0; background: var(--color-superficie); color: var(--color-texto); font: inherit; text-align: left; text-decoration: none; }
+button.fila-cuenta, a.fila-cuenta { cursor: pointer; }
+.fila-cuenta[aria-current="true"] { background: var(--color-acento-tenue); }
+.lista-cuentas > li.fila-cuenta + li.fila-cuenta { border-top: 1px solid var(--color-linea); }
+.fila-emoji { flex: 0 0 auto; width: 28px; font-size: var(--texto-lg); text-align: center; }
+.fila-datos { display: grid; flex: 1; min-width: 0; }
+.fila-nombre { overflow: hidden; font-weight: var(--peso-negrita); text-overflow: ellipsis; white-space: nowrap; }
+.fila-detalle { color: var(--color-texto-suave); font-size: var(--texto-sm); }
+.fila-monto { flex: 0 0 auto; font-weight: var(--peso-negrita); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.negativo { color: var(--color-egreso); }
+.marca { display: inline-block; margin-left: var(--esp-2); padding: 0 var(--esp-2); border: 1px solid currentColor; border-radius: var(--radio-pastilla); color: var(--color-acento); font-size: var(--texto-xs); font-weight: var(--peso-extra); vertical-align: 1px; }
+.chevron { color: var(--color-texto-suave); font-size: var(--texto-xl); }
+.accesos { margin-bottom: var(--esp-6); }
+.asa { flex: 0 0 auto; display: grid; place-items: center; width: var(--objetivo-tactil); height: var(--objetivo-tactil); margin-left: calc(-1 * var(--esp-2)); border: 0; border-radius: var(--radio-chico); background: none; color: var(--color-texto-suave); font-size: var(--texto-lg); cursor: grab; touch-action: none; }
+.flechas { display: flex; flex: 0 0 auto; gap: var(--esp-1); }
+.flecha { display: grid; place-items: center; width: var(--objetivo-tactil); height: var(--objetivo-tactil); border: 1px solid var(--color-borde-campo); border-radius: var(--radio-campo); background: var(--color-superficie); color: var(--color-texto); font: inherit; font-size: var(--texto-lg); cursor: pointer; }
+.flecha:disabled { opacity: 0.35; cursor: default; }
+.fila-cuenta.arrastrando { position: relative; z-index: 2; box-shadow: var(--sombra-tarjeta); cursor: grabbing; }
+.seccion-archivadas { display: grid; gap: var(--esp-2); margin-top: var(--esp-6); }
+.fila-archivada .fila-datos { color: var(--color-texto-suave); }
+.cuentas-columna { display: grid; gap: var(--esp-3); align-content: start; }
+.vacio-cuentas { padding: var(--esp-8) 0; }
+
+.seccion-cuentas { margin-bottom: var(--esp-6); }
+.tarjetas-cuentas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--esp-3); margin: 0; padding: 0; list-style: none; }
+.tarjeta-cuenta { display: grid; gap: 2px; width: 100%; min-height: 88px; padding: var(--esp-3) var(--esp-4); border: var(--borde-tarjeta); border-radius: var(--radio-tarjeta); background: var(--color-superficie); box-shadow: var(--sombra-tarjeta); color: var(--color-texto); font: inherit; text-align: left; cursor: pointer; }
+.tarjeta-cuenta-nombre { overflow: hidden; color: var(--color-texto-suave); font-size: var(--texto-sm); font-weight: var(--peso-negrita); text-overflow: ellipsis; white-space: nowrap; }
+.tarjeta-cuenta-monto { font-size: var(--texto-lg); font-weight: var(--peso-extra); font-variant-numeric: tabular-nums; }
+.tarjeta-cuenta-detalle { color: var(--color-texto-suave); font-size: var(--texto-xs); }
+.tarjeta-nueva { place-items: center; color: var(--color-acento); font-weight: var(--peso-extra); box-shadow: none; border: 1px dashed var(--color-borde-campo); }
+
+/* Formulario de cuenta (componente, D-131). */
+.formulario-cuenta { display: grid; gap: var(--esp-4); }
+.campos-juntos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--esp-3); }
+.campos-emoji { grid-template-columns: 96px minmax(0, 1fr); }
+.campo select, .campo textarea, .campo input { width: 100%; min-height: var(--objetivo-tactil); padding: 0 var(--esp-3); border: 1px solid var(--color-borde-campo); border-radius: var(--radio-campo); background: var(--color-superficie); color: var(--color-texto); font: inherit; }
+.campo textarea { padding: var(--esp-2) var(--esp-3); resize: vertical; }
+.campo [aria-invalid="true"] { border: 2px solid var(--color-error); }
+/* Los campos muestran el foco siempre (el de fecha no siempre cumple :focus-visible al recorrer sus partes). */
+.campo input:focus, .campo input:focus-within, .campo select:focus, .campo textarea:focus { outline: 2px solid var(--color-foco); outline-offset: 2px; }
+.campo .ayuda { margin: 0; color: var(--color-texto-suave); font-size: var(--texto-xs); }
+.error-campo { margin: 0; color: var(--color-error); font-size: var(--texto-sm); font-weight: var(--peso-negrita); }
+.error-campo:empty { display: none; }
+.acciones, .confirmacion .acciones { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--esp-3); }
+.acciones .boton-principal { width: auto; }
+.acciones-extra { display: flex; justify-content: space-between; gap: var(--esp-3); border-top: 1px solid var(--color-linea); padding-top: var(--esp-2); }
+.interruptor-solo { width: auto; }
+.acciones-prueba { display: flex; flex-wrap: wrap; gap: var(--esp-2); }
+
+/* Ventanas (<dialog>): confirmaciones y formularios; en el celular, el formulario ocupa la pantalla. */
+.ventana { width: min(100% - 2 * var(--margen-lateral), 440px); max-height: calc(100dvh - 2 * var(--esp-4)); padding: var(--esp-5); border: 0; border-radius: var(--radio-destacada); background: var(--color-fondo); color: var(--color-texto); box-shadow: var(--sombra-tarjeta); overflow: auto; }
+.ventana::backdrop { background: color-mix(in srgb, var(--color-texto) 45%, transparent); }
+.ventana-confirmar { background: var(--color-superficie); }
+.confirmacion { display: grid; gap: var(--esp-3); }
+.confirmacion p { margin: 0; }
+.ventana-pantalla { width: 100%; max-width: none; height: 100dvh; max-height: none; margin: 0; border-radius: 0; padding: calc(var(--esp-4) + env(safe-area-inset-top, 0px)) var(--margen-lateral) calc(var(--esp-6) + env(safe-area-inset-bottom, 0px)); }
+.ventana-formulario { width: min(100% - 2 * var(--margen-lateral), 520px); }
+
+.aviso-breve { position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); z-index: 60; max-width: calc(100% - 2 * var(--margen-lateral)); padding: var(--esp-3) var(--esp-4); border-radius: var(--radio-campo); background: var(--color-texto); color: var(--color-fondo); font-weight: var(--peso-semi); text-align: center; transform: translateX(-50%); }
+.panel-edicion { padding: var(--esp-5); border: var(--borde-tarjeta); border-radius: var(--radio-tarjeta); background: var(--color-superficie); box-shadow: var(--sombra-tarjeta); }
+
 /* Navegación · celular: barra fija abajo, «Cargar» redondo que sobresale (D-94). */
 .navegacion {
   position: fixed;
@@ -487,6 +559,13 @@ main {
   }
   .boton-principal { width: auto; }
   .aviso-version { bottom: var(--esp-6); left: calc(50% + var(--ancho-nav-compacta) / 2); }
+
+  /* Cuentas en la PC: columna más ancha para la lista con el formulario al costado (D-132). */
+  main.principal-ancho > * { width: min(100%, 880px); }
+  .cuentas-con-panel { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: var(--esp-6); align-items: start; }
+  .panel-edicion { position: sticky; top: var(--esp-6); }
+  .tarjetas-cuentas { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  .aviso-breve { bottom: var(--esp-6); left: calc(50% + var(--ancho-nav-compacta) / 2); }
 }
 
 @media (prefers-reduced-motion: reduce) {

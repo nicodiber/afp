@@ -10,8 +10,8 @@ import { VERSION } from '../src/version.js';
 const RAIZ = fileURLToPath(new URL('..', import.meta.url));
 const sw = await readFile(join(RAIZ, 'sw.js'), 'utf8');
 
-test('aep#11 · versión de esta entrega: v0.1.1', () => {
-  assert.equal(VERSION, 'v0.1.1');
+test('aep#12 CA-23 · versión de esta entrega: v0.2.0-1', () => {
+  assert.equal(VERSION, 'v0.2.0-1');
 });
 
 test('FC-01 · el service worker usa la misma versión en el nombre de su caché', () => {
@@ -26,7 +26,23 @@ test('aep#2 CA-5 · el service worker guarda cada archivo de la app', async () =
     ...await listar('src'), ...await listar('css'),
     'fuentes/figtree.woff2', 'iconos/icono.svg', 'iconos/icono-32.png', 'iconos/icono-192.png', 'iconos/icono-512.png', 'iconos/icono-maskable-512.png',
     'manifest-prueba.webmanifest', ...await listar('iconos/prueba'),
+    'datos-demo/datos-ejemplo.json',
   ];
   const lista = sw.match(/const ARCHIVOS = \[([\s\S]*?)\];/)[1];
   for (const archivo of necesarios) assert.ok(lista.includes(`'${archivo}'`), `falta ${archivo} en sw.js`);
+});
+
+test('aep#12 · index.html precarga todos los módulos que usa la app (y solo esos)', async () => {
+  const html = await readFile(join(RAIZ, 'index.html'), 'utf8');
+  const precargados = [...html.matchAll(/<link rel="modulepreload" href="([^"]+)">/g)].map((m) => m[1]).sort();
+  const alcanzables = new Set();
+  const visitar = async (ruta) => {
+    if (alcanzables.has(ruta)) return;
+    alcanzables.add(ruta);
+    const texto = await readFile(join(RAIZ, ruta), 'utf8');
+    for (const [, rel] of texto.matchAll(/from\s+'(\.[^']+)'/g)) await visitar(join(ruta, '..', rel).replaceAll('\\', '/'));
+  };
+  await visitar('src/arranque.js');
+  alcanzables.delete('src/arranque.js');
+  assert.deepEqual(precargados, [...alcanzables].sort());
 });
