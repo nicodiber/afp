@@ -3,6 +3,7 @@
 import { crear } from './dom.js';
 import { TIPOS_ELEGIBLES, NOMBRES_DE_TIPO, PROPOSITOS, NOMBRES_DE_PROPOSITO } from '../dominio/cuentas.js';
 import { montoParaEditar } from '../dominio/formato.js';
+import { capitalizarInicial } from '../dominio/texto.js';
 
 let siguiente = 0;
 
@@ -29,17 +30,27 @@ export function formularioCuenta({ cuenta, monedas, hoy, alGuardar, alCancelar, 
     return o;
   });
   const campos = {
-    nombre: entrada('nombre', { type: 'text', autocomplete: 'off', maxlength: '60', required: '' }),
+    nombre: entrada('nombre', { type: 'text', autocomplete: 'off', autocapitalize: 'sentences', maxlength: '60', required: '' }),
     tipo: crear('select', { id: id('tipo'), name: 'tipo' }, opciones(TIPOS_ELEGIBLES.map((t) => [t, NOMBRES_DE_TIPO[t]]), valor('tipo', 'efectivo'))),
     monedaId: crear('select', { id: id('monedaId'), name: 'monedaId' }, opciones(monedas.map((m) => [m.id, `${m.id} · ${m.simbolo}`]), valor('monedaId', 'ARS'))),
-    saldoInicial: entrada('saldoInicial', { type: 'text', inputmode: 'decimal', autocomplete: 'off' }),
+    saldoInicial: entrada('saldoInicial', { type: 'text', inputmode: 'decimal', autocomplete: 'off', placeholder: '0' }),
     fechaSaldoInicial: entrada('fechaSaldoInicial', { type: 'date', max: hoy, required: '' }),
     emoji: entrada('emoji', { type: 'text', autocomplete: 'off', maxlength: '8' }),
     proposito: crear('select', { id: id('proposito'), name: 'proposito' }, opciones(PROPOSITOS.map((p) => [p, NOMBRES_DE_PROPOSITO[p]]), valor('proposito', 'ninguno'))),
     notas: crear('textarea', { id: id('notas'), name: 'notas', maxlength: '500', rows: '3' }),
   };
   campos.nombre.value = valor('nombre', '');
-  campos.saldoInicial.value = cuenta ? montoParaEditar(cuenta.saldoInicial) : '0';
+  // Una cuenta nueva empieza con el saldo vacío; vacío cuenta como 0 (D-135).
+  campos.saldoInicial.value = cuenta ? montoParaEditar(cuenta.saldoInicial) : '';
+  // La primera letra del nombre pasa a mayúscula mientras se escribe (D-134), sin mover el cursor.
+  campos.nombre.addEventListener('input', () => {
+    const actual = campos.nombre.value;
+    const corregido = capitalizarInicial(actual);
+    if (corregido === actual) return;
+    const { selectionStart, selectionEnd } = campos.nombre;
+    campos.nombre.value = corregido;
+    campos.nombre.setSelectionRange(selectionStart, selectionEnd);
+  });
   campos.fechaSaldoInicial.value = valor('fechaSaldoInicial', hoy);
   campos.emoji.value = valor('emoji', '');
   campos.notas.value = valor('notas', '');
@@ -104,7 +115,7 @@ export function formularioCuenta({ cuenta, monedas, hoy, alGuardar, alCancelar, 
     titulo,
     campo('nombre', 'Nombre', 'Hasta 40 caracteres.'),
     crear('div', { class: 'campos-juntos' }, [campo('tipo', 'Tipo'), campo('monedaId', 'Moneda')]),
-    crear('div', { class: 'campos-juntos' }, [campo('saldoInicial', 'Saldo inicial', 'Puede ser negativo.'), campo('fechaSaldoInicial', 'Al día')]),
+    crear('div', { class: 'campos-juntos' }, [campo('saldoInicial', 'Saldo inicial', 'Puede ser negativo. Vacío es 0.'), campo('fechaSaldoInicial', 'Al día')]),
     rendimiento,
     crear('div', { class: 'campos-juntos campos-emoji' }, [campo('emoji', 'Emoji'), campo('proposito', 'Propósito')]),
     campo('notas', 'Notas', 'Hasta 500 caracteres.'),

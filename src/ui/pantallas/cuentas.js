@@ -1,16 +1,15 @@
-// Ajustes → «Cuentas» (aep#12, D-132): activas en orden, «Ordenar» con asa y flechas, archivadas con
-// «Reactivar». En la PC, editar abre el formulario al costado y «Nueva cuenta», una ventana; en el celular,
+// Ajustes → «Cuentas» (aep#12, D-132, D-133): activas en orden, «Ordenar» con asa y flechas, archivadas con
+// «Reactivar». En la PC, crear y editar abren el formulario en una ventana sobre las cuentas; en el celular,
 // el formulario ocupa toda la pantalla.
 import { crear } from '../dom.js';
-import { formularioCuenta } from '../formulario-cuenta.js';
 import { avisar } from '../dialogo.js';
-import { abrirFormularioEnVentana, archivarCuenta, eliminarCuenta, monedasParaFormulario } from '../cuentas-comun.js';
+import { abrirFormularioEnVentana } from '../cuentas-comun.js';
 import { NOMBRES_DE_TIPO } from '../../dominio/cuentas.js';
 import { formatearMonto } from '../../dominio/formato.js';
 
 // Estado de la pantalla mientras se está en ella (se reinicia al salir).
-export const estadoCuentas = { ordenar: false, editando: null };
-export const reiniciarCuentas = () => { estadoCuentas.ordenar = false; estadoCuentas.editando = null; };
+export const estadoCuentas = { ordenar: false };
+export const reiniciarCuentas = () => { estadoCuentas.ordenar = false; };
 
 const montoDe = (cuentas, c) => formatearMonto(cuentas.saldoDe(c), c.monedaId);
 
@@ -28,18 +27,15 @@ export function pantallaCuentas({ cuentas, esPC, redibujar }) {
   const activas = cuentas.activas();
   const archivadas = cuentas.archivadas();
   const { ordenar } = estadoCuentas;
-  const editando = esPC && estadoCuentas.editando && cuentas.buscar(estadoCuentas.editando) ? estadoCuentas.editando : null;
 
   const abrirNueva = () => abrirFormularioEnVentana({ cuentas, pantallaCompleta: !esPC, alTerminar: () => redibujar() });
-  const abrirEdicion = (id) => {
-    if (esPC) { estadoCuentas.editando = id; redibujar(`f-cuenta-${id}`); } else abrirFormularioEnVentana({ cuentas, id, pantallaCompleta: true, alTerminar: () => redibujar(`cuenta-${id}`) });
-  };
+  const abrirEdicion = (id) => abrirFormularioEnVentana({ cuentas, id, pantallaCompleta: !esPC, alTerminar: () => redibujar(`cuenta-${id}`) });
 
   const cabecera = crear('div', { class: 'cabecera-lista' }, [crear('h2', { class: 'subtitulo', id: 'titulo-activas', texto: ordenar ? 'Ordenar cuentas' : 'Activas' })]);
   const botones = crear('div', { class: 'botones-lista' });
   if (activas.length > 1 || ordenar) {
     const botonOrdenar = crear('button', { type: 'button', class: 'boton-secundario', id: 'boton-ordenar', 'aria-pressed': String(ordenar), texto: ordenar ? 'Listo' : 'Ordenar' });
-    botonOrdenar.addEventListener('click', () => { estadoCuentas.ordenar = !ordenar; estadoCuentas.editando = null; redibujar('boton-ordenar'); });
+    botonOrdenar.addEventListener('click', () => { estadoCuentas.ordenar = !ordenar; redibujar('boton-ordenar'); });
     botones.append(botonOrdenar);
   }
   if (!ordenar && activas.length) {
@@ -58,7 +54,7 @@ export function pantallaCuentas({ cuentas, esPC, redibujar }) {
     lista = listaParaOrdenar({ cuentas, activas, redibujar });
   } else {
     lista = crear('ul', { class: 'lista-cuentas', 'aria-labelledby': 'titulo-activas' }, activas.map((c) => {
-      const fila = crear('button', { type: 'button', class: 'fila-cuenta', id: `cuenta-${c.id}`, 'aria-current': c.id === editando ? 'true' : 'false' }, [
+      const fila = crear('button', { type: 'button', class: 'fila-cuenta', id: `cuenta-${c.id}` }, [
         ...datosDeFila(cuentas, c),
         crear('span', { class: `fila-monto${cuentas.saldoDe(c) < 0 ? ' negativo' : ''}`, texto: montoDe(cuentas, c) }),
       ]);
@@ -75,32 +71,8 @@ export function pantallaCuentas({ cuentas, esPC, redibujar }) {
     crear('a', { class: 'volver', href: '#ajustes', texto: '‹ Ajustes' }),
     crear('h1', { class: 'titulo', tabindex: '-1', texto: 'Cuentas' }),
   ];
-  if (editando && !ordenar) {
-    const panel = panelEdicion({ cuentas, id: editando, redibujar });
-    contenido.push(crear('div', { class: 'cuentas-con-panel' }, [crear('div', { class: 'cuentas-columna' }, columna), panel]));
-  } else contenido.push(crear('div', { class: 'cuentas-columna' }, columna));
+  contenido.push(crear('div', { class: 'cuentas-columna' }, columna));
   return contenido;
-}
-
-function panelEdicion({ cuentas, id, redibujar }) {
-  const cuenta = cuentas.buscar(id);
-  const cerrar = (foco = `cuenta-${id}`) => { estadoCuentas.editando = null; redibujar(foco); };
-  const { elemento } = formularioCuenta({
-    cuenta, monedas: monedasParaFormulario(cuentas, cuenta), hoy: cuentas.hoy(),
-    alCancelar: () => cerrar(),
-    alGuardar: async (datos) => {
-      const resultado = await cuentas.editar(id, datos);
-      if (resultado.errores) return resultado;
-      avisar('Guardaste los cambios.');
-      cerrar();
-      return resultado;
-    },
-    alArchivar: async () => { if (await archivarCuenta(cuentas, id)) cerrar('titulo-activas'); },
-    alEliminar: async () => { if (await eliminarCuenta(cuentas, id)) cerrar('titulo-activas'); },
-  });
-  elemento.id = `f-cuenta-${id}`;
-  elemento.tabIndex = -1;
-  return crear('aside', { class: 'panel-edicion', 'aria-label': `Editar ${cuenta.nombre}` }, [elemento]);
 }
 
 function listaParaOrdenar({ cuentas, activas, redibujar }) {

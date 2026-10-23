@@ -73,7 +73,6 @@ export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, datosDi
       });
     } else pantalla = pantallaProximamente(DESTINOS[destino]);
     principal.replaceChildren(...pantalla);
-    principal.classList.toggle('principal-ancho', ruta === 'ajustes/cuentas');
     document.title = `${SUBPANTALLAS[ruta] ?? DESTINOS[destino]} · AFP`;
     for (const enlace of enlaces) {
       if (enlace.dataset.destino === destino) enlace.setAttribute('aria-current', 'page');
@@ -93,7 +92,11 @@ export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, datosDi
   actualizarFranja(modoPrueba.estado());
   ordenarNavegacion();
   mostrar(false);
-  window.addEventListener('hashchange', () => mostrar(true));
+  // Al cambiar de pantalla (por ejemplo, con «Atrás» del celular), se cierra cualquier ventana abierta.
+  window.addEventListener('hashchange', () => {
+    for (const ventana of document.querySelectorAll('dialog[open]')) ventana.close();
+    mostrar(true);
+  });
   // Si el navegador pasa a ofrecer instalar con un toque (o termina de instalar), se actualiza la pantalla.
   instalacion.alCambiar(() => { if (['inicio', 'ajustes'].includes(destinoActual())) mostrar(false); });
   matchMedia(PC).addEventListener('change', ordenarNavegacion);

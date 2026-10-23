@@ -47,7 +47,22 @@ test('aep#12 CA-8 · saldo inicial con hasta 2 decimales, también negativo (D-1
   assert.equal(saldo('1.234,5').datos.saldoInicial, 123450);
   assert.equal(saldo('0').datos.saldoInicial, 0);
   assert.equal(saldo('-5000').datos.saldoInicial, -500000);
-  for (const malo of ['12,345', 'abc', '']) assert.equal(saldo(malo).errores.saldoInicial, 'Escribí un monto con hasta 2 decimales.', malo);
+  for (const malo of ['12,345', 'abc']) assert.equal(saldo(malo).errores.saldoInicial, 'Escribí un monto con hasta 2 decimales.', malo);
+});
+
+test('aep#13 CA-6 · el saldo inicial vacío cuenta como 0 (D-135; cambia el vacío de aep#12 CA-8)', () => {
+  for (const vacio of ['', '   ']) {
+    const r = validarCuenta(formulario({ saldoInicial: vacio }), contexto);
+    assert.equal(r.errores.saldoInicial, undefined, JSON.stringify(vacio));
+    assert.equal(r.datos.saldoInicial, 0);
+  }
+});
+
+test('aep#13 CA-5 · el nombre se guarda con la primera letra en mayúscula (D-134)', () => {
+  assert.equal(validarCuenta(formulario({ nombre: 'banco nación' }), contexto).datos.nombre, 'Banco nación');
+  assert.equal(validarCuenta(formulario({ nombre: 'BBVA' }), contexto).datos.nombre, 'BBVA');
+  // El nombre repetido se sigue detectando: «caja» es «Caja».
+  assert.equal(validarCuenta(formulario({ nombre: 'caja' }), contexto).errores.nombre, 'Ya existe una cuenta con ese nombre');
 });
 
 test('aep#12 CA-9 · tipos que se eligen a mano: sin préstamos ni deudas; moneda activa', () => {

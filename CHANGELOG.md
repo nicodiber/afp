@@ -4,6 +4,13 @@ Cada entrega a la versión a probar (`/prueba/`) sube el número dentro del hito
 
 ## v0.2.0 · Cuentas y categorías (en curso)
 
+### v0.2.0-2 · aep#13
+
+- En la PC, editar una cuenta se abre en una ventana, como «Nueva cuenta».
+- Detrás de una ventana, la pantalla se oscurece también en tema oscuro.
+- Los nombres empiezan con mayúscula mientras los escribís.
+- El saldo inicial de una cuenta nueva empieza vacío; vacío es 0.
+
 ### v0.2.0-1 · aep#12
 
 - Cuentas: Inicio las muestra como tarjetas con su saldo; Ajustes → «Cuentas» permite crear, editar, ordenar (arrastrando o con ↑ y ↓), archivar, reactivar y eliminar.

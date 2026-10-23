@@ -308,7 +308,6 @@ button.boton-principal { border: 0; font: inherit; font-weight: var(--peso-extra
 .lista-cuentas > li + li { border-top: 1px solid var(--color-linea); }
 .fila-cuenta { display: flex; align-items: center; gap: var(--esp-3); width: 100%; min-height: 60px; padding: var(--esp-2) var(--esp-4); border: 0; background: var(--color-superficie); color: var(--color-texto); font: inherit; text-align: left; text-decoration: none; }
 button.fila-cuenta, a.fila-cuenta { cursor: pointer; }
-.fila-cuenta[aria-current="true"] { background: var(--color-acento-tenue); }
 .lista-cuentas > li.fila-cuenta + li.fila-cuenta { border-top: 1px solid var(--color-linea); }
 .fila-emoji { flex: 0 0 auto; width: 28px; font-size: var(--texto-lg); text-align: center; }
 .fila-datos { display: grid; flex: 1; min-width: 0; }
@@ -357,7 +356,8 @@ button.fila-cuenta, a.fila-cuenta { cursor: pointer; }
 
 /* Ventanas (<dialog>): confirmaciones y formularios; en el celular, el formulario ocupa la pantalla. */
 .ventana { width: min(100% - 2 * var(--margen-lateral), 440px); max-height: calc(100dvh - 2 * var(--esp-4)); padding: var(--esp-5); border: 0; border-radius: var(--radio-destacada); background: var(--color-fondo); color: var(--color-texto); box-shadow: var(--sombra-tarjeta); overflow: auto; }
-.ventana::backdrop { background: color-mix(in srgb, var(--color-texto) 45%, transparent); }
+/* El velo oscurece lo que queda detrás en los dos temas (FC-16): no usa un color que cambie con el tema. */
+.ventana::backdrop { background: rgb(0 0 0 / 0.55); }
 .ventana-confirmar { background: var(--color-superficie); }
 .confirmacion { display: grid; gap: var(--esp-3); }
 .confirmacion p { margin: 0; }
@@ -365,7 +365,6 @@ button.fila-cuenta, a.fila-cuenta { cursor: pointer; }
 .ventana-formulario { width: min(100% - 2 * var(--margen-lateral), 520px); }
 
 .aviso-breve { position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); z-index: 60; max-width: calc(100% - 2 * var(--margen-lateral)); padding: var(--esp-3) var(--esp-4); border-radius: var(--radio-campo); background: var(--color-texto); color: var(--color-fondo); font-weight: var(--peso-semi); text-align: center; transform: translateX(-50%); }
-.panel-edicion { padding: var(--esp-5); border: var(--borde-tarjeta); border-radius: var(--radio-tarjeta); background: var(--color-superficie); box-shadow: var(--sombra-tarjeta); }
 
 /* Navegación · celular: barra fija abajo, «Cargar» redondo que sobresale (D-94). */
 .navegacion {
@@ -560,10 +559,6 @@ button.fila-cuenta, a.fila-cuenta { cursor: pointer; }
   .boton-principal { width: auto; }
   .aviso-version { bottom: var(--esp-6); left: calc(50% + var(--ancho-nav-compacta) / 2); }
 
-  /* Cuentas en la PC: columna más ancha para la lista con el formulario al costado (D-132). */
-  main.principal-ancho > * { width: min(100%, 880px); }
-  .cuentas-con-panel { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: var(--esp-6); align-items: start; }
-  .panel-edicion { position: sticky; top: var(--esp-6); }
   .tarjetas-cuentas { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
   .aviso-breve { bottom: var(--esp-6); left: calc(50% + var(--ancho-nav-compacta) / 2); }
 }
