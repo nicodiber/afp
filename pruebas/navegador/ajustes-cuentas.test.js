@@ -17,7 +17,8 @@ async function conEjemplo(opciones) {
 }
 const irACuentas = async (pagina) => {
   await pagina.goto(entorno.servidor.url + '#ajustes/cuentas');
-  await pagina.getByRole('heading', { name: 'Cuentas', level: 1 }).waitFor();
+  // La pantalla se carga al abrirla (aep#15): se espera su contenido, no solo el título.
+  await pagina.locator('#boton-nueva-cuenta, .vacio-cuentas').first().waitFor();
 };
 const ventana = (pagina) => pagina.locator('dialog[open]').last();
 

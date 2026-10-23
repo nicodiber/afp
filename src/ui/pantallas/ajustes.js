@@ -6,7 +6,7 @@ import { confirmar, avisar } from '../dialogo.js';
 
 const NOMBRES_TEMA = { claro: 'Claro', oscuro: 'Oscuro', sistema: 'Como el sistema' };
 
-export function pantallaAjustes({ preferencias, version, alElegirTema, instalacion, alInstalar, modoPrueba, alCambiarModoPrueba, datosDispositivo, cuentas, datosDeEjemplo, redibujar }) {
+export function pantallaAjustes({ preferencias, version, alElegirTema, instalacion, alInstalar, modoPrueba, alCambiarModoPrueba, datosDispositivo, cuentas, ejemplo, redibujar }) {
   const elegido = preferencias.temaElegido();
   const botones = preferencias.opcionesDeTema().map((tema) => {
     const boton = crear('button', { type: 'button', 'aria-pressed': String(tema === elegido), texto: NOMBRES_TEMA[tema] });
@@ -24,7 +24,7 @@ export function pantallaAjustes({ preferencias, version, alElegirTema, instalaci
       crear('div', { class: 'segmentado', role: 'group', 'aria-labelledby': 'titulo-tema' }, botones),
     ]),
     seccionInstalacion({ forma: instalacion.estado().forma, alInstalar }),
-    seccionModoPrueba({ modoPrueba, alCambiar: alCambiarModoPrueba, cuentas, datosDeEjemplo, redibujar }),
+    seccionModoPrueba({ modoPrueba, alCambiar: alCambiarModoPrueba, ejemplo, redibujar }),
     seccionDatos(datosDispositivo.estado()),
     crear('section', { class: 'seccion', 'aria-labelledby': 'titulo-acerca' }, [
       crear('h2', { class: 'subtitulo', id: 'titulo-acerca', texto: 'Acerca de' }),
@@ -37,7 +37,7 @@ export function pantallaAjustes({ preferencias, version, alElegirTema, instalaci
 }
 
 // Modo prueba (aep#6, D-111, D-112): interruptor directo y, con el modo activo, la fecha simulada.
-function seccionModoPrueba({ modoPrueba, alCambiar, cuentas, datosDeEjemplo, redibujar }) {
+function seccionModoPrueba({ modoPrueba, alCambiar, ejemplo, redibujar }) {
   const estado = modoPrueba.estado();
   const interruptor = crear('button', { type: 'button', role: 'switch', class: 'interruptor', 'aria-checked': String(estado.activo), id: 'interruptor-prueba' }, [
     crear('span', { class: 'interruptor-texto', texto: 'Modo prueba' }),
@@ -60,7 +60,7 @@ function seccionModoPrueba({ modoPrueba, alCambiar, cuentas, datosDeEjemplo, red
     const volver = crear('button', { type: 'button', class: 'boton-texto', texto: 'Volver al 31/10/2026' });
     volver.addEventListener('click', () => { modoPrueba.volverAFechaPorDefecto(); alCambiar(); });
     contenido.push(crear('div', { class: 'campo' }, [crear('label', { for: 'fecha-simulada', texto: 'Fecha simulada' }), campo]), volver);
-    contenido.push(botonesDatosDeEjemplo({ cuentas, datosDeEjemplo, redibujar }));
+    contenido.push(botonesDatosDeEjemplo({ ejemplo, redibujar }));
   }
   return crear('section', { class: 'seccion seccion-prueba', 'aria-labelledby': 'titulo-prueba' }, contenido);
 }
@@ -82,7 +82,7 @@ function seccionDatos(estado) {
   ]);
 }
 
-// Cuentas y monedas (aep#12, D-132): se administran desde acá.
+// Cuentas, categorías y monedas (aep#12, aep#15, D-132, D-140): se administran desde acá.
 function accesos(cuentas) {
   const fila = (href, titulo, detalle) => crear('li', {}, [crear('a', { class: 'fila-cuenta fila-acceso', href }, [
     crear('span', { class: 'fila-datos' }, [crear('span', { class: 'fila-nombre', texto: titulo }), crear('span', { class: 'fila-detalle', texto: detalle })]),
@@ -90,14 +90,15 @@ function accesos(cuentas) {
   ])]);
   const activas = cuentas.activas().length;
   const monedas = cuentas.monedas().filter((m) => m.activa).map((m) => m.id).join(' y ');
-  return crear('ul', { class: 'lista-cuentas accesos', 'aria-label': 'Cuentas y monedas' }, [
+  return crear('ul', { class: 'lista-cuentas accesos', 'aria-label': 'Cuentas, categorías y monedas' }, [
     fila('#ajustes/cuentas', 'Cuentas', activas === 1 ? '1 activa' : `${activas} activas`),
+    fila('#ajustes/categorias', 'Categorías', 'Ingresos y egresos'),
     fila('#ajustes/monedas', 'Monedas', monedas),
   ]);
 }
 
-// Datos de ejemplo del modo prueba (RF-DAT-07, aep#12): cargar con la base vacía; restablecer o borrar, con confirmación.
-function botonesDatosDeEjemplo({ cuentas, datosDeEjemplo, redibujar }) {
+// Datos de ejemplo del modo prueba (RF-DAT-07, aep#12, aep#15): cargar con la base vacía; restablecer o borrar, con confirmación.
+function botonesDatosDeEjemplo({ ejemplo, redibujar }) {
   const caja = crear('div', { class: 'acciones-prueba' });
   const boton = (id, texto, accion) => {
     const b = crear('button', { type: 'button', class: 'boton-secundario', id, texto });
@@ -106,14 +107,14 @@ function botonesDatosDeEjemplo({ cuentas, datosDeEjemplo, redibujar }) {
   };
   const cargar = async (foco) => {
     try {
-      await cuentas.cargarEjemplo(await datosDeEjemplo());
+      await ejemplo.cargar(await ejemplo.leer());
       avisar('Cargaste los datos de ejemplo.');
       redibujar(foco);
     } catch {
       avisar('No se pudieron cargar los datos de ejemplo.');
     }
   };
-  if (!cuentas.hayCuentas()) {
+  if (!ejemplo.hayDatos()) {
     boton('cargar-ejemplo', 'Cargar datos de ejemplo', () => cargar('restablecer-ejemplo'));
   } else {
     boton('restablecer-ejemplo', 'Restablecer datos de ejemplo', async () => {
@@ -121,7 +122,7 @@ function botonesDatosDeEjemplo({ cuentas, datosDeEjemplo, redibujar }) {
     });
     boton('borrar-prueba', 'Borrar datos de prueba', async () => {
       if (!await confirmar({ titulo: '¿Borrar los datos de prueba?', texto: 'Quedan vacíos. Tus datos reales no se tocan.', aceptar: 'Borrar' })) return;
-      await cuentas.borrarTodo();
+      await ejemplo.borrar();
       avisar('Borraste los datos de prueba.');
       redibujar('cargar-ejemplo');
     });

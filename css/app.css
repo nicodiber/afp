@@ -366,6 +366,24 @@ button.fila-cuenta, a.fila-cuenta { cursor: pointer; }
 
 .aviso-breve { position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); z-index: 60; max-width: calc(100% - 2 * var(--margen-lateral)); padding: var(--esp-3) var(--esp-4); border-radius: var(--radio-campo); background: var(--color-texto); color: var(--color-fondo); font-weight: var(--peso-semi); text-align: center; transform: translateX(-50%); }
 
+/* Categorías (aep#15, D-140): árbol con sangría, familias que se pliegan, ordenar por grupo y la ventana «Mover». */
+.seccion-categorias { display: grid; gap: var(--esp-2); margin-bottom: var(--esp-6); }
+.fila-categoria { gap: var(--esp-1); padding-left: calc(var(--esp-2) + var(--nivel, 0) * 22px); }
+.pliegue { flex: 0 0 auto; display: grid; place-items: center; width: var(--objetivo-tactil); height: var(--objetivo-tactil); border: 0; border-radius: var(--radio-chico); background: none; color: var(--color-texto-suave); font: inherit; cursor: pointer; }
+.pliegue-vacio { flex: 0 0 auto; width: var(--objetivo-tactil); }
+.datos-categoria { display: grid; flex: 1; min-width: 0; min-height: var(--objetivo-tactil); align-content: center; padding: 0; border: 0; background: none; color: var(--color-texto); font: inherit; text-align: left; cursor: pointer; }
+.fila-nombre.familia { font-weight: var(--peso-extra); }
+.grupo-orden { display: grid; gap: var(--esp-1); margin-bottom: var(--esp-3); }
+.rotulo-grupo { margin: var(--esp-2) var(--esp-1) 0; color: var(--color-texto-suave); font-size: var(--texto-sm); font-weight: var(--peso-negrita); }
+.rotulo-campo { color: var(--color-texto-suave); font-size: var(--texto-sm); }
+.campos-emoji-final { grid-template-columns: minmax(0, 1fr) 96px; }
+.alcance-mover { display: grid; gap: var(--esp-2); margin: 0; padding: 0; border: 0; }
+.alcance-mover legend { margin-bottom: var(--esp-2); color: var(--color-texto-suave); font-size: var(--texto-sm); }
+.opcion-mover { display: flex; align-items: flex-start; gap: var(--esp-3); padding: var(--esp-3); border: 1px solid var(--color-borde-campo); border-radius: var(--radio-campo); background: var(--color-superficie); }
+.opcion-mover input { flex: 0 0 auto; width: 22px; height: 22px; margin: 2px 0 0; accent-color: var(--color-acento); }
+.opcion-mover label { display: grid; gap: 2px; cursor: pointer; }
+.opcion-mover:has(input:checked) { border-color: var(--color-acento); background: var(--color-acento-tenue); }
+
 /* Navegación · celular: barra fija abajo, «Cargar» redondo que sobresale (D-94). */
 .navegacion {
   position: fixed;

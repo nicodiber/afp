@@ -10,8 +10,8 @@ import { VERSION } from '../src/version.js';
 const RAIZ = fileURLToPath(new URL('..', import.meta.url));
 const sw = await readFile(join(RAIZ, 'sw.js'), 'utf8');
 
-test('aep#14 CA-5 · versión de esta entrega: v0.2.0-3', () => {
-  assert.equal(VERSION, 'v0.2.0-3');
+test('aep#15 CA-22 · versión de esta entrega: v0.2.0-4', () => {
+  assert.equal(VERSION, 'v0.2.0-4');
 });
 
 test('FC-01 · el service worker usa la misma versión en el nombre de su caché', () => {
