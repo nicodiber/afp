@@ -63,7 +63,7 @@ img, svg { display: block; }
   outline-offset: 2px;
 }
 
-main:focus, h1:focus { outline: none; }
+main:focus, h1:focus, .formulario-cuenta h2:focus { outline: none; }
 
 .solo-lectores {
   position: absolute;

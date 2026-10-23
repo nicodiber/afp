@@ -1,7 +1,7 @@
 // Service worker de AFP (aep#2 CA-5; arquitectura §7; FC-01).
 // Guarda la app para abrir sin conexión. Cada versión usa su propia caché y los archivos se piden
 // sin la caché HTTP; la versión nueva espera a que el usuario toque «Actualizar».
-const VERSION = 'v0.2.0-2';
+const VERSION = 'v0.2.0-3';
 const CANAL = new URL(self.registration.scope).pathname.includes('/prueba/') ? 'dev' : 'real';
 const CACHE = `afp-${CANAL}-${VERSION}`;
 const ARCHIVOS = [
