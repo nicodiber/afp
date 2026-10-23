@@ -1,9 +1,9 @@
-// aep#10: la versión real y la versión a probar se publican sin archivos de prueba (CA-2),
+// aep#10 y aep#11: la versión real (en app/) y la versión a probar se publican sin archivos de prueba (CA-2, CA-3),
 // y el service worker no atiende lo que está bajo prueba/ (CA-3, modelo de datos §6.1).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, mkdirSync, writeFileSync, existsSync, readFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, existsSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import vm from 'node:vm';
@@ -11,7 +11,7 @@ import vm from 'node:vm';
 const raiz = new URL('..', import.meta.url);
 const NO_PUBLICAR = ['pruebas', 'package.json', 'package-lock.json', 'eslint.config.js', 'AGENTS.md', 'CLAUDE.md', '.claude', '.github', '.git'];
 
-test('aep#10 CA-2 · «Publicar» saca los archivos de prueba de la raíz y de /prueba/', () => {
+test('aep#10 CA-2 y aep#11 CA-3 · «Publicar» pone la real en app/, la de prueba en prueba/ y en la raíz una página que lleva a app/, sin archivos de prueba', () => {
   const flujo = readFileSync(new URL('.github/workflows/publicar.yml', raiz), 'utf8');
   const paso = flujo.split('- name: Armar el sitio')[1].split('- name:')[0];
   const guion = paso.split('run: |')[1].split('\n').map((l) => l.replace(/^ {10}/, '')).join('\n')
@@ -23,15 +23,24 @@ test('aep#10 CA-2 · «Publicar» saca los archivos de prueba de la raíz y de /
       mkdirSync(join(dir, rama, '.claude'), { recursive: true });
       mkdirSync(join(dir, rama, '.github'), { recursive: true });
       mkdirSync(join(dir, rama, '.git'), { recursive: true });
-      for (const archivo of ['index.html', 'sw.js', 'package.json', 'package-lock.json', 'eslint.config.js', 'AGENTS.md', 'CLAUDE.md', 'pruebas/x.test.js']) {
-        writeFileSync(join(dir, rama, archivo), 'x');
+      mkdirSync(join(dir, rama, 'publicacion'), { recursive: true });
+      for (const archivo of ['index.html', 'sw.js', 'manifest.webmanifest', 'package.json', 'package-lock.json', 'eslint.config.js', 'AGENTS.md', 'CLAUDE.md', 'pruebas/x.test.js']) {
+        writeFileSync(join(dir, rama, archivo), `${rama}:${archivo}`);
       }
+      writeFileSync(join(dir, rama, 'publicacion/raiz.html'), 'raiz: lleva a app/');
+      writeFileSync(join(dir, rama, 'publicacion/desregistrar.js'), 'desregistrar');
+      writeFileSync(join(dir, rama, 'publicacion/sw.js'), 'sw de baja');
     }
-    execFileSync('bash', ['-e', '-c', guion], { cwd: dir });
-    for (const lugar of ['sitio', 'sitio/prueba']) {
-      assert.ok(existsSync(join(dir, lugar, 'index.html')), `${lugar}/index.html`);
-      for (const archivo of NO_PUBLICAR) assert.equal(existsSync(join(dir, lugar, archivo)), false, `${lugar}/${archivo} no se publica`);
+    const salida = execFileSync('bash', ['-e', '-c', guion], { cwd: dir, encoding: 'utf8' });
+    assert.equal(readFileSync(join(dir, 'sitio/app/index.html'), 'utf8'), 'real:index.html', 'la real en app/');
+    assert.equal(readFileSync(join(dir, 'sitio/prueba/index.html'), 'utf8'), 'prueba:index.html', 'la de prueba en prueba/');
+    assert.equal(readFileSync(join(dir, 'sitio/index.html'), 'utf8'), 'raiz: lleva a app/', 'la raíz lleva a app/');
+    assert.equal(readFileSync(join(dir, 'sitio/sw.js'), 'utf8'), 'sw de baja', 'en la raíz, el service worker que se da de baja');
+    assert.deepEqual(readdirSync(join(dir, 'sitio')).sort(), ['app', 'desregistrar.js', 'index.html', 'prueba', 'sw.js'], 'en la raíz solo la página que lleva a app/');
+    for (const lugar of ['sitio/app', 'sitio/prueba']) {
+      for (const archivo of [...NO_PUBLICAR, 'publicacion']) assert.equal(existsSync(join(dir, lugar, archivo)), false, `${lugar}/${archivo} no se publica`);
     }
+    assert.match(salida, /::notice title=Publicar::real \(\/app\/\): app · raíz: lleva-a-app/);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

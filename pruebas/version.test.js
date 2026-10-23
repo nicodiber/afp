@@ -10,8 +10,8 @@ import { VERSION } from '../src/version.js';
 const RAIZ = fileURLToPath(new URL('..', import.meta.url));
 const sw = await readFile(join(RAIZ, 'sw.js'), 'utf8');
 
-test('aep#10 CA-1 · versión de esta entrega: v0.1.0, fin del hito', () => {
-  assert.equal(VERSION, 'v0.1.0');
+test('aep#11 · versión de esta entrega: v0.1.1', () => {
+  assert.equal(VERSION, 'v0.1.1');
 });
 
 test('FC-01 · el service worker usa la misma versión en el nombre de su caché', () => {
@@ -25,6 +25,7 @@ test('aep#2 CA-5 · el service worker guarda cada archivo de la app', async () =
     'index.html', 'manifest.webmanifest',
     ...await listar('src'), ...await listar('css'),
     'fuentes/figtree.woff2', 'iconos/icono.svg', 'iconos/icono-32.png', 'iconos/icono-192.png', 'iconos/icono-512.png', 'iconos/icono-maskable-512.png',
+    'manifest-prueba.webmanifest', ...await listar('iconos/prueba'),
   ];
   const lista = sw.match(/const ARCHIVOS = \[([\s\S]*?)\];/)[1];
   for (const archivo of necesarios) assert.ok(lista.includes(`'${archivo}'`), `falta ${archivo} en sw.js`);

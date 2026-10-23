@@ -76,7 +76,7 @@ test('aep#2 CA-7 · Ajustes → «Acerca de» muestra el nombre completo y la ve
   await pagina.getByRole('heading', { name: 'Acerca de' }).waitFor();
   const texto = await textoPrincipal(pagina);
   assert.match(texto, /AFP · Administración Financiera Personal/);
-  assert.match(texto, /Versión v0\.1\.0$/m, 'versión de la entrega actual (aep#10 CA-1)');
+  assert.match(texto, /Versión v0\.1\.1$/m, 'versión de la entrega actual (aep#11)');
   assert.deepEqual(errores, []);
   await contexto.close();
 });
@@ -117,12 +117,19 @@ test('aep#2 CA-11 · en la PC: barra lateral compacta que se expande con el mous
   await contexto.close();
 });
 
-test('aep#2 CA-2 · manifiesto válido y sin errores de instalabilidad', async () => {
+// La versión a probar y la real son dos apps distintas (aep#11, D-117, D-118): la de prueba se llama
+// «AFP prueba» y usa los íconos con la franja ámbar; la real se llama «AFP» y está en /app/.
+for (const caso of [
+  { nombre: 'aep#2 CA-2 y aep#11 CA-1 · versión a probar', url: () => entorno.servidor.url, alcance: '/prueba/',
+    nombreLargo: 'AFP prueba', nombreCorto: 'AFP prueba', iconos: 'iconos/prueba/' },
+  { nombre: 'aep#11 CA-2 · versión real en /app/', url: () => entorno.servidor.urlReal, alcance: '/app/',
+    nombreLargo: 'AFP · Administración Financiera Personal', nombreCorto: 'AFP', iconos: 'iconos/' },
+]) test(`${caso.nombre}: manifiesto válido y sin errores de instalabilidad`, async () => {
   const perfil = await mkdtemp(join(tmpdir(), 'afp-instalable-'));
   const contexto = await chromium.launchPersistentContext(perfil, { viewport: CELULAR });
   try {
     const pagina = await contexto.newPage();
-    await pagina.goto(entorno.servidor.url);
+    await pagina.goto(caso.url());
     await pagina.waitForSelector('main h1');
     const manifiesto = await pagina.evaluate(async () => {
       const enlace = document.querySelector('link[rel="manifest"]');
@@ -130,10 +137,13 @@ test('aep#2 CA-2 · manifiesto válido y sin errores de instalabilidad', async (
       const absoluta = (u) => new URL(u, enlace.href).pathname;
       return { ...datos, scope: absoluta(datos.scope), start_url: absoluta(datos.start_url) };
     });
-    assert.equal(manifiesto.name, 'AFP · Administración Financiera Personal');
-    assert.equal(manifiesto.short_name, 'AFP');
+    assert.equal(manifiesto.name, caso.nombreLargo);
+    assert.equal(manifiesto.short_name, caso.nombreCorto);
     assert.equal(manifiesto.display, 'standalone');
-    assert.equal(manifiesto.scope, '/prueba/', 'alcance: la carpeta de la versión a probar (/afp/prueba/ en GitHub Pages)');
+    assert.equal(manifiesto.scope, caso.alcance, 'alcance: la carpeta de esa versión en GitHub Pages');
+    for (const icono of manifiesto.icons) assert.ok(icono.src.startsWith(caso.iconos) && !icono.src.slice(caso.iconos.length).includes('/'), `ícono de ${caso.iconos}: ${icono.src}`);
+    const pestana = await pagina.evaluate(() => [...document.querySelectorAll('link[rel="icon"]')].map((l) => l.getAttribute('href')));
+    assert.ok(pestana.length > 0 && pestana.every((h) => h.startsWith(caso.iconos) && !h.slice(caso.iconos.length).includes('/')), `pestaña con ${caso.iconos}: ${pestana}`);
     assert.ok(manifiesto.icons.some((i) => i.sizes === '512x512' && (i.purpose ?? 'any').split(' ').includes('any')), 'ícono de 512 px');
     assert.ok(manifiesto.icons.some((i) => i.sizes === '512x512' && (i.purpose ?? '').split(' ').includes('maskable')), 'ícono maskable');
     await pagina.evaluate(() => navigator.serviceWorker.ready);
