@@ -40,10 +40,12 @@ jobs:
 
       - name: Armar el sitio
         run: |
+          # Lo que no se publica, ni en la versión real ni en la versión a probar (aep#10).
+          limpiar() { rm -rf "$1/.git" "$1/.github" "$1/.claude" "$1/pruebas" "$1/package.json" "$1/package-lock.json" "$1/eslint.config.js" "$1/AGENTS.md" "$1/CLAUDE.md"; }
           mkdir -p sitio/prueba
           if [ "${{ steps.real.outcome }}" = "success" ] && [ -f real/index.html ]; then
             cp -a real/. sitio/
-            rm -rf sitio/.git sitio/.github
+            limpiar sitio
           else
             cat > sitio/index.html <<'HTML'
           <!doctype html>
@@ -54,7 +56,7 @@ jobs:
           HTML
           fi
           cp -a prueba/. sitio/prueba/
-          rm -rf sitio/prueba/.git sitio/prueba/.github sitio/prueba/.claude sitio/prueba/pruebas sitio/prueba/package.json sitio/prueba/package-lock.json sitio/prueba/eslint.config.js sitio/prueba/AGENTS.md sitio/prueba/CLAUDE.md
+          limpiar sitio/prueba
 
       - name: Configurar Pages
         uses: actions/configure-pages@v5

@@ -1,7 +1,7 @@
 // Service worker de AFP (aep#2 CA-5; arquitectura §7; FC-01).
 // Guarda la app para abrir sin conexión. Cada versión usa su propia caché y los archivos se piden
 // sin la caché HTTP; la versión nueva espera a que el usuario toque «Actualizar».
-const VERSION = 'v0.1.0-5';
+const VERSION = 'v0.1.0';
 const CANAL = new URL(self.registration.scope).pathname.includes('/prueba/') ? 'dev' : 'real';
 const CACHE = `afp-${CANAL}-${VERSION}`;
 const ARCHIVOS = [
@@ -38,6 +38,8 @@ self.addEventListener('fetch', (evento) => {
   const url = new URL(pedido.url);
   const alcance = new URL(self.registration.scope);
   if (url.origin !== alcance.origin || !url.pathname.startsWith(alcance.pathname)) return;
+  // La versión a probar (/prueba/) tiene su propio service worker: el de la versión real no la toca (aep#10, modelo §6.1).
+  if (url.pathname.startsWith(`${alcance.pathname}prueba/`)) return;
   const esLaApp = pedido.mode === 'navigate' && (url.pathname === alcance.pathname || url.pathname === `${alcance.pathname}index.html`);
   const buscar = esLaApp ? caches.match(new URL('./', alcance).href) : caches.match(pedido, { ignoreSearch: true });
   evento.respondWith(buscar.then((guardado) => guardado || fetch(pedido)));
