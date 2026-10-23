@@ -32,15 +32,15 @@ test('35 movimientos M01–M35, con ids únicos', () => {
 
 test('saldos al 30/09/2026 (PLAN §5.6)', () => {
   assert.deepEqual(saldos('2026-09-30'), {
-    billetera: c(12_000), caja: c(200_000), banco: c(1_305_000),
-    'billetera-virtual': c(390_000), dolares: c(500), 'tarjeta-transporte': c(15_000),
+    'cue-billetera': c(12_000), 'cue-caja': c(200_000), 'cue-banco': c(1_305_000),
+    'cue-billetera-virtual': c(390_000), 'cue-dolares': c(500), 'cue-tarjeta-transporte': c(15_000),
   });
 });
 
 test('saldos al 31/10/2026 (PLAN §5.6)', () => {
   assert.deepEqual(saldos('2026-10-31'), {
-    billetera: c(48_500), caja: c(170_000), banco: c(1_693_000),
-    'billetera-virtual': c(435_000), dolares: c(600), 'tarjeta-transporte': c(3_000),
+    'cue-billetera': c(48_500), 'cue-caja': c(170_000), 'cue-banco': c(1_693_000),
+    'cue-billetera-virtual': c(435_000), 'cue-dolares': c(600), 'cue-tarjeta-transporte': c(3_000),
   });
 });
 

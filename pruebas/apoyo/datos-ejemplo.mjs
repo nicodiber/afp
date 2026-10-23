@@ -1,11 +1,11 @@
 // Traduce datos-demo/datos-ejemplo.json al formato del núcleo (modelo de datos §3.7) para las pruebas.
-// El archivo usa nombres propios para algunos tipos y campos (riesgo anotado en el plan de aep#8).
+// Las cuentas ya tienen el formato del modelo (D-128); los movimientos pasan con la spec de movimientos (v0.3.0).
 import { readFileSync } from 'node:fs';
 
 export const datos = JSON.parse(readFileSync(new URL('../../datos-demo/datos-ejemplo.json', import.meta.url), 'utf8'));
 const TIPOS = { cambio_de_moneda: 'cambio_moneda', gasto_pagado_por_terceros: 'pagado_por_terceros', cobro_de_prestamo: 'cobro_prestamo' };
 
-export const monedaDe = Object.fromEntries(datos.cuentas.map((c) => [c.id, c.moneda]));
+export const monedaDe = Object.fromEntries(datos.cuentas.map((c) => [c.id, c.monedaId]));
 
 export function traducir(m) {
   const tipo = TIPOS[m.tipo] ?? m.tipo;

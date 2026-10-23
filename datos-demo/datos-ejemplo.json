@@ -1,57 +1,112 @@
 {
  "formato": "afp-datos-de-ejemplo",
- "version": 1,
+ "version": 2,
  "fechaSimulada": "2026-10-31",
- "nota": "Datos ficticios (PLAN_DE_VERSIONES.md §5). Ninguna persona, cuenta ni monto es real.",
- "saldoInicialAl": "2026-09-01",
+ "nota": "Datos ficticios (05-roadmap.md §5 del repo aep). Ninguna persona, cuenta ni monto es real.",
  "cuentas": [
   {
-   "id": "billetera",
+   "id": "cue-billetera",
    "nombre": "Billetera",
    "tipo": "efectivo",
-   "moneda": "ARS",
+   "monedaId": "ARS",
    "saldoInicial": 5000000,
-   "rendimiento": false
+   "fechaSaldoInicial": "2026-09-01",
+   "tieneRendimiento": false,
+   "proposito": "ninguno",
+   "emoji": "",
+   "notas": "",
+   "orden": 1,
+   "estado": "activa"
   },
   {
-   "id": "caja",
+   "id": "cue-caja",
    "nombre": "Caja",
    "tipo": "efectivo",
-   "moneda": "ARS",
+   "monedaId": "ARS",
    "saldoInicial": 20000000,
-   "rendimiento": false
+   "fechaSaldoInicial": "2026-09-01",
+   "tieneRendimiento": false,
+   "proposito": "ninguno",
+   "emoji": "",
+   "notas": "",
+   "orden": 2,
+   "estado": "activa"
   },
   {
-   "id": "banco",
+   "id": "cue-banco",
    "nombre": "Banco",
    "tipo": "banco",
-   "moneda": "ARS",
+   "monedaId": "ARS",
    "saldoInicial": 80000000,
-   "rendimiento": false
+   "fechaSaldoInicial": "2026-09-01",
+   "tieneRendimiento": false,
+   "proposito": "ninguno",
+   "emoji": "",
+   "notas": "",
+   "orden": 3,
+   "estado": "activa"
   },
   {
-   "id": "billetera-virtual",
+   "id": "cue-billetera-virtual",
    "nombre": "Billetera virtual",
    "tipo": "billetera_virtual",
-   "moneda": "ARS",
+   "monedaId": "ARS",
    "saldoInicial": 30000000,
-   "rendimiento": true
+   "fechaSaldoInicial": "2026-09-01",
+   "tieneRendimiento": true,
+   "proposito": "ninguno",
+   "emoji": "",
+   "notas": "",
+   "orden": 4,
+   "estado": "activa"
   },
   {
-   "id": "dolares",
+   "id": "cue-dolares",
    "nombre": "Dólares billete",
    "tipo": "efectivo",
-   "moneda": "USD",
+   "monedaId": "USD",
    "saldoInicial": 50000,
-   "rendimiento": false
+   "fechaSaldoInicial": "2026-09-01",
+   "tieneRendimiento": false,
+   "proposito": "ninguno",
+   "emoji": "",
+   "notas": "",
+   "orden": 5,
+   "estado": "activa"
   },
   {
-   "id": "tarjeta-transporte",
+   "id": "cue-tarjeta-transporte",
    "nombre": "Tarjeta transporte",
    "tipo": "transporte",
-   "moneda": "ARS",
+   "monedaId": "ARS",
    "saldoInicial": 1000000,
-   "rendimiento": false
+   "fechaSaldoInicial": "2026-09-01",
+   "tieneRendimiento": false,
+   "proposito": "ninguno",
+   "emoji": "",
+   "notas": "",
+   "orden": 6,
+   "estado": "activa"
+  }
+ ],
+ "monedas": [
+  {
+   "id": "ARS",
+   "nombre": "Peso argentino",
+   "simbolo": "$",
+   "decimales": 2,
+   "clase": "fiat",
+   "cotizacion": "base",
+   "activa": true
+  },
+  {
+   "id": "USD",
+   "nombre": "Dólar estadounidense",
+   "simbolo": "US$",
+   "decimales": 2,
+   "clase": "fiat",
+   "cotizacion": "diaria",
+   "activa": true
   }
  ],
  "categorias": [
@@ -171,7 +226,7 @@
    "tipo": "ingreso",
    "estado": "confirmado",
    "origen": "datos_de_ejemplo",
-   "cuenta": "banco",
+   "cuenta": "cue-banco",
    "partes": [
     {
      "categoria": "Trabajo",
@@ -186,7 +241,7 @@
    "tipo": "ingreso",
    "estado": "confirmado",
    "origen": "datos_de_ejemplo",
-   "cuenta": "billetera-virtual",
+   "cuenta": "cue-billetera-virtual",
    "partes": [
     {
      "categoria": "Aporte familiar",
@@ -201,7 +256,7 @@
    "tipo": "egreso",
    "estado": "confirmado",
    "origen": "datos_de_ejemplo",
-   "cuenta": "banco",
+   "cuenta": "cue-banco",
    "partes": [
     {
      "categoria": "Alquiler",
@@ -216,7 +271,7 @@
    "tipo": "egreso",
    "estado": "confirmado",
    "origen": "datos_de_ejemplo",
-   "cuenta": "billetera-virtual",
+   "cuenta": "cue-billetera-virtual",
    "partes": [
     {
      "categoria": "Supermercado",
@@ -231,7 +286,7 @@
    "tipo": "egreso",
    "estado": "confirmado",
    "origen": "datos_de_ejemplo",
-   "cuenta": "billetera",
+   "cuenta": "cue-billetera",
    "partes": [
     {
      "categoria": "Verdulería",
@@ -246,7 +301,7 @@
    "tipo": "egreso",
    "estado": "confirmado",
    "origen": "datos_de_ejemplo",
-   "cuenta": "banco",
+   "cuenta": "cue-banco",
    "partes": [
     {
      "categoria": "Internet",
@@ -261,7 +316,7 @@
    "tipo": "egreso",
    "estado": "confirmado",
    "origen": "datos_de_ejemplo",
-   "cuenta": "billetera",
+   "cuenta": "cue-billetera",
    "partes": [
     {
      "categoria": "Kiosco",
@@ -276,7 +331,7 @@
    "tipo": "egreso",
    "estado": "confirmado",
    "origen": "datos_de_ejemplo",
-   "cuenta": "banco",
+   "cuenta": "cue-banco",
    "partes": [
     {
      "categoria": "Electricidad",
@@ -291,7 +346,7 @@
    "tipo": "egreso",
    "estado": "confirmado",
    "origen": "datos_de_ejemplo",
-   "cuenta": "billetera",
+   "cuenta": "cue-billetera",
    "partes": [
     {
      "categoria": "Verdulería",
@@ -306,8 +361,8 @@
    "tipo": "transferencia",
    "estado": "confirmado",
    "origen": "datos_de_ejemplo",
-   "cuentaOrigen": "billetera",
-   "cuentaDestino": "tarjeta-transporte",
+   "cuentaOrigen": "cue-billetera",
+   "cuentaDestino": "cue-tarjeta-transporte",
    "monto": 2000000,
    "detalle": "Carga tarjeta"
   },
@@ -317,7 +372,7 @@
    "tipo": "egreso",
    "estado": "confirmado",
    "origen": "datos_de_ejemplo",
-   "cuenta": "tarjeta-transporte",
+   "cuenta": "cue-tarjeta-transporte",
    "partes": [
     {
      "categoria": "Transporte público",
@@ -332,7 +387,7 @@
    "tipo": "ingreso",
    "estado": "confirmado",
    "origen": "datos_de_ejemplo",
-   "cuenta": "banco",
+   "cuenta": "cue-banco",
    "partes": [
     {
      "categoria": "Trabajo",
@@ -347,7 +402,7 @@
    "tipo": "ingreso",
    "estado": "confirmado",
    "origen": "datos_de_ejemplo",
-   "cuenta": "billetera-virtual",
+   "cuenta": "cue-billetera-virtual",
    "partes": [
     {
      "categoria": "Aporte familiar",
@@ -362,7 +417,7 @@
    "tipo": "egreso",
    "estado": "confirmado",
    "origen": "datos_de_ejemplo",
-   "cuenta": "billetera-virtual",
+   "cuenta": "cue-billetera-virtual",
    "partes": [
     {
      "categoria": "Supermercado",
@@ -380,7 +435,7 @@
    "tipo": "egreso",
    "estado": "confirmado",
    "origen": "datos_de_ejemplo",
-   "cuenta": "banco",
+   "cuenta": "cue-banco",
    "partes": [
     {
      "categoria": "Alquiler",
@@ -395,7 +450,7 @@
    "tipo": "egreso",
    "estado": "confirmado",
    "origen": "datos_de_ejemplo",
-   "cuenta": "billetera-virtual",
+   "cuenta": "cue-billetera-virtual",
    "partes": [
     {
      "categoria": "Supermercado",
@@ -410,7 +465,7 @@
    "tipo": "egreso",
    "estado": "confirmado",
    "origen": "datos_de_ejemplo",
-   "cuenta": "billetera",
+   "cuenta": "cue-billetera",
    "partes": [
     {
      "categoria": "Verdulería",
@@ -425,8 +480,8 @@
    "tipo": "transferencia",
    "estado": "confirmado",
    "origen": "datos_de_ejemplo",
-   "cuentaOrigen": "caja",
-   "cuentaDestino": "billetera",
+   "cuentaOrigen": "cue-caja",
+   "cuentaDestino": "cue-billetera",
    "monto": 1000000,
    "detalle": "Retiro de la caja"
   },
@@ -436,8 +491,8 @@
    "tipo": "cambio_de_moneda",
    "estado": "confirmado",
    "origen": "datos_de_ejemplo",
-   "cuentaOrigen": "banco",
-   "cuentaDestino": "dolares",
+   "cuentaOrigen": "cue-banco",
+   "cuentaDestino": "cue-dolares",
    "montoOrigen": 14500000,
    "montoDestino": 10000,
    "tipoDeCambio": "1450.00"
@@ -448,7 +503,7 @@
    "tipo": "egreso",
    "estado": "confirmado",
    "origen": "datos_de_ejemplo",
-   "cuenta": "banco",
+   "cuenta": "cue-banco",
    "partes": [
     {
      "categoria": "Internet",
@@ -477,7 +532,7 @@
    "tipo": "egreso",
    "estado": "confirmado",
    "origen": "datos_de_ejemplo",
-   "cuenta": "billetera",
+   "cuenta": "cue-billetera",
    "partes": [
     {
      "categoria": "Kiosco",
@@ -492,7 +547,7 @@
    "tipo": "egreso",
    "estado": "confirmado",
    "origen": "datos_de_ejemplo",
-   "cuenta": "billetera",
+   "cuenta": "cue-billetera",
    "partes": [
     {
      "categoria": "Verdulería",
@@ -507,7 +562,7 @@
    "tipo": "egreso",
    "estado": "confirmado",
    "origen": "datos_de_ejemplo",
-   "cuenta": "banco",
+   "cuenta": "cue-banco",
    "partes": [
     {
      "categoria": "Electricidad",
@@ -522,7 +577,7 @@
    "tipo": "gasto_compartido",
    "estado": "confirmado",
    "origen": "datos_de_ejemplo",
-   "cuenta": "billetera-virtual",
+   "cuenta": "cue-billetera-virtual",
    "total": 4000000,
    "partes": [
     {
@@ -552,7 +607,7 @@
    "tipo": "egreso",
    "estado": "confirmado",
    "origen": "datos_de_ejemplo",
-   "cuenta": "tarjeta-transporte",
+   "cuenta": "cue-tarjeta-transporte",
    "partes": [
     {
      "categoria": "Transporte público",
@@ -567,7 +622,7 @@
    "tipo": "egreso",
    "estado": "confirmado",
    "origen": "datos_de_ejemplo",
-   "cuenta": "billetera",
+   "cuenta": "cue-billetera",
    "partes": [
     {
      "categoria": "Kiosco",
@@ -582,7 +637,7 @@
    "tipo": "prestamo_otorgado",
    "estado": "confirmado",
    "origen": "datos_de_ejemplo",
-   "cuenta": "caja",
+   "cuenta": "cue-caja",
    "persona": "Juan",
    "monto": 2000000
   },
@@ -592,7 +647,7 @@
    "tipo": "egreso",
    "estado": "confirmado",
    "origen": "datos_de_ejemplo",
-   "cuenta": "billetera",
+   "cuenta": "cue-billetera",
    "partes": [
     {
      "categoria": "Verdulería",
@@ -607,7 +662,7 @@
    "tipo": "egreso",
    "estado": "confirmado",
    "origen": "datos_de_ejemplo",
-   "cuenta": "banco",
+   "cuenta": "cue-banco",
    "partes": [
     {
      "categoria": "Salud",
@@ -622,7 +677,7 @@
    "tipo": "cobro_de_prestamo",
    "estado": "confirmado",
    "origen": "datos_de_ejemplo",
-   "cuenta": "billetera",
+   "cuenta": "cue-billetera",
    "persona": "Juan",
    "monto": 500000
   },
@@ -632,7 +687,7 @@
    "tipo": "ingreso",
    "estado": "confirmado",
    "origen": "datos_de_ejemplo",
-   "cuenta": "billetera",
+   "cuenta": "cue-billetera",
    "partes": [
     {
      "categoria": "Ventas",
@@ -647,7 +702,7 @@
    "tipo": "egreso",
    "estado": "confirmado",
    "origen": "datos_de_ejemplo",
-   "cuenta": "billetera",
+   "cuenta": "cue-billetera",
    "partes": [
     {
      "categoria": "Verdulería",
@@ -662,7 +717,7 @@
    "tipo": "egreso",
    "estado": "pendiente_de_revision",
    "origen": "datos_de_ejemplo",
-   "cuenta": "billetera-virtual",
+   "cuenta": "cue-billetera-virtual",
    "partes": [
     {
      "categoria": "Supermercado",
@@ -677,7 +732,7 @@
    "tipo": "egreso",
    "estado": "en_papelera",
    "origen": "datos_de_ejemplo",
-   "cuenta": "billetera",
+   "cuenta": "cue-billetera",
    "partes": [
     {
      "categoria": "Kiosco",
@@ -693,7 +748,7 @@
    {
     "nombre": "Trabajo",
     "tipo": "ingreso",
-    "cuenta": "banco",
+    "cuenta": "cue-banco",
     "dia": 1,
     "montoEstimado": 95000000,
     "registradas": [
@@ -704,7 +759,7 @@
    {
     "nombre": "Aporte familiar",
     "tipo": "ingreso",
-    "cuenta": "billetera-virtual",
+    "cuenta": "cue-billetera-virtual",
     "dia": 2,
     "montoEstimado": 15000000,
     "registradas": [
@@ -715,7 +770,7 @@
    {
     "nombre": "Alquiler",
     "tipo": "egreso",
-    "cuenta": "banco",
+    "cuenta": "cue-banco",
     "dia": 5,
     "montoEstimado": 35000000,
     "registradas": [
@@ -726,7 +781,7 @@
    {
     "nombre": "Internet",
     "tipo": "egreso",
-    "cuenta": "banco",
+    "cuenta": "cue-banco",
     "dia": 10,
     "montoEstimado": 2200000,
     "registradas": [
@@ -737,7 +792,7 @@
    {
     "nombre": "Electricidad",
     "tipo": "egreso",
-    "cuenta": "banco",
+    "cuenta": "cue-banco",
     "dia": 15,
     "montoEstimado": 2700000,
     "registradas": [
