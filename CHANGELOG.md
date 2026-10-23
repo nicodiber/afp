@@ -4,6 +4,10 @@ Cada entrega a la versión a probar (`/prueba/`) sube el número dentro del hito
 
 ## v0.2.0 · Cuentas y categorías (en curso)
 
+### v0.2.0-3 · aep#14
+
+- Al abrir una cuenta ya creada, el formulario no pone el cursor en el nombre: en el celular, el teclado no se abre hasta que tocás un campo.
+
 ### v0.2.0-2 · aep#13
 
 - En la PC, editar una cuenta se abre en una ventana, como «Nueva cuenta».

@@ -95,7 +95,7 @@ export function formularioCuenta({ cuenta, monedas, hoy, alGuardar, alCancelar, 
     if (primero) campos[primero].focus();
   };
 
-  const titulo = crear('h2', { class: 'subtitulo', id: id('titulo'), texto: nueva ? 'Nueva cuenta' : 'Editar cuenta' });
+  const titulo = crear('h2', { class: 'subtitulo', id: id('titulo'), tabindex: '-1', texto: nueva ? 'Nueva cuenta' : 'Editar cuenta' });
   const cancelar = crear('button', { type: 'button', class: 'boton-secundario', texto: 'Cancelar' });
   cancelar.addEventListener('click', alCancelar);
   const guardar = crear('button', { type: 'submit', class: 'boton-principal', texto: nueva ? 'Crear cuenta' : 'Guardar' });
@@ -141,5 +141,6 @@ export function formularioCuenta({ cuenta, monedas, hoy, alGuardar, alCancelar, 
   formulario.addEventListener('keydown', (evento) => {
     if (evento.key === 'Escape' && !formulario.closest('dialog')) { evento.preventDefault(); alCancelar(); }
   });
-  return { elemento: formulario, enfocar: () => campos.nombre.focus() };
+  // Nueva: el cursor en el nombre. Editar: el foco en el título, para no abrir el teclado del celular (D-136).
+  return { elemento: formulario, enfocar: () => (nueva ? campos.nombre : titulo).focus() };
 }
