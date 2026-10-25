@@ -1,7 +1,7 @@
 // Service worker de AFP (aep#2 CA-5; arquitectura §7; FC-01).
 // Guarda la app para abrir sin conexión. Cada versión usa su propia caché y los archivos se piden
 // sin la caché HTTP; la versión nueva espera a que el usuario toque «Actualizar».
-const VERSION = 'v0.2.0-4';
+const VERSION = 'v0.2.0-5';
 const CANAL = new URL(self.registration.scope).pathname.includes('/prueba/') ? 'dev' : 'real';
 const CACHE = `afp-${CANAL}-${VERSION}`;
 const ARCHIVOS = [
@@ -14,7 +14,8 @@ const ARCHIVOS = [
   'src/dominio/cuentas.js', 'src/dominio/monedas.js', 'src/dominio/texto.js', 'src/dominio/categorias.js',
   'src/aplicacion/categorias.js', 'src/aplicacion/datos-ejemplo.js', 'src/ui/formulario-categoria.js', 'src/ui/pantallas/categorias.js', 'src/aplicacion/cuentas.js', 'src/adaptadores/datos-ejemplo.js',
   'src/ui/dialogo.js', 'src/ui/formulario-cuenta.js', 'src/ui/cuentas-comun.js', 'src/ui/pantallas/cuentas.js', 'src/ui/pantallas/monedas.js',
-  'datos-demo/datos-ejemplo.json',
+  'datos-demo/datos-ejemplo.json', 'plantilla/plantilla-inicial.json',
+  'src/aplicacion/inicio.js', 'src/dominio/plantilla.js', 'src/adaptadores/plantilla.js', 'src/ui/pantallas/bienvenida.js',
   'src/dominio/tema.js', 'src/dominio/instalacion.js', 'src/dominio/fecha.js', 'src/puertos/reloj.js', 'src/adaptadores/reloj.js',
   'src/aplicacion/modo-prueba.js', 'src/ui/franja-prueba.js',
   'src/dominio/formato.js', 'src/dominio/partida-doble.js', 'src/dominio/configuracion.js', 'src/puertos/almacen.js',

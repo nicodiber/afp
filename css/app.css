@@ -584,3 +584,33 @@ button.fila-cuenta, a.fila-cuenta { cursor: pointer; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: 0s !important; }
 }
+
+/* Bienvenida del primer uso (aep HU-01): dos opciones grandes, sin la navegación. */
+.navegacion[hidden] { display: none; }
+@media (min-width: 720px) {
+  body:has(.navegacion[hidden]) main { margin-left: 0; }
+}
+.bienvenida { display: grid; gap: var(--esp-3); }
+.opcion-inicio {
+  display: grid;
+  gap: var(--esp-1);
+  width: 100%;
+  min-height: var(--objetivo-tactil);
+  padding: var(--esp-4);
+  border: var(--borde-tarjeta);
+  border-radius: var(--radio-tarjeta);
+  background: var(--color-superficie);
+  box-shadow: var(--sombra-tarjeta);
+  color: var(--color-texto);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.opcion-inicio:disabled { opacity: 0.6; cursor: default; }
+.opcion-inicio-titulo { font-weight: var(--peso-negrita); font-size: var(--texto-lg); }
+.opcion-inicio-detalle { color: var(--color-texto-suave); font-size: var(--texto-sm); }
+.bienvenida .boton-texto { justify-self: start; }
+.contenido-plantilla { display: grid; gap: var(--esp-2); }
+.subtitulo-chico { margin: var(--esp-2) 0 0; font-size: var(--texto-md); font-weight: var(--peso-negrita); }
+.lista-plantilla, .lista-plantilla ul { margin: 0; padding-left: var(--esp-5); }
+.lista-plantilla { padding-left: var(--esp-4); }

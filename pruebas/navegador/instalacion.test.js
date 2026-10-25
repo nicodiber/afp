@@ -2,7 +2,7 @@
 // Textos esperados de la spec (aep harness/specs/4-sugerir-instalacion/spec.md).
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { prepararEntorno, abrir, CELULAR, ESCRITORIO, textoPrincipal } from './comun.mjs';
+import { prepararEntorno, abrir, pasarBienvenida, CELULAR, ESCRITORIO, textoPrincipal } from './comun.mjs';
 
 let entorno;
 before(async () => { entorno = await prepararEntorno(); });
@@ -88,7 +88,7 @@ test('aep#4 CA-5 · abierta como app instalada: sin tarjeta y Ajustes lo dice', 
   });
   const pagina = await contexto.newPage();
   await pagina.goto(entorno.servidor.url);
-  await pagina.waitForSelector('main h1');
+  await pasarBienvenida(pagina, '#inicio');
   assert.equal(await tarjeta(pagina).count(), 0);
   await pagina.goto(entorno.servidor.url + '#ajustes');
   await pagina.getByRole('heading', { name: 'Instalación' }).waitFor();

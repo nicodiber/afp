@@ -1,7 +1,7 @@
 // aep#13: editar en ventana en la PC, velo oscuro, mayúscula inicial y saldo sin «0». Valores de la spec.
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { prepararEntorno, abrir, CELULAR, ESCRITORIO } from './comun.mjs';
+import { prepararEntorno, abrir, activarModoPrueba, CELULAR, ESCRITORIO } from './comun.mjs';
 
 const E = ' ';
 let entorno;
@@ -10,7 +10,7 @@ after(async () => { await entorno.cerrar(); });
 
 async function conEjemplo(opciones) {
   const r = await abrir(entorno.navegador, entorno.servidor, opciones, '#ajustes');
-  await r.pagina.getByRole('switch', { name: 'Modo prueba' }).click();
+  await activarModoPrueba(r.pagina);
   await r.pagina.getByRole('button', { name: 'Cargar datos de ejemplo' }).click();
   await r.pagina.getByRole('button', { name: 'Restablecer datos de ejemplo' }).waitFor();
   return r;

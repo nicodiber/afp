@@ -2,6 +2,7 @@
 import { pantallaInicio } from './pantallas/inicio.js';
 import { pantallaAjustes } from './pantallas/ajustes.js';
 import { pantallaProximamente } from './pantallas/proximamente.js';
+import { pantallaBienvenida } from './pantallas/bienvenida.js';
 import { actualizarFranja } from './franja-prueba.js';
 import { crear } from './dom.js';
 
@@ -18,11 +19,12 @@ const subpantallas = {};
 const PC = '(min-width: 720px)';
 const SISTEMA_OSCURO = '(prefers-color-scheme: dark)';
 
-export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, datosDispositivo, cuentas, categorias, ejemplo, alCambiarModoPrueba = () => {}, version }) {
+export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, datosDispositivo, cuentas, categorias, ejemplo, inicio, alCambiarModoPrueba = () => {}, version }) {
   const principal = document.getElementById('contenido');
   const enlaces = [...document.querySelectorAll('.nav-lista a[data-destino]')];
   const cargar = document.querySelector('.nav-item-cargar');
   const lista = cargar.parentElement;
+  const navegacion = document.querySelector('.navegacion');
 
   const aplicarTema = () => {
     const eleccion = preferencias.temaElegido();
@@ -56,7 +58,28 @@ export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, datosDi
     },
   };
 
+  // Al elegir cómo empezar se llega a Inicio, sea cual sea la dirección con la que se abrió AFP.
+  const terminarBienvenida = () => {
+    history.replaceState(null, '', '#inicio');
+    rutaAnterior = null;
+    mostrar(true);
+  };
+
   const mostrar = (moverFoco) => {
+    // Primer uso: la bienvenida va antes que cualquier pantalla y sin la navegación (RF-CAT-03).
+    const estadoInicio = inicio.estado();
+    const ofreciendo = estadoInicio === 'ofrecer';
+    navegacion.hidden = ofreciendo;
+    if (estadoInicio === 'comprobando') { principal.replaceChildren(); return; }
+    if (ofreciendo) {
+      if (!principal.querySelector('.bienvenida')) {
+        // Se dibuja una sola vez: volver a dibujarla borraría la lista abierta o un error en pantalla.
+        principal.replaceChildren(...pantallaBienvenida({ inicio, alTerminar: terminarBienvenida }));
+        principal.querySelector('h1').focus({ preventScroll: true });
+      }
+      document.title = 'Bienvenida · AFP';
+      return;
+    }
     const ruta = rutaActual();
     const destino = destinoActual();
     if (ruta !== rutaAnterior && rutaAnterior === 'ajustes/cuentas') subpantallas[rutaAnterior]?.reiniciarCuentas();

@@ -1,12 +1,12 @@
-// Control «Spec» (aep#1 CA-4): el PR cita una spec y cada CA de su tabla tiene evidencia.
+// Control «Spec» (aep#1 CA-4): el PR cita una spec o una historia de usuario (D-141) y cada CA de su tabla tiene evidencia.
 import { readFile } from 'node:fs/promises';
 
 const VACIO = /^(|-|—|…|\.\.\.|pendiente|tbd)$/i;
 
 export function revisarCuerpo(cuerpo = '') {
   const errores = [];
-  if (!/(Resuelve|Parte de)\s+nicodiber\/aep#\d+/i.test(cuerpo)) {
-    errores.push('El PR no cita su spec: falta «Resuelve nicodiber/aep#N» o «Parte de nicodiber/aep#N».');
+  if (!/(Resuelve|Parte de)\s+(nicodiber\/aep#\d+|HU-\d+)\b/i.test(cuerpo)) {
+    errores.push('El PR no cita su spec ni su historia: falta «Resuelve HU-NN», «Parte de HU-NN», «Resuelve nicodiber/aep#N» o «Parte de nicodiber/aep#N».');
   }
   const filas = [...cuerpo.matchAll(/^\|\s*(CA-\d+)\s*\|\s*(.*?)\s*\|\s*$/gm)];
   if (!/^\|\s*CA\s*\|\s*Evidencia\s*\|/im.test(cuerpo) || filas.length === 0) {

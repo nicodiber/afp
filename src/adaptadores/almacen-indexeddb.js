@@ -27,16 +27,28 @@ function abrir(nombre) {
 
 const operacion = (base, almacenes, modo, accion) => new Promise((resolver, rechazar) => {
   const tx = base.transaction(almacenes, modo);
-  const pedido = accion(tx);
+  let pedido;
+  try {
+    pedido = accion(tx);
+  } catch (error) {
+    // Un registro inválido deshace la transacción entera: nada queda a medias.
+    try { tx.abort(); } catch { /* ya terminó */ }
+    rechazar(error);
+    return;
+  }
   tx.oncomplete = () => resolver(pedido?.result);
   tx.onerror = () => rechazar(tx.error);
   tx.onabort = () => rechazar(tx.error);
 });
 
 export function crearAlmacenIndexedDB(nombreDeBase) {
-  let base = null;
+  let conexion = null;
   const disponible = () => typeof indexedDB !== 'undefined' && indexedDB != null;
-  const conectar = async () => { base ??= await abrir(nombreDeBase); return base; };
+  // Una sola conexión aunque varias lecturas la pidan a la vez; si falla, la próxima vez se reintenta.
+  const conectar = () => {
+    conexion ??= abrir(nombreDeBase).catch((error) => { conexion = null; throw error; });
+    return conexion;
+  };
   const validar = (almacen) => { if (!ALMACENES.includes(almacen) || almacen === 'configuracion') throw new Error(`Almacén desconocido: ${almacen}`); };
   return {
     disponible,
@@ -59,16 +71,27 @@ export function crearAlmacenIndexedDB(nombreDeBase) {
       validar(almacen);
       await operacion(await conectar(), almacen, 'readwrite', (tx) => tx.objectStore(almacen).delete(id));
     },
-    /** Reemplaza el contenido de varios almacenes en una sola transacción (datos de ejemplo, aep#12). */
+    /** Reemplaza el contenido de varios almacenes (incluida `configuracion`) en una sola transacción (datos de ejemplo, aep#12). */
     async reemplazar(datos) {
       const nombres = Object.keys(datos);
-      nombres.forEach(validar);
+      nombres.filter((n) => n !== 'configuracion').forEach(validar);
       await operacion(await conectar(), nombres, 'readwrite', (tx) => {
         for (const nombre of nombres) {
           const almacen = tx.objectStore(nombre);
           almacen.clear();
           for (const r of datos[nombre]) almacen.put(r);
         }
+      });
+    },
+    /**
+     * Guarda registros en varios almacenes (también `configuracion`) en una sola transacción: todo o nada (aep HU-01).
+     * `datos` es { almacen: registro | registros }.
+     */
+    async guardarTodo(datos) {
+      const nombres = Object.keys(datos);
+      for (const nombre of nombres) if (!ALMACENES.includes(nombre)) throw new Error(`Almacén desconocido: ${nombre}`);
+      await operacion(await conectar(), nombres, 'readwrite', (tx) => {
+        for (const nombre of nombres) for (const r of [].concat(datos[nombre])) tx.objectStore(nombre).put(r);
       });
     },
     async persistencia() {
