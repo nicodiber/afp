@@ -2,7 +2,7 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
-import { prepararEntorno, abrir, CELULAR, ESCRITORIO } from './comun.mjs';
+import { prepararEntorno, abrir, activarModoPrueba, CELULAR, ESCRITORIO } from './comun.mjs';
 
 const AXE = createRequire(import.meta.url).resolve('axe-core/axe.min.js');
 let entorno;
@@ -18,7 +18,7 @@ for (const [nombre, viewport] of [['celular', CELULAR], ['escritorio', ESCRITORI
       for (const ruta of ['#inicio', '#movimientos', '#ajustes', 'modo-prueba']) {
         if (ruta === 'modo-prueba') {
           await pagina.goto(entorno.servidor.url + '#ajustes');
-          await pagina.getByRole('switch', { name: 'Modo prueba' }).click();
+          await activarModoPrueba(pagina);
           await pagina.locator('.franja-prueba').waitFor();
           await pagina.addScriptTag({ path: AXE });
           const graves = await pagina.evaluate(async () => (await window.axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'] }))

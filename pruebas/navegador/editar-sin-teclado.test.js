@@ -1,7 +1,7 @@
 // aep#14 (D-136): al editar una cuenta, el foco va al título y no a un campo (no se abre el teclado del celular).
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { prepararEntorno, abrir, CELULAR, ESCRITORIO } from './comun.mjs';
+import { prepararEntorno, abrir, activarModoPrueba, CELULAR, ESCRITORIO } from './comun.mjs';
 
 let entorno;
 before(async () => { entorno = await prepararEntorno(); });
@@ -13,7 +13,7 @@ const ventana = (pagina) => pagina.locator('dialog[open]').last();
 for (const [nombre, viewport] of [['celular', CELULAR], ['PC', ESCRITORIO]]) {
   test(`aep#14 CA-1 a CA-4 · editar abre con el foco en el título; nueva, en el nombre (${nombre})`, async () => {
     const { contexto, pagina, errores } = await abrir(entorno.navegador, entorno.servidor, { viewport }, '#ajustes');
-    await pagina.getByRole('switch', { name: 'Modo prueba' }).click();
+    await activarModoPrueba(pagina);
     await pagina.getByRole('button', { name: 'Cargar datos de ejemplo' }).click();
     await pagina.getByRole('button', { name: 'Restablecer datos de ejemplo' }).waitFor();
     // Desde Inicio.

@@ -11,6 +11,16 @@ test('aep#1 CA-4 un PR con spec y evidencia completa pasa', () => {
   assert.deepEqual(revisarCuerpo(`Parte de nicodiber/aep#7\n\n${TABLA}`), []);
 });
 
+test('HU-01 · el PR también puede citar una historia de usuario: «Resuelve HU-NN» o «Parte de HU-NN»', () => {
+  const tabla = '| CA | Evidencia |\n|---|---|\n| CA-1 | prueba `x.test.js` › «HU-01 CA-1» |\n';
+  assert.deepEqual(revisarCuerpo(`Resuelve HU-01\n\n${tabla}`), []);
+  assert.deepEqual(revisarCuerpo(`Parte de HU-12\n\n${tabla}`), []);
+  assert.deepEqual(revisarCuerpo(`resuelve hu-01\n\n${tabla}`), []);
+  assert.match(revisarCuerpo(`Resuelve HU-\n\n${tabla}`).join(), /no cita su spec/);
+  assert.match(revisarCuerpo(`Habla de HU-01\n\n${tabla}`).join(), /no cita su spec/);
+  assert.deepEqual(revisarCuerpo(`Resuelve HU-01\n\n${tabla}| CA-2 | … |\n`), ['CA-2 no tiene evidencia.']);
+});
+
 test('aep#1 CA-4 un PR sin spec falla y dice qué falta', () => {
   const errores = revisarCuerpo(TABLA);
   assert.equal(errores.length, 1);

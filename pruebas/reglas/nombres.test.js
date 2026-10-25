@@ -35,3 +35,16 @@ test('aep#15 CA-21 · ningún nombre de categoría de ejemplo está en src/ (sal
     for (const nombre of nombres) assert.ok(![`'${nombre}'`, `"${nombre}"`, `\`${nombre}\``].some((x) => texto.includes(x)), `${archivo} nombra «${nombre}»`);
   }
 });
+
+test('HU-01 CA-4 · ningún nombre de la plantilla inicial está en src/ (salvo las raíces); solo está en su archivo de datos', async () => {
+  // «Ingresos» y «Egresos» son las raíces fijas; «Efectivo», «Banco», «Billetera virtual» y «Transporte» también son tipos de cuenta (RF-CUE-01).
+  const plantilla = JSON.parse(await readFile(new URL('../../plantilla/plantilla-inicial.json', import.meta.url), 'utf8'));
+  const permitidos = new Set([...Object.values(NOMBRE_DE_RAIZ), ...Object.values(NOMBRES_DE_TIPO)]);
+  const nombres = [...plantilla.cuentas, ...plantilla.categorias].map((c) => c.nombre).filter((n) => !permitidos.has(n));
+  assert.ok(nombres.length >= 30, 'se revisan los nombres de la plantilla');
+  const archivos = (await readdir(SRC, { recursive: true })).filter((a) => a.endsWith('.js'));
+  for (const archivo of archivos) {
+    const texto = await readFile(join(SRC, archivo), 'utf8');
+    for (const nombre of nombres) assert.ok(![`'${nombre}'`, `"${nombre}"`, `\`${nombre}\``].some((x) => texto.includes(x)), `${archivo} nombra «${nombre}»`);
+  }
+});

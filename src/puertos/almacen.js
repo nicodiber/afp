@@ -11,7 +11,8 @@
  * @property {(almacen: NombreAlmacen, registros: object|object[]) => Promise<void>} guardar  Crea o reemplaza por id.
  * @property {(almacen: NombreAlmacen, id: string) => Promise<void>} borrar
  * @property {(datos: Partial<Record<NombreAlmacen, object[]>>) => Promise<void>} reemplazar  Todo junto o nada.
+ * @property {(datos: Partial<Record<NombreAlmacen|'configuracion', object|object[]>>) => Promise<void>} guardarTodo  Guarda en varios almacenes; todo junto o nada.
  * @property {() => Promise<('persistente'|'puede-borrarse'|'desconocido'|'sin-almacenamiento')>} persistencia
  */
 
-export const METODOS_ALMACEN = Object.freeze(['disponible', 'leerConfiguracion', 'guardarConfiguracion', 'listar', 'guardar', 'borrar', 'reemplazar', 'persistencia']);
+export const METODOS_ALMACEN = Object.freeze(['disponible', 'leerConfiguracion', 'guardarConfiguracion', 'listar', 'guardar', 'borrar', 'reemplazar', 'guardarTodo', 'persistencia']);

@@ -1,8 +1,15 @@
 # Cambios de AFP
 
-Cada entrega a la versión a probar (`/prueba/`) sube el número dentro del hito (v0.1.0-1, v0.1.0-2…). Al completar un hito, la versión real (`main`) pasa a vX.Y.Z. Las specs se citan `aep#N` (repo privado de documentación).
+Cada entrega a la versión a probar (`/prueba/`) sube el número dentro del hito (v0.1.0-1, v0.1.0-2…). Al completar un hito, la versión real (`main`) pasa a vX.Y.Z. Las specs se citan `aep#N` y las historias de usuario `HU-NN` (repo privado de documentación).
 
 ## v0.2.0 · Cuentas y categorías (en curso)
+
+### v0.2.0-5 · HU-01
+
+- Plantilla inicial: la primera vez que abrís AFP (con la base sin cuentas ni categorías) aparece una bienvenida con dos opciones: «Empezar con la plantilla» (4 cuentas y 37 categorías comunes, con saldo 0) o «Empezar vacío». Hay que elegir una; después no se vuelve a ofrecer.
+- La plantilla se carga de una sola vez: si algo falla, no queda nada a medias. Son cuentas y categorías comunes: se editan, archivan o eliminan como cualquier otra.
+- Modo prueba: la base de prueba vacía también ofrece la bienvenida; «Cargar» y «Restablecer datos de ejemplo» la dan por resuelta y «Borrar datos de prueba» la vuelve a ofrecer al reabrir.
+- El control «Spec» de los PR acepta también una historia de usuario («Resuelve HU-01»).
 
 ### v0.2.0-4 · aep#15
 
