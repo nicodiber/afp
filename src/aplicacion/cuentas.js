@@ -1,12 +1,15 @@
 // Casos de uso de las cuentas y las monedas (RF-CUE-01, RF-CUE-03, aep#12). Usan el puerto Almacen y el
-// Reloj; las reglas están en el dominio. En v0.2.0 todavía no hay movimientos (llegan en v0.3.0).
+// Reloj; las reglas están en el dominio.
 import {
   validarCuenta, puedeCambiarMoneda, puedeEliminar, necesitaConfirmarArchivo, puedeReactivar,
   ordenParaNueva, moverCuenta, activasEnOrden, archivadas,
 } from '../dominio/cuentas.js';
 import { MONEDAS_POR_DEFECTO, puedeDesactivar } from '../dominio/monedas.js';
+import { saldo } from '../dominio/saldos.js';
 
-export function crearCasosCuentas({ almacen, reloj, nuevoId, movimientos = async () => [] }) {
+// `movimientos` lee los movimientos (para saber si una cuenta se usa); `movimientosEnMemoria`, los que ya están
+// cargados, para calcular saldos sin esperar (HU-02).
+export function crearCasosCuentas({ almacen, reloj, nuevoId, movimientos = async () => [], movimientosEnMemoria = () => [] }) {
   let cuentas = [];
   let monedas = [];
   const recargar = async () => {
@@ -15,8 +18,8 @@ export function crearCasosCuentas({ almacen, reloj, nuevoId, movimientos = async
   };
   const monedasActivas = () => monedas.filter((m) => m.activa).map((m) => m.id);
   const buscar = (id) => cuentas.find((c) => c.id === id);
-  /** Saldo de una cuenta. En v0.2.0, sin movimientos, es el saldo inicial (RN-02). */
-  const saldoDe = (cuenta) => cuenta.saldoInicial;
+  /** Saldo de una cuenta a hoy (RN-02): su saldo inicial más los asientos de los movimientos confirmados. */
+  const saldoDe = (cuenta) => saldo(cuenta, reloj.hoy(), movimientosEnMemoria());
 
   return {
     /** Al abrir AFP (o cambiar de base): ARS y USD si la base todavía no tiene monedas (CA-18). */
@@ -27,6 +30,7 @@ export function crearCasosCuentas({ almacen, reloj, nuevoId, movimientos = async
         await recargar();
       }
     },
+    todas: () => cuentas,
     activas: () => activasEnOrden(cuentas),
     archivadas: () => archivadas(cuentas),
     hayCuentas: () => cuentas.length > 0,

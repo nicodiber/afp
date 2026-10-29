@@ -7,13 +7,21 @@ export function abrirVentana({ etiqueta, contenido, clase = '', alCerrar = () =>
   const origen = document.activeElement;
   const ventana = crear('dialog', { class: `ventana ${clase}`.trim(), 'aria-label': etiqueta }, [contenido]);
   document.body.append(ventana);
-  ventana.addEventListener('close', () => {
+  // El foco vuelve al control que la abrió en el mismo momento en que se cierra, sin esperar al evento «close»
+  // (que llega después): así una tecla apretada enseguida no se pierde ni cae en otro lado (HU-02).
+  let terminada = false;
+  const terminar = () => {
+    if (terminada) return;
+    terminada = true;
     ventana.remove();
     alCerrar();
     if (origen?.isConnected) origen.focus();
-  });
+  };
+  ventana.addEventListener('close', terminar);
+  // Esc: se cierra por acá para terminar de inmediato, igual que con un botón.
+  ventana.addEventListener('cancel', (evento) => { evento.preventDefault(); ventana.close(); terminar(); });
   ventana.showModal();
-  return { cerrar: () => ventana.close() };
+  return { cerrar: () => { ventana.close(); terminar(); } };
 }
 
 /** Pide confirmación (botón negativo a la izquierda y positivo a la derecha, D-108). Devuelve true o false. */

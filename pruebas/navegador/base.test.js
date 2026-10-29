@@ -49,20 +49,26 @@ test('aep#2 CA-1 · en el celular: logotipo, barra inferior con los cinco destin
   await contexto.close();
 });
 
-test('aep#2 CA-10 · Movimientos, Cargar, Análisis y «Cargar el primero» muestran el aviso y vuelven al inicio', async () => {
+test('aep#2 CA-10 · Movimientos y Análisis muestran el aviso y vuelven al inicio; Cargar y «Cargar el primero» abren «Nuevo egreso» (HU-02)', async () => {
   const { contexto, pagina, errores } = await abrir(entorno.navegador, entorno.servidor);
   const nav = pagina.getByRole('navigation', { name: 'Principal' });
   const casos = [
     [() => nav.getByRole('link', { name: 'Movimientos' }), 'Movimientos'],
-    [() => nav.getByRole('link', { name: 'Cargar' }), 'Cargar'],
     [() => nav.getByRole('link', { name: 'Análisis' }), 'Análisis'],
-    [() => pagina.getByRole('link', { name: 'Cargar el primero' }), 'Cargar'],
   ];
   for (const [boton, titulo] of casos) {
     await boton().click();
     await pagina.waitForFunction((t) => document.querySelector('main h1')?.textContent === t, titulo);
     assert.match(await textoPrincipal(pagina), /Esta parte llega en una próxima entrega\./, titulo);
     await pagina.getByRole('link', { name: 'Volver al inicio' }).click();
+    await pagina.waitForFunction(() => /Todavía no cargaste movimientos\./.test(document.querySelector('main').innerText));
+    assert.equal(await nav.getByRole('link', { name: 'Inicio' }).getAttribute('aria-current'), 'page');
+  }
+  // Desde HU-02, «Cargar» ya existe: abre «Nuevo egreso» y «Cancelar» vuelve al inicio.
+  for (const boton of [() => nav.getByRole('link', { name: 'Cargar' }), () => pagina.getByRole('link', { name: 'Cargar el primero' })]) {
+    await boton().click();
+    await pagina.waitForFunction(() => document.querySelector('main h1')?.textContent === 'Nuevo egreso');
+    await pagina.getByRole('button', { name: 'Cancelar' }).click();
     await pagina.waitForFunction(() => /Todavía no cargaste movimientos\./.test(document.querySelector('main').innerText));
     assert.equal(await nav.getByRole('link', { name: 'Inicio' }).getAttribute('aria-current'), 'page');
   }
@@ -76,7 +82,7 @@ test('aep#2 CA-7 · Ajustes → «Acerca de» muestra el nombre completo y la ve
   await pagina.getByRole('heading', { name: 'Acerca de' }).waitFor();
   const texto = await textoPrincipal(pagina);
   assert.match(texto, /AFP · Administración Financiera Personal/);
-  assert.match(texto, /Versión v0\.2\.0-6$/m, 'versión de la entrega actual (HU-22)');
+  assert.match(texto, /Versión v0\.3\.0-1$/m, 'versión de la entrega actual (HU-02)');
   assert.deepEqual(errores, []);
   await contexto.close();
 });

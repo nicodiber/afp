@@ -88,12 +88,5 @@ export function crearMovimiento(datos, contexto) {
   return movimiento;
 }
 
-/** Saldo de una cuenta a una fecha (RN-02): saldo inicial + asientos de los movimientos confirmados hasta esa fecha. */
-export function saldo(cuenta, fecha, movimientos) {
-  let total = cuenta.saldoInicial;
-  for (const m of movimientos) {
-    if (m.estado !== 'confirmado' || m.fecha > fecha) continue;
-    for (const a of m.asientos) if (a.cuentaId === cuenta.id) total += a.monto;
-  }
-  return total;
-}
+// El saldo vive en saldos.js, un módulo chico que la app carga al abrir (LCP); acá se reexporta con el resto del núcleo.
+export { saldo } from './saldos.js';

@@ -1,5 +1,5 @@
 // Casos de uso de las categorías (RF-CAT-01, RF-CAT-02, aep#15). Usan el puerto Almacen y el Reloj; las reglas
-// están en el dominio. En v0.2.0 todavía no hay movimientos (llegan en v0.3.0).
+// están en el dominio.
 import {
   validarCategoria, clasificacionPorDefecto, esFamilia, hijasEnOrden, destinosPara, ubicacionesAlMover,
   idsParaArchivar, idsParaReactivar, puedeEliminar, moverEntreHermanas, ordenParaNueva,
@@ -19,6 +19,7 @@ export function crearCasosCategorias({ almacen, reloj, nuevoId, movimientos = as
     preparar: recargar,
     recargar,
     buscar,
+    todas: () => categorias,
     hoy: () => reloj.hoy(),
     hijas: (padreId, tipo) => hijasEnOrden(categorias, padreId, tipo),
     esFamilia: (id) => esFamilia(categorias, id),

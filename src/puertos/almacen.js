@@ -1,8 +1,8 @@
 // Puerto Almacen (arquitectura §3): los datos del dispositivo. Configuración (aep#9), cuentas y monedas (aep#12),
-// categorías y sus ubicaciones (aep#15).
+// categorías y sus ubicaciones (aep#15), movimientos (HU-02).
 
 /**
- * @typedef {'cuentas'|'monedas'|'categorias'|'ubicacionesCategoria'} NombreAlmacen
+ * @typedef {'cuentas'|'monedas'|'categorias'|'ubicacionesCategoria'|'movimientos'} NombreAlmacen
  * @typedef {Object} PuertoAlmacen
  * @property {() => boolean} disponible
  * @property {() => Promise<object|null>} leerConfiguracion  null si todavía no hay.

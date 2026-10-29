@@ -262,12 +262,14 @@ test('aep#15 CA-18 · una base del esquema 2 pasa al 3 sin perder las cuentas', 
   }));
   await pagina.reload();
   await pagina.waitForSelector('main h1');
-  await pagina.waitForFunction(() => new Promise((ok) => { const p = indexedDB.open('afp-dev'); p.onsuccess = () => { const v = p.result.version; p.result.close(); ok(v === 3); }; }));
+  await pagina.waitForFunction(() => new Promise((ok) => { const p = indexedDB.open('afp-dev'); p.onsuccess = () => { const v = p.result.version; p.result.close(); ok(v >= 3); }; }));
   const base = await pagina.evaluate(() => new Promise((ok) => {
     const p = indexedDB.open('afp-dev');
     p.onsuccess = () => { const db = p.result; const g = db.transaction('cuentas').objectStore('cuentas').getAll(); g.onsuccess = () => { const r = { almacenes: [...db.objectStoreNames].sort(), cuentas: g.result.map((c) => c.nombre) }; db.close(); ok(r); }; };
   }));
-  assert.deepEqual(base, { almacenes: ['categorias', 'configuracion', 'cuentas', 'monedas', 'ubicacionesCategoria'], cuentas: ['Efectivo'] });
+  // Desde HU-02 la base está en el esquema 4 (se suman los movimientos): lo que importa acá es que los almacenes del
+  // esquema 3 están y las cuentas siguen.
+  assert.deepEqual({ ...base, almacenes: base.almacenes.filter((a) => a !== 'movimientos') }, { almacenes: ['categorias', 'configuracion', 'cuentas', 'monedas', 'ubicacionesCategoria'], cuentas: ['Efectivo'] });
   assert.deepEqual(errores, []);
   await contexto.close();
 });

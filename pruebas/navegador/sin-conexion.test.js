@@ -31,7 +31,11 @@ test('aep#2 CA-6 · todos los pedidos van al mismo origen', async () => {
   const { contexto, pagina, pedidos, errores } = await abrir(entorno.navegador, entorno.servidor);
   await pagina.evaluate(() => navigator.serviceWorker.ready);
   const nav = pagina.getByRole('navigation', { name: 'Principal' });
-  for (const nombre of ['Movimientos', 'Cargar', 'Análisis', 'Ajustes', 'Inicio']) await nav.getByRole('link', { name: nombre }).click();
+  for (const nombre of ['Movimientos', 'Cargar', 'Análisis', 'Ajustes', 'Inicio']) {
+    await nav.getByRole('link', { name: nombre }).click();
+    // Desde HU-02, «Cargar» ocupa toda la pantalla en el celular (sin barra de abajo): se sale con «Cancelar».
+    if (nombre === 'Cargar') await pagina.getByRole('button', { name: 'Cancelar' }).click();
+  }
   await pagina.reload();
   await pagina.waitForSelector('main h1');
   const origen = new URL(entorno.servidor.url).origin;
