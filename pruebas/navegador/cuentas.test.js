@@ -3,7 +3,7 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
-import { prepararEntorno, abrir, activarModoPrueba, CELULAR, ESCRITORIO, textoPrincipal } from './comun.mjs';
+import { prepararEntorno, abrir, CELULAR, ESCRITORIO, textoPrincipal } from './comun.mjs';
 
 const AXE = createRequire(import.meta.url).resolve('axe-core/axe.min.js');
 const E = '\u00a0'; // espacio que no se corta entre el símbolo y el número
@@ -24,7 +24,7 @@ const EJEMPLO = [
 /** Abre AFP en modo prueba (base afp-dev-prueba) y, si se pide, carga los datos de ejemplo. */
 async function enModoPrueba(opciones = {}, { cargar = true } = {}) {
   const r = await abrir(entorno.navegador, entorno.servidor, opciones, '#ajustes');
-  await activarModoPrueba(r.pagina);
+  await r.pagina.getByRole('switch', { name: 'Modo prueba' }).click();
   await r.pagina.locator('.franja-prueba').waitFor();
   if (cargar) {
     await r.pagina.getByRole('button', { name: 'Cargar datos de ejemplo' }).click();
@@ -122,7 +122,7 @@ test('aep#12 CA-4 · las cuentas de prueba no tocan la base real', async () => {
   await completar(pagina, { nombre: 'Efectivo', tipo: 'Efectivo', saldo: '0' });
   await ventana(pagina).waitFor({ state: 'detached' });
   await pagina.goto(entorno.servidor.url + '#ajustes');
-  await activarModoPrueba(pagina);
+  await pagina.getByRole('switch', { name: 'Modo prueba' }).click();
   await pagina.getByRole('button', { name: 'Cargar datos de ejemplo' }).click();
   await pagina.getByRole('button', { name: 'Restablecer datos de ejemplo' }).waitFor();
   await irACuentas(pagina);
@@ -134,7 +134,7 @@ test('aep#12 CA-4 · las cuentas de prueba no tocan la base real', async () => {
   await pagina.waitForFunction(() => document.querySelectorAll('ul[aria-labelledby="titulo-activas"] > li').length === 1);
   assert.deepEqual(await filas(pagina), [['Efectivo', 'Efectivo · ARS', `$${E}0,00`]]);
   await pagina.goto(entorno.servidor.url + '#ajustes');
-  await activarModoPrueba(pagina);
+  await pagina.getByRole('switch', { name: 'Modo prueba' }).click();
   await irACuentas(pagina);
   await pagina.waitForFunction(() => document.querySelectorAll('ul[aria-labelledby="titulo-activas"] > li').length === 7);
   assert.equal((await filas(pagina)).length, 7);

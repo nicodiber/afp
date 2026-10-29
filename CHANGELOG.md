@@ -4,6 +4,11 @@ Cada entrega a la versión a probar (`/prueba/`) sube el número dentro del hito
 
 ## v0.2.0 · Cuentas y categorías (en curso)
 
+### v0.2.0-6 · HU-22
+
+- Se quita la bienvenida con plantilla: AFP empieza vacía. Una base nueva (real o de prueba) abre directo en Inicio, con «Todavía no tenés cuentas.» y «Crear la primera». Las cuentas y categorías se cargan a mano; para probar, el modo prueba sigue con sus datos de ejemplo.
+- Se conserva del cambio anterior la conexión compartida a la base y que el control «Spec» de los PR acepte «Resuelve HU-NN».
+
 ### v0.2.0-5 · HU-01
 
 - Plantilla inicial: la primera vez que abrís AFP (con la base sin cuentas ni categorías) aparece una bienvenida con dos opciones: «Empezar con la plantilla» (4 cuentas y 37 categorías comunes, con saldo 0) o «Empezar vacío». Hay que elegir una; después no se vuelve a ofrecer.

@@ -3,7 +3,7 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
-import { prepararEntorno, abrir, activarModoPrueba, CELULAR, ESCRITORIO, textoPrincipal } from './comun.mjs';
+import { prepararEntorno, abrir, CELULAR, ESCRITORIO, textoPrincipal } from './comun.mjs';
 
 const AXE = createRequire(import.meta.url).resolve('axe-core/axe.min.js');
 let entorno;
@@ -12,7 +12,7 @@ after(async () => { await entorno.cerrar(); });
 
 async function enModoPrueba(opciones = {}, { cargar = true } = {}) {
   const r = await abrir(entorno.navegador, entorno.servidor, opciones, '#ajustes');
-  await activarModoPrueba(r.pagina);
+  await r.pagina.getByRole('switch', { name: 'Modo prueba' }).click();
   await r.pagina.locator('.franja-prueba').waitFor();
   if (cargar) {
     await r.pagina.getByRole('button', { name: 'Cargar datos de ejemplo' }).click();

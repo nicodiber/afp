@@ -1,7 +1,7 @@
 // aep#9: base de datos del dispositivo con la configuración, separada por modo; «Datos de este dispositivo».
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { prepararEntorno, abrir, activarModoPrueba, pasarBienvenida, textoPrincipal } from './comun.mjs';
+import { prepararEntorno, abrir, textoPrincipal } from './comun.mjs';
 
 let entorno;
 before(async () => { entorno = await prepararEntorno(); });
@@ -36,7 +36,7 @@ test('aep#9 CA-2 · en modo prueba la configuración va a afp-dev-prueba y afp-d
   const { contexto, pagina, errores } = await abrir(entorno.navegador, entorno.servidor, {}, '#ajustes');
   await esperarDatos(pagina);
   const antes = await leerConfig(pagina, 'afp-dev');
-  await activarModoPrueba(pagina);
+  await pagina.getByRole('switch', { name: 'Modo prueba' }).click();
   await pagina.waitForFunction(async () => (await indexedDB.databases()).some((b) => b.name === 'afp-dev-prueba'));
   await pagina.reload();
   await esperarDatos(pagina);
@@ -70,7 +70,6 @@ for (const [conserva, texto] of [[true, 'El navegador no los borra aunque le fal
     }, conserva);
     const pagina = await contexto.newPage();
     await pagina.goto(entorno.servidor.url + '#ajustes');
-    await pasarBienvenida(pagina, '#ajustes');
     await esperarDatos(pagina);
     // Mientras se comprueba, Ajustes dice «Comprobando…»: se espera el resultado (la base ahora prepara más cosas).
     await pagina.waitForFunction((esperado) => document.querySelector('main').innerText.includes(esperado), texto);
