@@ -1,7 +1,7 @@
 // aep#6: modo prueba con franja y fecha simulada; aep#5: orden de los botones de la tarjeta de instalación.
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { prepararEntorno, abrir, activarModoPrueba, CELULAR, ESCRITORIO } from './comun.mjs';
+import { prepararEntorno, abrir, CELULAR, ESCRITORIO } from './comun.mjs';
 
 let entorno;
 before(async () => { entorno = await prepararEntorno(); });
@@ -15,7 +15,7 @@ for (const [nombre, viewport] of [['celular', CELULAR], ['PC', ESCRITORIO]]) {
     const { contexto, pagina, errores } = await abrir(entorno.navegador, entorno.servidor, { viewport }, '#ajustes');
     assert.equal(await franja(pagina).isVisible(), false);
     assert.equal(await interruptor(pagina).getAttribute('aria-checked'), 'false');
-    await activarModoPrueba(pagina);
+    await interruptor(pagina).click();
     assert.equal(await interruptor(pagina).getAttribute('aria-checked'), 'true');
     await franja(pagina).waitFor();
     assert.equal((await franja(pagina).innerText()).trim(), 'MODO PRUEBA · fecha simulada 31/10/2026');
@@ -44,7 +44,7 @@ for (const [nombre, viewport] of [['celular', CELULAR], ['PC', ESCRITORIO]]) {
 
 test('aep#6 CA-3 · cambiar la fecha simulada y volver al 31/10/2026', async () => {
   const { contexto, pagina, errores } = await abrir(entorno.navegador, entorno.servidor, {}, '#ajustes');
-  await activarModoPrueba(pagina);
+  await interruptor(pagina).click();
   await pagina.getByLabel('Fecha simulada').fill('2026-11-15');
   await pagina.waitForFunction(() => document.querySelector('.franja-prueba')?.textContent.includes('15/11/2026'));
   assert.equal((await franja(pagina).innerText()).trim(), 'MODO PRUEBA · fecha simulada 15/11/2026');
@@ -57,7 +57,7 @@ test('aep#6 CA-3 · cambiar la fecha simulada y volver al 31/10/2026', async () 
 
 test('aep#6 CA-4 · se recuerda al volver a abrir, sin saltos', async () => {
   const { contexto, pagina, errores } = await abrir(entorno.navegador, entorno.servidor, {}, '#ajustes');
-  await activarModoPrueba(pagina);
+  await interruptor(pagina).click();
   await pagina.getByLabel('Fecha simulada').fill('2026-11-15');
   await pagina.waitForFunction(() => document.querySelector('.franja-prueba')?.textContent.includes('15/11/2026'));
   await pagina.close();
@@ -81,7 +81,7 @@ test('aep#6 CA-4 · se recuerda al volver a abrir, sin saltos', async () => {
 test('aep#6 CA-7 · el interruptor se anuncia con su estado y la franja tiene contraste en los dos temas', async () => {
   for (const colorScheme of ['light', 'dark']) {
     const { contexto, pagina } = await abrir(entorno.navegador, entorno.servidor, { colorScheme }, '#ajustes');
-    await activarModoPrueba(pagina);
+    await interruptor(pagina).click();
     await franja(pagina).waitFor();
     const contraste = await pagina.evaluate(() => {
       const s = getComputedStyle(document.querySelector('.franja-prueba'));

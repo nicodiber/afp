@@ -13,9 +13,7 @@ import { crearCasosDatosDispositivo } from './aplicacion/datos-dispositivo.js';
 import { crearCasosCuentas } from './aplicacion/cuentas.js';
 import { crearCasosCategorias } from './aplicacion/categorias.js';
 import { crearCasosDatosEjemplo } from './aplicacion/datos-ejemplo.js';
-import { crearCasosInicio } from './aplicacion/inicio.js';
 import { leerDatosDeEjemplo } from './adaptadores/datos-ejemplo.js';
-import { leerPlantillaInicial } from './adaptadores/plantilla.js';
 import { iniciarInterfaz, avisarVersionNueva } from './ui/app.js';
 
 const almacen = crearPreferenciasLocales();
@@ -31,11 +29,9 @@ const basePara = () => {
   const cuentas = crearCasosCuentas({ almacen: almacenDatos, reloj: modoPrueba.reloj, nuevoId: () => nuevoId('cue') });
   const categorias = crearCasosCategorias({ almacen: almacenDatos, reloj: modoPrueba.reloj, nuevoId });
   const ejemplo = crearCasosDatosEjemplo({ almacen: almacenDatos, recargar: [cuentas.recargar, categorias.recargar] });
-  const inicio = crearCasosInicio({ almacen: almacenDatos, reloj: modoPrueba.reloj, nuevoId, leerPlantilla: leerPlantillaInicial, recargar: [cuentas.recargar, categorias.recargar] });
-  return { dispositivo: crearCasosDatosDispositivo(almacenDatos), cuentas, categorias, ejemplo, inicio };
+  return { dispositivo: crearCasosDatosDispositivo(almacenDatos), cuentas, categorias, ejemplo };
 };
 let base = basePara();
-let modoActivo = modoPrueba.estado().activo;
 const datosParaInterfaz = { estado: () => base.dispositivo.estado() };
 // La interfaz ve siempre las cuentas de la base actual.
 const cuentasParaInterfaz = new Proxy({}, { get: (_, nombre) => base.cuentas[nombre] });
@@ -46,29 +42,9 @@ const ejemploParaInterfaz = {
   borrar: () => base.ejemplo.borrar(),
   hayDatos: () => base.cuentas.hayCuentas() || base.categorias.hayCategorias(),
 };
-// Primer uso (aep HU-01): la interfaz ve siempre el de la base actual.
-// Mientras se mira la base (unos milisegundos) la interfaz no dibuja nada: así quien tiene que elegir cómo empezar
-// no ve primero Inicio y después la bienvenida.
-let comprobando = true;
-const inicioParaInterfaz = {
-  estado: () => (comprobando ? 'comprobando' : (base.inicio.estado() === 'ofrecer' ? 'ofrecer' : 'resuelto')),
-  empezarVacio: () => base.inicio.empezarVacio(),
-  usarPlantilla: () => base.inicio.usarPlantilla(),
-  leerPlantilla: leerPlantillaInicial,
-};
-// Se redibuja apenas se sabe el estado de la base y otra vez con las cuentas. La oferta de la plantilla se decide
-// al abrir AFP y al cambiar de modo, no al cambiar la fecha simulada ni al borrar los datos de prueba.
-const preparar = async (alAvanzar, { ofrecer = true } = {}) => {
-  comprobando = ofrecer;
-  // Si algo se cuelga, a los 3 segundos AFP sigue sin la oferta en vez de quedar en blanco.
-  const seguridad = ofrecer ? setTimeout(() => { comprobando = false; alAvanzar(); }, 3000) : null;
-  // La oferta se decide leyendo la base, sin esperar la comprobación de persistencia ni la carga de cuentas (LCP).
-  const dispositivo = base.dispositivo.preparar().then(() => { if (!ofrecer) alAvanzar(); });
-  if (ofrecer) await base.inicio.preparar();
-  clearTimeout(seguridad);
-  comprobando = false;
-  alAvanzar();
-  await dispositivo;
+// Se redibuja apenas se sabe el estado de la base y otra vez con las cuentas.
+const preparar = async (alAvanzar) => {
+  await base.dispositivo.preparar();
   alAvanzar();
   // Si la base no se puede abrir (por ejemplo, bloqueada por otra pestaña), AFP sigue sin cuentas.
   if (base.dispositivo.estado() !== 'sin-almacenamiento') await Promise.all([base.cuentas.preparar(), base.categorias.preparar()]).catch(() => {});
@@ -76,13 +52,8 @@ const preparar = async (alAvanzar, { ofrecer = true } = {}) => {
 };
 const interfaz = iniciarInterfaz({
   preferencias, instalacion, modoPrueba, datosDispositivo: datosParaInterfaz, version: VERSION,
-  cuentas: cuentasParaInterfaz, categorias: categoriasParaInterfaz, ejemplo: ejemploParaInterfaz, inicio: inicioParaInterfaz,
-  alCambiarModoPrueba: () => {
-    const cambioDeModo = modoPrueba.estado().activo !== modoActivo;
-    modoActivo = modoPrueba.estado().activo;
-    base = basePara();
-    preparar(() => interfaz.refrescar(), { ofrecer: cambioDeModo });
-  },
+  cuentas: cuentasParaInterfaz, categorias: categoriasParaInterfaz, ejemplo: ejemploParaInterfaz,
+  alCambiarModoPrueba: () => { base = basePara(); preparar(() => interfaz.refrescar()); },
 });
 preparar(() => interfaz.refrescar());
 registrarServiceWorker({ alHaberVersionNueva: avisarVersionNueva });

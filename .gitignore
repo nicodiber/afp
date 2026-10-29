@@ -3,7 +3,6 @@
 *.json
 !package.json
 !datos-demo/**
-!plantilla/plantilla-inicial.json
 .nombres-prohibidos.txt
 node_modules/
 !package-lock.json
