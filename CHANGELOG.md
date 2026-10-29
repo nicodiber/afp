@@ -2,7 +2,18 @@
 
 Cada entrega a la versión a probar (`/prueba/`) sube el número dentro del hito (v0.1.0-1, v0.1.0-2…). Al completar un hito, la versión real (`main`) pasa a vX.Y.Z. Las specs se citan `aep#N` y las historias de usuario `HU-NN` (repo privado de documentación).
 
-## v0.2.0 · Cuentas y categorías (en curso)
+## v0.3.0 · Movimientos (en curso)
+
+### v0.3.0-1 · HU-02
+
+- Registrar un egreso: «Cargar» (el + de la barra inferior en el celular, el botón de la barra lateral en la PC) abre la pantalla «Nuevo egreso» (`#cargar`) con fecha (hoy por defecto, nunca posterior), monto en formato argentino (12.500,50), descripción opcional, categoría y cuenta.
+- Categoría y cuenta se eligen en una ventana con buscador que filtra mientras escribís: las categorías son las hojas activas de egresos agrupadas por familia; las cuentas, las activas con su saldo. Si no hay ninguna, la ventana lo dice y lleva a crearlas.
+- «Guardar» vuelve a la pantalla anterior y «Guardar y cargar otro» deja la pantalla vacía; los dos avisan el saldo nuevo de la cuenta. Sin monto, categoría o cuenta no guarda y marca cada campo con su mensaje. Un doble toque no guarda dos veces.
+- Todo se puede hacer con el teclado: Tab, Enter o Espacio para abrir las ventanas, ↑/↓ y Enter para elegir, Esc para cerrar, y en la PC Ctrl+Enter (guardar) y Ctrl+Mayús+Enter (guardar y cargar otro).
+- El saldo de Inicio y de Cuentas pasa a ser el calculado: saldo inicial más y menos los movimientos.
+- La base del dispositivo pasa al esquema 4 (almacén `movimientos`); una base del esquema 3 conserva sus datos. «Borrar datos de prueba» y «Restablecer datos de ejemplo» también vacían los movimientos del modo prueba.
+
+## v0.2.0 · Cuentas y categorías (cerrado)
 
 ### v0.2.0-6 · HU-22
 

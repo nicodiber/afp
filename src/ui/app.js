@@ -10,15 +10,18 @@ const DESTINOS = { inicio: 'Inicio', movimientos: 'Movimientos', cargar: 'Cargar
 const SUBPANTALLAS = { 'ajustes/cuentas': 'Cuentas', 'ajustes/categorias': 'Categorías', 'ajustes/monedas': 'Monedas' };
 // Las pantallas de Ajustes se cargan recién cuando se abren, para que Inicio se dibuje antes (LCP, aep#15).
 const CARGAR_SUBPANTALLA = {
+  cargar: () => import('./pantallas/cargar.js'),
   'ajustes/cuentas': () => import('./pantallas/cuentas.js'),
   'ajustes/categorias': () => import('./pantallas/categorias.js'),
   'ajustes/monedas': () => import('./pantallas/monedas.js'),
 };
+// Título de pantallas que no se llaman como su destino del menú: «Cargar» abre «Nuevo egreso» (HU-02).
+const TITULOS_PROPIOS = { cargar: 'Nuevo egreso' };
 const subpantallas = {};
 const PC = '(min-width: 720px)';
 const SISTEMA_OSCURO = '(prefers-color-scheme: dark)';
 
-export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, datosDispositivo, cuentas, categorias, ejemplo, alCambiarModoPrueba = () => {}, version }) {
+export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, datosDispositivo, cuentas, categorias, movimientos, ejemplo, alCambiarModoPrueba = () => {}, version }) {
   const principal = document.getElementById('contenido');
   const enlaces = [...document.querySelectorAll('.nav-lista a[data-destino]')];
   const cargar = document.querySelector('.nav-item-cargar');
@@ -46,6 +49,11 @@ export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, datosDi
     if (destino) destino.focus(); else if (foco !== undefined) principal.querySelector('h1')?.focus({ preventScroll: true });
   };
   let rutaAnterior = null;
+  // Cuántas veces se cambió de pantalla dentro de AFP: «Cancelar» y «Guardar» vuelven atrás si hay a dónde (HU-02).
+  let cambiosDePantalla = 0;
+  const volver = () => {
+    if (cambiosDePantalla > 0) history.back(); else location.replace('#inicio');
+  };
 
   const acciones = {
     alInstalar: () => instalacion.instalar().then(() => mostrar(false)),
@@ -59,13 +67,17 @@ export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, datosDi
   const mostrar = (moverFoco) => {
     const ruta = rutaActual();
     const destino = destinoActual();
+    // Cargar ya está en pantalla: no se vuelve a dibujar para no perder lo que se está escribiendo (los datos se leen al elegir).
+    if (ruta === 'cargar' && rutaAnterior === 'cargar' && !moverFoco && principal.querySelector('.formulario-egreso')) return;
+    document.body.dataset.ruta = destino;
     if (ruta !== rutaAnterior && rutaAnterior === 'ajustes/cuentas') subpantallas[rutaAnterior]?.reiniciarCuentas();
     if (ruta !== rutaAnterior && rutaAnterior === 'ajustes/categorias') subpantallas[rutaAnterior]?.reiniciarCategorias();
     if (CARGAR_SUBPANTALLA[ruta] && !subpantallas[ruta]) {
       // Primera vez: se carga el módulo y se vuelve a dibujar (sin conexión, lo sirve el service worker).
       CARGAR_SUBPANTALLA[ruta]().then((modulo) => { subpantallas[ruta] = modulo; if (rutaActual() === ruta) { rutaAnterior = null; mostrar(moverFoco); } });
-      principal.replaceChildren(crear('h1', { class: 'titulo', tabindex: '-1', texto: SUBPANTALLAS[ruta] }));
-      document.title = `${SUBPANTALLAS[ruta]} · AFP`;
+      const titulo = TITULOS_PROPIOS[ruta] ?? SUBPANTALLAS[ruta];
+      principal.replaceChildren(crear('h1', { class: 'titulo', tabindex: '-1', texto: titulo }));
+      document.title = `${titulo} · AFP`;
       return;
     }
     rutaAnterior = ruta;
@@ -73,7 +85,8 @@ export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, datosDi
     if (ruta === 'ajustes/cuentas') pantalla = subpantallas[ruta].pantallaCuentas({ cuentas, esPC: esPC(), redibujar });
     else if (ruta === 'ajustes/monedas') pantalla = subpantallas[ruta].pantallaMonedas({ cuentas, redibujar });
     else if (ruta === 'ajustes/categorias') pantalla = subpantallas[ruta].pantallaCategorias({ categorias, esPC: esPC(), redibujar });
-    else if (destino === 'inicio') pantalla = pantallaInicio({ instalacion, ...acciones, cuentas, esPC: esPC(), redibujar });
+    else if (ruta === 'cargar') pantalla = subpantallas[ruta].pantallaCargar({ movimientos, cuentas, categorias, esPC: esPC(), volver });
+    else if (destino === 'inicio') pantalla = pantallaInicio({ instalacion, ...acciones, cuentas, movimientos, esPC: esPC(), redibujar });
     else if (destino === 'ajustes') {
       pantalla = pantallaAjustes({
         preferencias, version, instalacion, alInstalar: acciones.alInstalar, modoPrueba, datosDispositivo, cuentas, ejemplo, redibujar,
@@ -88,7 +101,7 @@ export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, datosDi
       });
     } else pantalla = pantallaProximamente(DESTINOS[destino]);
     principal.replaceChildren(...pantalla);
-    document.title = `${SUBPANTALLAS[ruta] ?? DESTINOS[destino]} · AFP`;
+    document.title = `${TITULOS_PROPIOS[ruta] ?? SUBPANTALLAS[ruta] ?? DESTINOS[destino]} · AFP`;
     for (const enlace of enlaces) {
       if (enlace.dataset.destino === destino) enlace.setAttribute('aria-current', 'page');
       else enlace.removeAttribute('aria-current');
@@ -109,6 +122,7 @@ export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, datosDi
   mostrar(false);
   // Al cambiar de pantalla (por ejemplo, con «Atrás» del celular), se cierra cualquier ventana abierta.
   window.addEventListener('hashchange', () => {
+    cambiosDePantalla += 1;
     for (const ventana of document.querySelectorAll('dialog[open]')) ventana.close();
     mostrar(true);
   });

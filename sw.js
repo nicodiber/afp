@@ -1,7 +1,7 @@
 // Service worker de AFP (aep#2 CA-5; arquitectura §7; FC-01).
 // Guarda la app para abrir sin conexión. Cada versión usa su propia caché y los archivos se piden
 // sin la caché HTTP; la versión nueva espera a que el usuario toque «Actualizar».
-const VERSION = 'v0.2.0-6';
+const VERSION = 'v0.3.0-1';
 const CANAL = new URL(self.registration.scope).pathname.includes('/prueba/') ? 'dev' : 'real';
 const CACHE = `afp-${CANAL}-${VERSION}`;
 const ARCHIVOS = [
@@ -21,6 +21,7 @@ const ARCHIVOS = [
   'src/adaptadores/almacen-indexeddb.js', 'src/aplicacion/datos-dispositivo.js', 'src/puertos/preferencias.js', 'src/puertos/instalacion.js',
   'src/aplicacion/preferencias.js', 'src/aplicacion/instalacion.js', 'src/adaptadores/instalacion-navegador.js', 'src/ui/instalacion.js',
   'src/adaptadores/canal.js', 'src/adaptadores/preferencias-local.js', 'src/adaptadores/tema-temprano.js', 'src/adaptadores/actualizaciones.js',
+  'src/dominio/movimientos.js', 'src/dominio/saldos.js', 'src/aplicacion/movimientos.js', 'src/ui/selector.js', 'src/ui/formulario-egreso.js', 'src/ui/pantallas/cargar.js',
   'src/ui/app.js', 'src/ui/dom.js', 'src/ui/pantallas/inicio.js', 'src/ui/pantallas/ajustes.js', 'src/ui/pantallas/proximamente.js',
 ];
 

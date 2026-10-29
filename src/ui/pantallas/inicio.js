@@ -1,23 +1,22 @@
 // Inicio (aep#2 CA-1, aep#12, D-132): la sugerencia de instalar, tus cuentas como tarjetas con su saldo y,
-// mientras no haya movimientos, una frase y un botón (manual §8.1, D-65, D-97).
+// mientras no haya movimientos, una frase y un botón que lleva a Cargar (manual §8.1, D-65, D-97).
 import { crear } from '../dom.js';
 import { tarjetaInstalar } from '../instalacion.js';
 import { abrirFormularioEnVentana } from '../cuentas-comun.js';
 import { formatearMonto } from '../../dominio/formato.js';
 import { NOMBRES_DE_TIPO } from '../../dominio/cuentas.js';
 
-export function pantallaInicio({ instalacion, alInstalar, alDescartar, cuentas, esPC, redibujar }) {
+export function pantallaInicio({ instalacion, alInstalar, alDescartar, cuentas, movimientos, esPC, redibujar }) {
   const { sugerirEnInicio, forma } = instalacion.estado();
   return [
     crear('h1', { class: 'titulo titulo-inicio', tabindex: '-1', texto: 'Inicio' }),
     // Sugerencia de instalación arriba de todo (aep#4, D-105).
     ...(sugerirEnInicio ? [tarjetaInstalar({ forma, alInstalar, alDescartar })] : []),
     seccionCuentas({ cuentas, esPC, redibujar }),
-    crear('div', { class: 'vacio' }, [
+    ...(movimientos.hay() ? [] : [crear('div', { class: 'vacio' }, [
       crear('p', { texto: 'Todavía no cargaste movimientos.' }),
-      // Mientras la carga no existe, lleva al aviso de «llega en una próxima entrega» (D-97).
       crear('a', { class: 'boton-principal', href: '#cargar', texto: 'Cargar el primero' }),
-    ]),
+    ])]),
   ];
 }
 
