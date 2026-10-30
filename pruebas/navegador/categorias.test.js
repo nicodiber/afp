@@ -33,7 +33,7 @@ const abrirCategoria = async (pagina, id) => { await pagina.locator(`#categoria-
 async function crearEn(pagina, { padreId, tipo }, nombre, { enviar = true } = {}) {
   if (padreId) {
     await abrirCategoria(pagina, padreId);
-    await ventana(pagina).getByRole('button', { name: 'Agregar dentro' }).click();
+    await ventana(pagina).getByRole('button', { name: 'Agregar subcategoría' }).click();
   } else await pagina.locator(`#nueva-${tipo}`).click();
   await ventana(pagina).getByLabel('Nombre').fill(nombre);
   if (enviar) await ventana(pagina).getByRole('button', { name: 'Crear categoría' }).click();
@@ -69,11 +69,12 @@ for (const [nombre, viewport] of [['celular', CELULAR], ['PC', ESCRITORIO]]) {
     await irACategorias(pagina);
     assert.deepEqual(await arbol(pagina, 'ingreso'), INGRESOS);
     assert.deepEqual(await arbol(pagina, 'egreso'), EGRESOS);
-    const detalle = (id) => pagina.locator(`#categoria-${id} .fila-detalle`).textContent();
-    assert.equal(await detalle('cat-kiosco'), 'Variable · deseo · hormiga');
-    assert.equal(await detalle('cat-alquiler'), 'Fijo · necesidad');
-    assert.equal(await detalle('cat-aporte-familiar'), 'Aporte de terceros');
-    assert.equal(await detalle('cat-alimentacion'), '3 categorías');
+    // HU-31: la clasificación se muestra como etiquetas, y la familia dice cuántas categorías tiene.
+    const etiquetas = (id) => pagina.locator(`#categoria-${id} .etiqueta`).allTextContents();
+    assert.deepEqual(await etiquetas('cat-kiosco'), ['Variable', 'Deseo', 'Hormiga']);
+    assert.deepEqual(await etiquetas('cat-alquiler'), ['Fijo', 'Necesidad']);
+    assert.deepEqual(await etiquetas('cat-aporte-familiar'), ['Aporte de terceros']);
+    assert.equal(await pagina.locator('#categoria-cat-alimentacion .fila-detalle').textContent(), '3 categorías');
     assert.deepEqual(errores, []);
     await contexto.close();
   });
@@ -125,11 +126,12 @@ test('aep#15 CA-4 a CA-8 · crear, validar y editar, con la clasificación de la
   await abrirCategoria(pagina, 'cat-kiosco');
   assert.equal(await pagina.evaluate(() => document.activeElement.tagName), 'H2', 'editar no pone el foco en un campo (D-136)');
   await ventana(pagina).getByLabel('Nombre').fill('Kiosco y golosinas');
-  await ventana(pagina).getByLabel('Emoji').fill('🍬');
+  await ventana(pagina).getByRole('button', { name: /^Ícono/ }).click();
+  await ventana(pagina).locator('.celda-icono[data-emoji="🍫"]').click();
   await ventana(pagina).getByRole('button', { name: 'Guardar' }).click();
   await aviso(pagina).filter({ hasText: 'Guardaste los cambios.' }).waitFor();
   assert.equal(await pagina.locator('#categoria-cat-kiosco .fila-nombre').textContent(), 'Kiosco y golosinas');
-  assert.equal(await pagina.locator('li:has(#categoria-cat-kiosco) .fila-emoji').textContent(), '🍬');
+  assert.equal(await pagina.locator('#categoria-cat-kiosco .pastilla-icono').textContent(), '🍫');
   await abrirCategoria(pagina, 'cat-kiosco');
   await ventana(pagina).getByLabel('Nombre').fill('<b>Kiosco</b>');
   await ventana(pagina).getByRole('button', { name: 'Guardar' }).click();
