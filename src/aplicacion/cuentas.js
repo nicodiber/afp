@@ -50,6 +50,14 @@ export function crearCasosCuentas({ almacen, reloj, nuevoId, movimientos = async
       return { cuenta };
     },
 
+    /** Hace que la cuenta empiece en `fecha` (anterior a su saldo inicial), con el mismo monto (HU-02b CA-4). */
+    async adelantarInicio(id, fecha) {
+      const cuenta = { ...buscar(id), fechaSaldoInicial: fecha };
+      await almacen.guardar('cuentas', cuenta);
+      await recargar();
+      return buscar(id);
+    },
+
     async editar(id, formulario) {
       const actual = buscar(id);
       const { errores, datos } = validarCuenta(formulario, { cuentas, hoy: reloj.hoy(), monedasActivas: [...new Set([...monedasActivas(), actual.monedaId])], id });

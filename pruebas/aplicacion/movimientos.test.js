@@ -93,3 +93,25 @@ test('HU-02 CA-4 · «Borrar datos de prueba» y «Restablecer datos de ejemplo�
   await ejemplo.borrar();
   assert.deepEqual([almacen.datos.movimientos.length, movimientos.hay(), cuentas.hayCuentas()], [0, false, false], 'borrar');
 });
+
+test('HU-02b CA-4 · un egreso anterior al saldo inicial se guarda y la cuenta pasa a empezar en esa fecha, con el mismo monto', async () => {
+  const { almacen, cuentas, movimientos } = await armar();
+  const resultado = await movimientos.registrarEgreso(formulario({ fecha: '2026-08-15', hora: '09:05' }));
+  assert.equal(resultado.errores, undefined);
+  assert.equal(resultado.cuentaAjustada.fechaSaldoInicial, '2026-08-15');
+  assert.equal(cuentas.buscar('cue-banco').fechaSaldoInicial, '2026-08-15');
+  assert.equal(almacen.datos.cuentas[0].fechaSaldoInicial, '2026-08-15', 'quedó guardado');
+  assert.equal(cuentas.buscar('cue-banco').saldoInicial, 80000000, 'el monto no cambia');
+  assert.equal(resultado.saldo, 78749950);
+  assert.deepEqual([almacen.datos.movimientos[0].fecha, almacen.datos.movimientos[0].hora], ['2026-08-15', '09:05']);
+  const normal = await movimientos.registrarEgreso(formulario({ fecha: '2026-09-02' }));
+  assert.equal(normal.cuentaAjustada, undefined, 'una fecha posterior al inicio no lo toca');
+  assert.equal(cuentas.buscar('cue-banco').fechaSaldoInicial, '2026-08-15');
+});
+
+test('HU-02b CA-4 · con errores, la cuenta no se toca', async () => {
+  const { almacen, movimientos } = await armar();
+  const r = await movimientos.registrarEgreso(formulario({ fecha: '2026-08-15', monto: '0' }));
+  assert.ok(r.errores.monto);
+  assert.equal(almacen.datos.cuentas[0].fechaSaldoInicial, '2026-09-01');
+});

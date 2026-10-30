@@ -127,3 +127,10 @@ test('aep#12 CA-26 · reactivar va al final, salvo que una activa tenga el mismo
   const conChoque = [...sinChoque, cuenta('cue-8', 'Banco USD', 8)];
   assert.deepEqual(puedeReactivar(archivada, conChoque), { ok: false, motivo: 'Ya existe una cuenta con ese nombre' });
 });
+
+test('HU-02b CA-2 · una cuenta sin ícono usa el de su tipo; con ícono, el suyo', async () => {
+  const { iconoDeCuenta } = await import('../../src/dominio/cuentas.js');
+  const esperado = { efectivo: '💵', banco: '🏦', billetera_virtual: '📱', broker: '📈', transporte: '🚌', cripto: '🪙', deuda: '🪙' };
+  for (const [tipo, icono] of Object.entries(esperado)) assert.equal(iconoDeCuenta({ tipo, emoji: '' }), icono, tipo);
+  assert.equal(iconoDeCuenta({ tipo: 'banco', emoji: '🛟' }), '🛟');
+});
