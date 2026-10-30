@@ -479,6 +479,7 @@ button.fila-cuenta, a.fila-cuenta { cursor: pointer; }
 .nav-lista a[aria-current="page"] .nav-icono { background: var(--color-acento-tenue); }
 
 .nav-item-cargar { flex: 0 0 auto !important; }
+.nav-lista .nav-solo-pc { display: none; }
 .nav-lista a.nav-cargar {
   width: 56px;
   height: 56px;
@@ -548,7 +549,8 @@ button.fila-cuenta, a.fila-cuenta { cursor: pointer; }
 
   .nav-lista { flex: 1; flex-direction: column; align-items: stretch; gap: var(--esp-1); }
   .nav-lista li { flex: 0 0 auto; display: block; }
-  .nav-item-cargar { margin-top: auto; }
+  .nav-lista .nav-solo-pc { display: block; }
+  .nav-item-ajustes { margin-top: auto; }
   .nav-lista a {
     flex-direction: row;
     justify-content: flex-start;

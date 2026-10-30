@@ -4,6 +4,11 @@ Cada entrega a la versión a probar (`/prueba/`) sube el número dentro del hito
 
 ## v0.3.0 · Movimientos (en curso)
 
+### v0.3.0-2 · HU-23
+
+- Barra lateral en la PC: Cuentas, Categorías y Monedas pasan a ser ítems propios (Inicio, Movimientos, Análisis, Cuentas, Categorías, Monedas; abajo Ajustes y «Cargar»), con un clic y marcados mientras estás en su pantalla o en una subpantalla. Sigue siendo la barra angosta que se abre con el mouse o el foco.
+- En la PC, Ajustes ya no muestra las filas Cuentas, Categorías y Monedas. En el celular nada cambia: la barra de abajo es la misma y esas filas siguen en Ajustes. Al cambiar el ancho de la ventana la vista se adapta sin recargar.
+
 ### v0.3.0-1 · HU-02
 
 - Registrar un egreso: «Cargar» (el + de la barra inferior en el celular, el botón de la barra lateral en la PC) abre la pantalla «Nuevo egreso» (`#cargar`) con fecha (hoy por defecto, nunca posterior), monto en formato argentino (12.500,50), descripción opcional, categoría y cuenta.
