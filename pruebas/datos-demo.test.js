@@ -53,3 +53,9 @@ test('toda categoría usada existe y toda cuenta usada existe', () => {
     for (const k of ['cuenta', 'cuentaOrigen', 'cuentaDestino']) if (m[k]) assert.ok(cuentas.has(m[k]), `${m.id}: ${m[k]}`);
   }
 });
+
+test('HU-31 CA-3 · cada categoría de ejemplo tiene un ícono y no se repite', () => {
+  const claves = datos.categorias.map((x) => x.emoji.replaceAll('️', ''));
+  assert.ok(claves.every(Boolean), 'todas tienen ícono');
+  assert.equal(new Set(claves).size, datos.categorias.length);
+});

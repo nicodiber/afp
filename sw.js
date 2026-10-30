@@ -1,7 +1,7 @@
 // Service worker de AFP (aep#2 CA-5; arquitectura §7; FC-01).
 // Guarda la app para abrir sin conexión. Cada versión usa su propia caché y los archivos se piden
 // sin la caché HTTP; la versión nueva espera a que el usuario toque «Actualizar».
-const VERSION = 'v0.3.0-2';
+const VERSION = 'v0.3.0-3';
 const CANAL = new URL(self.registration.scope).pathname.includes('/prueba/') ? 'dev' : 'real';
 const CACHE = `afp-${CANAL}-${VERSION}`;
 const ARCHIVOS = [
@@ -11,7 +11,7 @@ const ARCHIVOS = [
   'manifest-prueba.webmanifest', 'iconos/prueba/icono.svg', 'iconos/prueba/icono-32.png', 'iconos/prueba/icono-192.png',
   'iconos/prueba/icono-512.png', 'iconos/prueba/icono-maskable-512.png', 'iconos/prueba/icono-maskable.svg',
   'src/arranque.js', 'src/version.js',
-  'src/dominio/cuentas.js', 'src/dominio/monedas.js', 'src/dominio/texto.js', 'src/dominio/categorias.js',
+  'src/dominio/cuentas.js', 'src/dominio/monedas.js', 'src/dominio/texto.js', 'src/dominio/categorias.js', 'src/dominio/iconos.js', 'src/ui/info-etiquetas.js',
   'src/aplicacion/categorias.js', 'src/aplicacion/datos-ejemplo.js', 'src/ui/formulario-categoria.js', 'src/ui/pantallas/categorias.js', 'src/aplicacion/cuentas.js', 'src/adaptadores/datos-ejemplo.js',
   'src/ui/dialogo.js', 'src/ui/formulario-cuenta.js', 'src/ui/cuentas-comun.js', 'src/ui/pantallas/cuentas.js', 'src/ui/pantallas/monedas.js',
   'datos-demo/datos-ejemplo.json',
