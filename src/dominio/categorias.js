@@ -1,6 +1,7 @@
 // Reglas de las categorías (RF-CAT-01, RF-CAT-02, modelo de datos §3.6 y §3.15, aep#15). Funciones puras.
 import { capitalizarInicial } from './texto.js';
 import { esFechaValida } from './fecha.js';
+import { claveIcono, iconosUsados } from './iconos.js';
 
 export const TIPOS = Object.freeze(['ingreso', 'egreso']);
 export const NOMBRE_DE_RAIZ = Object.freeze({ ingreso: 'Ingresos', egreso: 'Egresos' });
@@ -13,11 +14,31 @@ export const MENSAJES = Object.freeze({
   nombreLargo: 'El nombre tiene que tener entre 1 y 40 caracteres.',
   nombreRepetido: 'Ya existe una categoría con ese nombre en este nivel',
   clasificacion: 'Elegí una opción.',
+  icono: 'Elegí un ícono que no use otra categoría.',
   fechaFutura: 'La fecha no puede ser posterior a hoy.',
   fechaInvalida: 'Elegí una fecha válida.',
   eliminarConMovimientos: 'No podés eliminarla porque tiene movimientos. Podés archivarla.',
   eliminarFamilia: 'Primero mové o eliminá sus categorías.',
 });
+
+/** Qué significa cada etiqueta de la clasificación (HU-31): se muestra en el árbol y en el formulario. */
+export const EXPLICACIONES = Object.freeze([
+  { clave: 'fijo', nombre: 'Fijo', texto: 'Se paga todos los meses por un monto parecido (alquiler, internet, la cuota del gimnasio).' },
+  { clave: 'variable', nombre: 'Variable', texto: 'Cambia de un mes a otro según cuánto usás o comprás (supermercado, salidas, combustible).' },
+  { clave: 'necesidad', nombre: 'Necesidad', texto: 'Hace falta para vivir o trabajar: si lo dejás de pagar, te afecta lo básico.' },
+  { clave: 'deseo', nombre: 'Deseo', texto: 'Te gusta o te da gusto, pero podrías no gastarlo sin afectar lo básico.' },
+  { clave: 'hormiga', nombre: 'Hormiga', texto: 'Gastos chicos y frecuentes que, sumados, pesan (el kiosco, el café de paso).' },
+]);
+
+/** Las etiquetas de la clasificación de una hoja, en el orden en que se muestran: [{ clave, nombre }]. */
+export function etiquetasDe(categoria) {
+  if (categoria.tipo === 'ingreso') return categoria.naturaleza ? [{ clave: categoria.naturaleza, nombre: NOMBRES_DE_NATURALEZA[categoria.naturaleza] }] : [];
+  const claves = [categoria.fijoVariable, categoria.necesidadDeseo, categoria.hormiga ? 'hormiga' : null].filter(Boolean);
+  return claves.map((k) => ({ clave: k, nombre: EXPLICACIONES.find((e) => e.clave === k).nombre }));
+}
+
+/** Las explicaciones de las etiquetas que tiene una categoría (las de ingresos no tienen). */
+export const explicacionesDe = (categoria) => EXPLICACIONES.filter((e) => etiquetasDe(categoria).some((t) => t.clave === e.clave));
 
 const clave = (nombre) => nombre.trim().toLocaleLowerCase('es');
 const activa = (c) => c.estado === 'activa';
@@ -57,7 +78,9 @@ export function validarCategoria(formulario, { categorias, padreId, tipo, id }) 
   const nombre = capitalizarInicial(String(formulario.nombre ?? '').trim());
   if (nombre.length < 1 || nombre.length > 40) errores.nombre = MENSAJES.nombreLargo;
   else if (hijasEnOrden(categorias, padreId, tipo).some((c) => c.id !== id && clave(c.nombre) === clave(nombre))) errores.nombre = MENSAJES.nombreRepetido;
-  const datos = { nombre, emoji: String(formulario.emoji ?? '').trim(), fijoVariable: null, necesidadDeseo: null, hormiga: null, naturaleza: null };
+  const emoji = String(formulario.emoji ?? '').trim();
+  if (!emoji || iconosUsados(categorias, id).has(claveIcono(emoji))) errores.emoji = MENSAJES.icono;
+  const datos = { nombre, emoji, fijoVariable: null, necesidadDeseo: null, hormiga: null, naturaleza: null };
   if (tipo === 'egreso') {
     if (!FIJO_VARIABLE.includes(formulario.fijoVariable)) errores.fijoVariable = MENSAJES.clasificacion;
     if (!NECESIDAD_DESEO.includes(formulario.necesidadDeseo)) errores.necesidadDeseo = MENSAJES.clasificacion;

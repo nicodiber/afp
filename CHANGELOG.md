@@ -4,6 +4,13 @@ Cada entrega a la versión a probar (`/prueba/`) sube el número dentro del hito
 
 ## v0.3.0 · Movimientos (en curso)
 
+### v0.3.0-3 · HU-31
+
+- Árbol de categorías más claro: cada familia tiene a la izquierda una flecha circular (›) que gira al desplegar; cada categoría muestra su ícono en una pastilla de color, su nombre y la clasificación como etiquetas (Fijo/Variable, Necesidad/Deseo, Hormiga).
+- Junto al nombre hay un ⓘ con la explicación de esas etiquetas: en la PC aparece al pasar el mouse o con el foco del teclado; en el celular, al tocarlo (se cierra al tocar afuera o con Esc). El formulario tiene el botón «ⓘ Qué significa» con las mismas explicaciones. «Agregar dentro» pasa a llamarse «Agregar subcategoría».
+- El ícono (emoji) de una categoría es obligatorio y único entre todas (de ingresos y de egresos, activas y archivadas). Al crear una, AFP propone uno libre según el nombre (palabras clave genéricas, con respaldo en una lista de emojis) y se cambia desde una grilla donde los ya usados aparecen deshabilitados. Sin ícono o con uno repetido: «Elegí un ícono que no use otra categoría.».
+- Datos existentes: al abrir la base, las categorías sin ícono o con íconos repetidos reciben uno libre (la primera de cada ícono, por orden, lo conserva). No hay migración de esquema. Los datos de ejemplo traen un ícono distinto por categoría.
+
 ### v0.3.0-1 · HU-02
 
 - Registrar un egreso: «Cargar» (el + de la barra inferior en el celular, el botón de la barra lateral en la PC) abre la pantalla «Nuevo egreso» (`#cargar`) con fecha (hoy por defecto, nunca posterior), monto en formato argentino (12.500,50), descripción opcional, categoría y cuenta.

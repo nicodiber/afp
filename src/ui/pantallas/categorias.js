@@ -4,19 +4,23 @@
 import { crear } from '../dom.js';
 import { abrirVentana, confirmar, avisar } from '../dialogo.js';
 import { formularioCategoria, textoDonde } from '../formulario-categoria.js';
-import { NOMBRE_DE_RAIZ, NOMBRES_DE_NATURALEZA, TIPOS } from '../../dominio/categorias.js';
+import { botonInfo } from '../info-etiquetas.js';
+import { NOMBRE_DE_RAIZ, TIPOS, etiquetasDe, explicacionesDe } from '../../dominio/categorias.js';
 
 export const estadoCategorias = { ordenar: false, plegadas: new Set() };
 export const reiniciarCategorias = () => { estadoCategorias.ordenar = false; };
 
+// Cuántas categorías tiene una familia, o las etiquetas de la clasificación de una hoja (HU-31).
 function detalle(categorias, c) {
   if (categorias.esFamilia(c.id)) {
     const n = categorias.hijas(c.id, c.tipo).length;
-    return n === 1 ? '1 categoría' : `${n} categorías`;
+    return crear('span', { class: 'fila-detalle', texto: n === 1 ? '1 categoría' : `${n} categorías` });
   }
-  if (c.tipo === 'ingreso') return NOMBRES_DE_NATURALEZA[c.naturaleza] ?? '';
-  return [c.fijoVariable === 'fijo' ? 'Fijo' : 'Variable', c.necesidadDeseo === 'deseo' ? 'deseo' : 'necesidad', c.hormiga ? 'hormiga' : null].filter(Boolean).join(' · ');
+  return crear('span', { class: 'etiquetas' }, etiquetasDe(c).map((t) => crear('span', { class: `etiqueta etiqueta-${t.clave}`, texto: t.nombre })));
 }
+
+// El color de la pastilla del ícono sale del propio emoji: siempre el mismo para la misma categoría.
+const tonoDe = (emoji) => ([...String(emoji ?? '')][0]?.codePointAt(0) ?? 0) % 8 + 1;
 
 export function pantallaCategorias({ categorias, esPC, redibujar }) {
   const ventana = (contenido, etiqueta, alCerrar) => abrirVentana({ etiqueta, contenido, clase: esPC ? 'ventana-formulario' : 'ventana-pantalla', alCerrar });
@@ -29,7 +33,7 @@ export function pantallaCategorias({ categorias, esPC, redibujar }) {
     let v;
     const terminar = (foco) => { v.cerrar(); redibujar(foco); };
     const acciones = categoria ? [
-      { texto: 'Agregar dentro', alTocar: () => { v.cerrar(); abrirFormulario({ padreId: id, tipo: tipoFinal }); } },
+      { texto: 'Agregar subcategoría', alTocar: () => { v.cerrar(); abrirFormulario({ padreId: id, tipo: tipoFinal }); } },
       { texto: 'Mover', alTocar: () => { v.cerrar(); abrirMover(id); } },
       { texto: 'Archivar', alTocar: async () => { if (await archivar(id)) terminar('titulo-categorias'); } },
       { texto: 'Eliminar', peligro: true, alTocar: async () => { if (await eliminar(id)) terminar('titulo-categorias'); } },
@@ -38,6 +42,8 @@ export function pantallaCategorias({ categorias, esPC, redibujar }) {
       categoria, tipo: tipoFinal, dondeTexto: textoDonde(padreFinal ? categorias.buscar(padreFinal) : null, tipoFinal),
       esFamilia: categoria ? categorias.esFamilia(id) : false,
       clasificacion: categoria ?? categorias.clasificacionPorDefecto(padreFinal, tipoFinal),
+      iconoPropuesto: (nombre) => categorias.iconoPropuesto(nombre, id),
+      iconoEnUso: (emoji) => categorias.iconoEnUso(emoji, id),
       alCancelar: () => v.cerrar(),
       alGuardar: async (datos) => {
         const resultado = categoria ? await categorias.editar(id, datos) : await categorias.crear(datos, { padreId: padreFinal, tipo: tipoFinal });
@@ -141,21 +147,24 @@ export function pantallaCategorias({ categorias, esPC, redibujar }) {
     const plegada = estadoCategorias.plegadas.has(c.id);
     const hijos = [];
     if (familia) {
-      const pliegue = crear('button', { type: 'button', class: 'pliegue', id: `pliegue-${c.id}`, 'aria-expanded': String(!plegada), 'aria-label': `${plegada ? 'Desplegar' : 'Plegar'} ${c.nombre}`, texto: plegada ? '▸' : '▾' });
+      const pliegue = crear('button', { type: 'button', class: `pliegue${plegada ? '' : ' desplegado'}`, id: `pliegue-${c.id}`, 'aria-expanded': String(!plegada), 'aria-label': `${plegada ? 'Desplegar' : 'Plegar'} ${c.nombre}` }, [crear('span', { 'aria-hidden': 'true', texto: '›' })]);
       pliegue.addEventListener('click', () => {
         if (plegada) estadoCategorias.plegadas.delete(c.id); else estadoCategorias.plegadas.add(c.id);
         redibujar(`pliegue-${c.id}`);
       });
       hijos.push(pliegue);
     } else hijos.push(crear('span', { class: 'pliegue-vacio', 'aria-hidden': 'true' }));
-    if (c.emoji) hijos.push(crear('span', { class: 'fila-emoji', 'aria-hidden': 'true', texto: c.emoji }));
     const datos = crear('button', { type: 'button', class: 'datos-categoria', id: `categoria-${c.id}` }, [
-      crear('span', { class: `fila-nombre${familia ? ' familia' : ''}`, texto: c.nombre }),
-      crear('span', { class: 'fila-detalle', texto: detalle(categorias, c) }),
+      crear('span', { class: `pastilla-icono tono-${tonoDe(c.emoji)}`, 'aria-hidden': 'true', texto: c.emoji ?? '' }),
+      crear('span', { class: 'datos-texto' }, [crear('span', { class: `fila-nombre${familia ? ' familia' : ''}`, texto: c.nombre }), detalle(categorias, c)]),
     ]);
     datos.addEventListener('click', () => abrirFormulario({ id: c.id }));
     hijos.push(datos);
+    const explicaciones = explicacionesDe(c);
+    if (explicaciones.length) hijos.push(botonInfo({ rotulo: `Qué significan las etiquetas de ${c.nombre}`, textos: () => explicaciones }));
     const li = crear('li', { class: 'fila-cuenta fila-categoria' }, hijos);
+    // Tocar el espacio libre de la fila también la abre (el botón del nombre ocupa solo lo que mide).
+    li.addEventListener('click', (evento) => { if (evento.target === li) datos.click(); });
     // La sangría va por CSSOM: la política de seguridad no deja estilos escritos en el HTML.
     li.style.setProperty('--nivel', String(nivel));
     return li;

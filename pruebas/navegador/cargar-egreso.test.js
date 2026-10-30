@@ -92,30 +92,18 @@ for (const [nombre, viewport] of VIEWPORTS) {
 
   test(`HU-02 CA-1 · la ventana de categorías: solo hojas de egresos, por familia en orden, con buscador (${nombre})`, async () => {
     const { contexto, pagina, errores } = await enModoPrueba({ viewport });
-    // Un emoji en una categoría, escrito directo en la base de prueba.
-    await pagina.evaluate(() => new Promise((ok) => {
-      const p = indexedDB.open('afp-dev-prueba');
-      p.onsuccess = () => {
-        const tx = p.result.transaction('categorias', 'readwrite');
-        const almacen = tx.objectStore('categorias');
-        const g = almacen.get('cat-alquiler');
-        g.onsuccess = () => { almacen.put({ ...g.result, emoji: '🏠' }); };
-        tx.oncomplete = () => { p.result.close(); ok(); };
-      };
-    }));
-    await pagina.reload();
-    await pagina.locator('.franja-prueba').waitFor();
     await abrirCarga(pagina);
     await pagina.getByRole('button', { name: /^Categoría/ }).click();
     const v = ventana(pagina);
     assert.equal(await v.getByRole('combobox').evaluate((e) => e === document.activeElement), true, 'el foco queda en el buscador');
     const grupos = await v.getByRole('group').evaluateAll((gs) => gs.map((g) => [g.querySelector('.rotulo-grupo').textContent, [...g.querySelectorAll('[role="option"]')].map((o) => o.textContent)]));
     assert.deepEqual(grupos, [
-      ['Vivienda', ['🏠Alquiler', 'Electricidad', 'Internet', 'Limpieza']],
-      ['Alimentación', ['Supermercado', 'Verdulería', 'Kiosco']],
-      ['Transporte', ['Transporte público']],
-      ['Ocio', ['Juntada', 'Vacaciones']],
-      ['Sin familia', ['Salud']],
+      // Los datos de ejemplo traen un ícono por categoría (HU-31).
+      ['🏠 Vivienda', ['🔑Alquiler', '💡Electricidad', '🌐Internet', '🧹Limpieza']],
+      ['🍽️ Alimentación', ['🛒Supermercado', '🥦Verdulería', '🍬Kiosco']],
+      ['🚌 Transporte', ['🚇Transporte público']],
+      ['🎉 Ocio', ['🍕Juntada', '🏖️Vacaciones']],
+      ['Sin familia', ['🩺Salud']],
     ]);
     // Cada opción mide al menos 44 px de alto.
     const altos = await v.getByRole('option').evaluateAll((os) => os.map((o) => o.getBoundingClientRect().height));
@@ -123,16 +111,16 @@ for (const [nombre, viewport] of VIEWPORTS) {
     assert.ok(altos.every((alto) => alto >= 44), `alto mínimo ${Math.min(...altos)}`);
     // El buscador filtra mientras se escribe, sin distinguir tildes ni mayúsculas.
     await v.getByRole('combobox').pressSequentially('verdul');
-    assert.deepEqual(await v.getByRole('option').allTextContents(), ['Verdulería']);
+    assert.deepEqual(await v.getByRole('option').allTextContents(), ['🥦Verdulería']);
     await v.getByRole('combobox').fill('ALIMENTACION');
-    assert.deepEqual(await v.getByRole('option').allTextContents(), ['Supermercado', 'Verdulería', 'Kiosco'], 'también por familia');
+    assert.deepEqual(await v.getByRole('option').allTextContents(), ['🛒Supermercado', '🥦Verdulería', '🍬Kiosco'], 'también por familia');
     await v.getByRole('combobox').fill('zzz');
     assert.equal(await v.getByRole('status').textContent(), 'No hay resultados para «zzz».');
     await v.getByRole('combobox').fill('');
     // Al elegir, la ventana se cierra y el campo muestra lo elegido.
     await opcion(pagina, 'Alquiler').click();
     await v.waitFor({ state: 'detached' });
-    assert.equal(await pagina.locator('.boton-campo-valor').first().textContent(), '🏠 Alquiler');
+    assert.equal(await pagina.locator('.boton-campo-valor').first().textContent(), '🔑 Alquiler');
     assert.ok(await sinDesplazamientoHorizontal(pagina));
     assert.deepEqual(errores, []);
     await contexto.close();
@@ -339,12 +327,12 @@ test('HU-02 CA-3 · la carga completa con el teclado, sin un solo clic (PC)', as
   await v.waitFor();
   assert.equal(await v.getByRole('combobox').evaluate((e) => e === document.activeElement), true);
   const marcada = () => v.locator('[role="option"][aria-selected="true"]').textContent();
-  assert.equal(await marcada(), 'Alquiler');
+  assert.equal(await marcada(), '🔑Alquiler');
   await pagina.keyboard.press('ArrowDown');
-  assert.equal(await marcada(), 'Electricidad');
+  assert.equal(await marcada(), '💡Electricidad');
   await pagina.keyboard.press('ArrowUp');
   await pagina.keyboard.press('ArrowUp');
-  assert.equal(await marcada(), 'Salud', 'da la vuelta al llegar al principio');
+  assert.equal(await marcada(), '🩺Salud', 'da la vuelta al llegar al principio');
   await pagina.keyboard.press('Escape');
   await v.waitFor({ state: 'detached' });
   assert.equal(await pagina.locator('.boton-campo-valor').first().textContent(), 'Elegir…', 'Esc no cambia nada');
@@ -353,10 +341,10 @@ test('HU-02 CA-3 · la carga completa con el teclado, sin un solo clic (PC)', as
   await pagina.keyboard.press('Space');
   await v.waitFor();
   await pagina.keyboard.type('super');
-  assert.equal(await marcada(), 'Supermercado');
+  assert.equal(await marcada(), '🛒Supermercado');
   await pagina.keyboard.press('Enter');
   await v.waitFor({ state: 'detached' });
-  assert.equal(await pagina.locator('.boton-campo-valor').first().textContent(), 'Supermercado');
+  assert.equal(await pagina.locator('.boton-campo-valor').first().textContent(), '🛒 Supermercado');
   await pagina.keyboard.press('Tab');
   assert.equal((await enfocado()).id, 'egreso-cuenta');
   await pagina.keyboard.press('Enter');

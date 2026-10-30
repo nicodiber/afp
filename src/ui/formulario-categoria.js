@@ -2,7 +2,9 @@
 // de su tipo. Es un componente: lo abre Categorías y lo puede abrir la carga de movimientos más adelante.
 import { crear } from './dom.js';
 import { capitalizarInicial } from '../dominio/texto.js';
-import { NOMBRES_DE_NATURALEZA, NATURALEZAS, NOMBRE_DE_RAIZ } from '../dominio/categorias.js';
+import { NOMBRES_DE_NATURALEZA, NATURALEZAS, NOMBRE_DE_RAIZ, EXPLICACIONES } from '../dominio/categorias.js';
+import { EMOJIS_DE_CATEGORIA, claveIcono, iconoVisible } from '../dominio/iconos.js';
+import { panelQueSignifica } from './info-etiquetas.js';
 
 let siguiente = 0;
 
@@ -25,30 +27,65 @@ function segmentado({ rotulo, opciones, valor, id }) {
  * @param {string} o.dondeTexto  «En Alimentación», para que se sepa dónde queda.
  * @param {boolean} o.esFamilia  Una familia no muestra clasificación (las partes van en las hojas).
  * @param {object} o.clasificacion  Valores iniciales (la de la categoría o la que trae una nueva, D-137).
+ * @param {(nombre: string) => string} o.iconoPropuesto  Ícono libre según el nombre (HU-31).
+ * @param {(emoji: string) => boolean} o.iconoEnUso  true si otra categoría ya usa ese ícono.
  */
-export function formularioCategoria({ categoria, tipo, dondeTexto, esFamilia, clasificacion, alGuardar, alCancelar, acciones = [] }) {
+export function formularioCategoria({ categoria, tipo, dondeTexto, esFamilia, clasificacion, iconoPropuesto, iconoEnUso, alGuardar, alCancelar, acciones = [] }) {
   const n = ++siguiente;
   const id = (campo) => `categoria-${campo}-${n}`;
   const nueva = !categoria;
   const nombre = crear('input', { id: id('nombre'), type: 'text', autocomplete: 'off', autocapitalize: 'sentences', maxlength: '60' });
   nombre.value = categoria?.nombre ?? '';
   nombre.addEventListener('input', () => {
+    // Una categoría nueva propone un ícono libre según lo que se escribe, mientras no se haya elegido uno a mano.
+    if (nueva && !eligioIcono) elegirIcono(iconoPropuesto(nombre.value));
     const corregido = capitalizarInicial(nombre.value);
     if (corregido === nombre.value) return;
     const { selectionStart, selectionEnd } = nombre;
     nombre.value = corregido;
     nombre.setSelectionRange(selectionStart, selectionEnd);
   });
-  const emoji = crear('input', { id: id('emoji'), type: 'text', autocomplete: 'off', maxlength: '8' });
-  emoji.value = categoria?.emoji ?? '';
   const errorNombre = crear('p', { class: 'error-campo', id: id('nombre-error') });
+  const errorIcono = crear('p', { class: 'error-campo', id: id('icono-error') });
+
+  // Ícono (HU-31): obligatorio y único. Se ve el elegido y, al tocarlo, una grilla con los ya usados deshabilitados.
+  let emoji = categoria?.emoji ?? (nueva ? iconoPropuesto('') : '');
+  let eligioIcono = false;
+  const iconoActual = crear('span', { class: 'icono-actual', 'aria-hidden': 'true' });
+  const iconoTexto = crear('span', { class: 'icono-texto', texto: 'Cambiar' });
+  const botonIcono = crear('button', { type: 'button', class: 'boton-campo boton-icono', id: id('icono'), 'aria-expanded': 'false', 'aria-controls': id('grilla'), 'aria-describedby': errorIcono.id }, [iconoActual, iconoTexto]);
+  const grilla = crear('div', { class: 'grilla-iconos', id: id('grilla'), role: 'group', 'aria-label': 'Íconos', hidden: '' });
+  const pintarIcono = () => {
+    iconoActual.textContent = emoji;
+    botonIcono.setAttribute('aria-label', emoji ? `Ícono ${emoji}. Cambiar` : 'Elegir un ícono');
+    for (const b of grilla.children) b.setAttribute('aria-pressed', String(claveIcono(b.dataset.emoji) === claveIcono(emoji)));
+  };
+  const elegirIcono = (e) => { emoji = e; pintarIcono(); errorIcono.textContent = ''; botonIcono.removeAttribute('aria-invalid'); };
+  const dibujarGrilla = () => {
+    const opciones = new Set([...EMOJIS_DE_CATEGORIA, ...(emoji ? [iconoVisible(emoji)] : [])]);
+    grilla.replaceChildren(...[...opciones].map((e) => {
+      const b = crear('button', { type: 'button', class: 'celda-icono', 'data-emoji': e, 'aria-label': e, 'aria-pressed': 'false', texto: e });
+      // Los íconos de otras categorías no se pueden elegir; el propio sí.
+      if (claveIcono(e) !== claveIcono(categoria?.emoji) && iconoEnUso(e)) { b.disabled = true; b.title = 'En uso'; b.setAttribute('aria-label', `${e} (en uso)`); }
+      b.addEventListener('click', () => { eligioIcono = true; elegirIcono(e); });
+      return b;
+    }));
+    pintarIcono();
+  };
+  botonIcono.addEventListener('click', () => {
+    grilla.hidden = !grilla.hidden;
+    botonIcono.setAttribute('aria-expanded', String(!grilla.hidden));
+    if (!grilla.hidden) dibujarGrilla();
+  });
+  pintarIcono();
   const resumen = crear('p', { class: 'solo-lectores', role: 'alert' });
 
   const controles = {};
   const clasif = [];
   if (!esFamilia) {
-    clasif.push(crear('p', { class: 'apoyo', texto: nueva ? 'Clasificación (la podés cambiar):' : 'Clasificación:' }));
     if (tipo === 'egreso') {
+      const { boton, panel } = panelQueSignifica({ id: id('significado'), explicaciones: EXPLICACIONES });
+      clasif.push(crear('div', { class: 'cabecera-clasificacion' }, [crear('p', { class: 'apoyo', texto: nueva ? 'Clasificación (la podés cambiar):' : 'Clasificación:' }), boton]), panel);
       controles.fijoVariable = segmentado({ rotulo: 'Fijo o variable', opciones: [['fijo', 'Fijo'], ['variable', 'Variable']], valor: clasificacion.fijoVariable, id: id('fijo') });
       controles.necesidadDeseo = segmentado({ rotulo: 'Necesidad o deseo', opciones: [['necesidad', 'Necesidad'], ['deseo', 'Deseo']], valor: clasificacion.necesidadDeseo, id: id('necesidad') });
       const hormiga = crear('button', { type: 'button', role: 'switch', class: 'interruptor', id: id('hormiga'), 'aria-checked': String(Boolean(clasificacion.hormiga)) }, [
@@ -59,6 +96,7 @@ export function formularioCategoria({ categoria, tipo, dondeTexto, esFamilia, cl
       controles.hormiga = { valor: () => hormiga.getAttribute('aria-checked') === 'true' };
       clasif.push(controles.fijoVariable.elemento, controles.necesidadDeseo.elemento, hormiga);
     } else {
+      clasif.push(crear('p', { class: 'apoyo', texto: nueva ? 'Clasificación (la podés cambiar):' : 'Clasificación:' }));
       controles.naturaleza = segmentado({ rotulo: 'Naturaleza', opciones: NATURALEZAS.map((v) => [v, NOMBRES_DE_NATURALEZA[v]]), valor: clasificacion.naturaleza, id: id('naturaleza') });
       clasif.push(controles.naturaleza.elemento);
     }
@@ -78,10 +116,8 @@ export function formularioCategoria({ categoria, tipo, dondeTexto, esFamilia, cl
   const formulario = crear('form', { class: 'formulario-cuenta formulario-categoria', 'aria-labelledby': titulo.id, novalidate: '' }, [
     titulo,
     crear('p', { class: 'apoyo', texto: dondeTexto }),
-    crear('div', { class: 'campos-juntos campos-emoji campos-emoji-final' }, [
-      crear('div', { class: 'campo' }, [crear('label', { for: nombre.id, texto: 'Nombre' }), nombre, errorNombre]),
-      crear('div', { class: 'campo' }, [crear('label', { for: emoji.id, texto: 'Emoji' }), emoji]),
-    ]),
+    crear('div', { class: 'campo' }, [crear('label', { for: nombre.id, texto: 'Nombre' }), nombre, errorNombre]),
+    crear('div', { class: 'campo' }, [crear('label', { for: botonIcono.id, texto: 'Ícono' }), botonIcono, errorIcono, grilla]),
     ...clasif,
     resumen,
     crear('div', { class: 'acciones' }, [cancelar, guardar]),
@@ -89,17 +125,20 @@ export function formularioCategoria({ categoria, tipo, dondeTexto, esFamilia, cl
   ]);
   formulario.addEventListener('submit', async (evento) => {
     evento.preventDefault();
-    const datos = { nombre: nombre.value, emoji: emoji.value };
+    const datos = { nombre: nombre.value, emoji };
     for (const [clave, control] of Object.entries(controles)) datos[clave] = control.valor();
     const resultado = await alGuardar(datos);
     const mensaje = resultado?.errores?.nombre;
+    const mensajeIcono = resultado?.errores?.emoji;
     errorNombre.textContent = mensaje ?? '';
+    errorIcono.textContent = mensajeIcono ?? '';
     if (mensaje) {
       nombre.setAttribute('aria-invalid', 'true');
       nombre.setAttribute('aria-describedby', errorNombre.id);
-      resumen.textContent = mensaje;
-      nombre.focus();
     } else nombre.removeAttribute('aria-invalid');
+    if (mensajeIcono) botonIcono.setAttribute('aria-invalid', 'true'); else botonIcono.removeAttribute('aria-invalid');
+    resumen.textContent = mensaje ?? mensajeIcono ?? '';
+    if (mensaje) nombre.focus(); else if (mensajeIcono) botonIcono.focus();
   });
   return { elemento: formulario, enfocar: () => (nueva ? nombre : titulo).focus() };
 }

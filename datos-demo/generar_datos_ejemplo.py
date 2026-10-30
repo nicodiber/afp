@@ -36,12 +36,19 @@ import unicodedata
 def _slug(nombre):
     base = unicodedata.normalize('NFKD', nombre).encode('ascii', 'ignore').decode().lower()
     return 'cat-' + '-'.join(base.split())
+# Un emoji único por categoría (HU-31): no se repite entre categorías de ingresos y de egresos.
+ICONOS = {
+    'Trabajo': '💼', 'Ventas': '🏷️', 'Rendimientos': '💹', 'Aporte familiar': '👪', 'Regalos recibidos': '🎀',
+    'Vivienda': '🏠', 'Alquiler': '🔑', 'Electricidad': '💡', 'Internet': '🌐', 'Limpieza': '🧹',
+    'Alimentación': '🍽️', 'Supermercado': '🛒', 'Verdulería': '🥦', 'Kiosco': '🍬',
+    'Transporte': '🚌', 'Transporte público': '🚇', 'Ocio': '🎉', 'Juntada': '🍕', 'Vacaciones': '🏖️', 'Salud': '🩺',
+}
 CATEGORIAS = []
 def cat(tipo, nombre, padre=None, **clasif):
     campos = {'fijoVariable': None, 'necesidadDeseo': None, 'hormiga': None, 'naturaleza': None}
     campos.update({k: v for k, v in clasif.items()})
     CATEGORIAS.append({'id': _slug(nombre), 'nombre': nombre, 'tipo': tipo, 'padreId': _slug(padre) if padre else None,
-                       'emoji': '', 'orden': len(CATEGORIAS) + 1, 'estado': 'activa', 'esSistema': False, 'esHistorica': False, **campos})
+                       'emoji': ICONOS[nombre], 'orden': len(CATEGORIAS) + 1, 'estado': 'activa', 'esSistema': False, 'esHistorica': False, **campos})
 for hoja in ('Trabajo', 'Ventas', 'Rendimientos'):
     cat('ingreso', hoja, naturaleza='ganado')
 cat('ingreso', 'Aporte familiar', naturaleza='aporte_terceros')

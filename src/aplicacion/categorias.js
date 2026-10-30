@@ -4,6 +4,7 @@ import {
   validarCategoria, clasificacionPorDefecto, esFamilia, hijasEnOrden, destinosPara, ubicacionesAlMover,
   idsParaArchivar, idsParaReactivar, puedeEliminar, moverEntreHermanas, ordenParaNueva,
 } from '../dominio/categorias.js';
+import { asignarIconosFaltantes, proponerIcono, iconosUsados, claveIcono } from '../dominio/iconos.js';
 
 export function crearCasosCategorias({ almacen, reloj, nuevoId, movimientos = async () => [] }) {
   let categorias = [];
@@ -11,6 +12,12 @@ export function crearCasosCategorias({ almacen, reloj, nuevoId, movimientos = as
   const recargar = async () => {
     categorias = await almacen.listar('categorias');
     ubicaciones = await almacen.listar('ubicacionesCategoria');
+    // HU-31: una base con categorías sin ícono o con íconos repetidos recibe uno libre (sin migración de esquema).
+    const conIcono = asignarIconosFaltantes(categorias);
+    if (conIcono.length) {
+      await almacen.guardar('categorias', conIcono);
+      categorias = await almacen.listar('categorias');
+    }
   };
   const buscar = (id) => categorias.find((c) => c.id === id);
   const guardar = async (lista) => { await almacen.guardar('categorias', lista); await recargar(); };
@@ -26,6 +33,9 @@ export function crearCasosCategorias({ almacen, reloj, nuevoId, movimientos = as
     archivadas: () => categorias.filter((c) => c.estado === 'archivada'),
     hayCategorias: () => categorias.length > 0,
     clasificacionPorDefecto: (padreId, tipo) => clasificacionPorDefecto(categorias, { padreId, tipo }),
+    /** Ícono libre propuesto para `nombre` (HU-31) y las claves de los íconos que ya usan otras categorías. */
+    iconoPropuesto: (nombre, salvoId) => proponerIcono(nombre, iconosUsados(categorias, salvoId)),
+    iconoEnUso: (emoji, salvoId) => iconosUsados(categorias, salvoId).has(claveIcono(emoji)),
     destinosPara: (id) => destinosPara(categorias, id),
     ubicaciones: (id) => ubicaciones.filter((u) => u.categoriaId === id),
 
