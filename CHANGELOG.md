@@ -4,6 +4,14 @@ Cada entrega a la versión a probar (`/prueba/`) sube el número dentro del hito
 
 ## v0.3.0 · Movimientos (en curso)
 
+### v0.3.0-4 · HU-02 (segunda vuelta)
+
+- Monto: mientras escribís, AFP pone los puntos de miles (1250 → 1.250) y la coma separa hasta 2 decimales; la tecla punto (también la del teclado numérico) escribe una coma, el cursor no se mueve de lugar y al pegar se entiende «12.500,50» o «12500.50».
+- Ventana de categoría: muestra primero el primer nivel en el orden del árbol (familias y categorías sin familia, con su ícono); al tocar una familia aparecen sus subcategorías con «‹ Atrás». El buscador sigue buscando entre todas. La ventana de cuentas y el campo elegido muestran el ícono de la cuenta; si no tiene, uno según su tipo (efectivo 💵, banco 🏦, billetera virtual 📱, broker 📈, transporte 🚌, 🪙 para el resto).
+- Flechas en la PC: ↓ y ↑ pasan por fecha, hora, monto, descripción, categoría, cuenta y los botones; entre los tres botones, ← y →. Tab y las flechas de las ventanas de selección siguen igual.
+- Un egreso con fecha anterior al saldo inicial de la cuenta ya no da error: se guarda y la cuenta pasa a empezar en esa fecha, con el mismo monto («La cuenta X ahora empieza el DD/MM/AAAA.»). Reemplaza el error de INV-16 de la primera vuelta.
+- Nuevo campo «Hora» entre fecha y monto: se completa con la hora actual (puerto Reloj; en modo prueba, la hora real), es editable y opcional. Se guarda con el egreso (`hora`, «HH:MM» o vacío); la lista de movimientos que viene después ordenará por fecha y hora.
+
 ### v0.3.0-3 · HU-31
 
 - Árbol de categorías más claro: cada familia tiene a la izquierda una flecha circular (›) que gira al desplegar; cada categoría muestra su ícono en una pastilla de color, su nombre y la clasificación como etiquetas (Fijo/Variable, Necesidad/Deseo, Hormiga).

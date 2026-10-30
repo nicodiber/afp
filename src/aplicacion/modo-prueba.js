@@ -19,6 +19,6 @@ export function crearCasosModoPrueba({ preferencias, relojDelDispositivo }) {
     volverAFechaPorDefecto: () => preferencias.guardarFechaSimulada(FECHA_SIMULADA_POR_DEFECTO),
     fechaPorDefecto: FECHA_SIMULADA_POR_DEFECTO,
     /** Puerto Reloj para el resto de AFP. */
-    reloj: { hoy: () => (activo() ? fechaSimulada() : relojDelDispositivo.hoy()) },
+    reloj: { hoy: () => (activo() ? fechaSimulada() : relojDelDispositivo.hoy()), ahora: () => relojDelDispositivo.ahora() },
   };
 }

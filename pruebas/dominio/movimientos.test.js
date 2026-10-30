@@ -3,7 +3,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  validarEgreso, crearEgreso, hojasDeEgreso, categoriasDeEgresoAgrupadas, filtrarOpciones, normalizarBusqueda,
+  validarEgreso, crearEgreso, hojasDeEgreso, categoriasDeEgresoAgrupadas, nivelDeCategoriasDeEgreso, filtrarOpciones, normalizarBusqueda,
 } from '../../src/dominio/movimientos.js';
 import { saldo, verificarPartidaDoble } from '../../src/dominio/partida-doble.js';
 
@@ -54,7 +54,7 @@ test('HU-02 CA-1 · el buscador no distingue mayúsculas ni tildes y también bu
 test('HU-02 CA-2 · un egreso válido: monto en centavos, descripción con mayúscula inicial', () => {
   const { errores, datos } = validar({ descripcion: '  compra del mes ' });
   assert.deepEqual(errores, {});
-  assert.deepEqual(datos, { fecha: HOY, montoTotal: 1250050, descripcion: 'Compra del mes', categoriaId: 'super', cuentaId: 'banco' });
+  assert.deepEqual(datos, { fecha: HOY, hora: null, adelantaInicio: false, montoTotal: 1250050, descripcion: 'Compra del mes', categoriaId: 'super', cuentaId: 'banco' });
 });
 
 test('HU-02 CA-2 · sin monto, con 0, negativo o ilegible: «Escribí un monto mayor que 0.»', () => {
@@ -83,9 +83,32 @@ test('HU-02 CA-1 · la fecha no puede ser posterior a hoy ni inválida', () => {
   assert.deepEqual(validar({ fecha: '2026-10-30' }).errores, {});
 });
 
-test('HU-02 CA-2 · la fecha no puede ser anterior al saldo inicial de la cuenta (INV-16)', () => {
-  assert.equal(validar({ cuentaId: 'dolares', fecha: '2026-10-14' }).errores.fecha, 'La cuenta Dólares empieza el 15/10/2026: elegí esa fecha o una posterior.');
-  assert.deepEqual(validar({ cuentaId: 'dolares', fecha: '2026-10-15' }).errores, {}, 'el mismo día ya cuenta');
+test('HU-02b CA-4 · una fecha anterior al saldo inicial no es error: marca que la cuenta se adelanta', () => {
+  const anterior = validar({ cuentaId: 'dolares', fecha: '2026-10-14' });
+  assert.deepEqual(anterior.errores, {});
+  assert.equal(anterior.datos.adelantaInicio, true);
+  assert.equal(validar({ cuentaId: 'dolares', fecha: '2026-10-15' }).datos.adelantaInicio, false, 'el mismo día no adelanta');
+  assert.equal(validar({ cuentaId: 'dolares', fecha: '2026-11-01' }).errores.fecha, 'La fecha no puede ser posterior a hoy.');
+});
+
+test('HU-02b CA-4 · la hora es opcional: HH:MM válida se guarda, vacía queda sin hora, otra cosa es un error', () => {
+  assert.equal(validar({ hora: '18:30' }).datos.hora, '18:30');
+  assert.equal(validar({ hora: '00:00' }).datos.hora, '00:00');
+  assert.equal(validar({ hora: '' }).datos.hora, null);
+  assert.equal(validar({}).datos.hora, null);
+  for (const mala of ['24:00', '9:30', '18:60', 'abc', '18:3']) assert.equal(validar({ hora: mala }).errores.hora, 'Escribí una hora válida (por ejemplo 18:30) o dejala vacía.', mala);
+  const egreso = crearEgreso(validar({ hora: '18:30', descripcion: 'x' }).datos, { id: 'm1', cuenta: CUENTAS[0], categoria: CATEGORIAS.find((x) => x.id === 'super') });
+  assert.equal(egreso.hora, '18:30');
+});
+
+test('HU-02b CA-2 · el primer nivel mezcla familias y categorías sueltas en el orden del árbol, con su ícono', () => {
+  assert.deepEqual(nivelDeCategoriasDeEgreso(CATEGORIAS), [
+    { id: 'vivienda', nombre: 'Vivienda', emoji: '', esFamilia: true },
+    { id: 'alimentacion', nombre: 'Alimentación', emoji: '', esFamilia: true },
+    { id: 'salud', nombre: 'Salud', emoji: '', esFamilia: false },
+    { id: 'regalos', nombre: 'Regalos', emoji: '', esFamilia: false },
+  ]);
+  assert.deepEqual(nivelDeCategoriasDeEgreso(CATEGORIAS, 'vivienda').map((x) => [x.nombre, x.emoji, x.esFamilia]), [['Alquiler', '🏠', false], ['Electricidad', '', false]], 'sin la archivada');
 });
 
 test('HU-02 CA-2 · el egreso es un Movimiento con una parte, asiento −monto y partida doble', () => {

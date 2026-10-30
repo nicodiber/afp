@@ -9,6 +9,10 @@ export const NOMBRES_DE_TIPO = Object.freeze({
   efectivo: 'Efectivo', billetera_virtual: 'Billetera virtual', banco: 'Banco', broker: 'Broker', transporte: 'Transporte',
   cripto: 'Cripto/stablecoin', prestamo_a_cobrar: 'Préstamos a cobrar', deuda: 'Deuda',
 });
+const ICONOS_DE_TIPO = Object.freeze({ efectivo: '💵', banco: '🏦', billetera_virtual: '📱', broker: '📈', transporte: '🚌' });
+/** Ícono de una cuenta: el suyo o, si no tiene, uno según su tipo (HU-02b CA-2); 🪙 para el resto. */
+export const iconoDeCuenta = (cuenta) => (cuenta.emoji ? cuenta.emoji : (ICONOS_DE_TIPO[cuenta.tipo] ?? '🪙'));
+
 export const PROPOSITOS = Object.freeze(['ninguno', 'emergencia', 'ahorro', 'inversion']);
 export const NOMBRES_DE_PROPOSITO = Object.freeze({ ninguno: 'Ninguno', emergencia: 'Emergencia', ahorro: 'Ahorro', inversion: 'Inversión' });
 

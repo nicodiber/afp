@@ -3,6 +3,7 @@
 import { formularioEgreso } from '../formulario-egreso.js';
 import { avisar } from '../dialogo.js';
 import { formatearMonto } from '../../dominio/formato.js';
+import { formatearFecha } from '../../dominio/fecha.js';
 
 /**
  * @param {Object} o
@@ -14,7 +15,7 @@ import { formatearMonto } from '../../dominio/formato.js';
  */
 export function pantallaCargar({ movimientos, cuentas, categorias, esPC, volver }) {
   const { elementos } = formularioEgreso({
-    hoy: movimientos.hoy, esPC, cuentas, categorias, alCancelar: volver,
+    hoy: movimientos.hoy, ahora: movimientos.ahora, esPC, cuentas, categorias, alCancelar: volver,
     alGuardar: async (formulario, otro) => {
       let resultado;
       try {
@@ -24,7 +25,8 @@ export function pantallaCargar({ movimientos, cuentas, categorias, esPC, volver 
         return { errores: {} };
       }
       if (resultado.errores) return resultado;
-      avisar(`Guardaste el egreso. Saldo de ${resultado.cuenta.nombre}: ${formatearMonto(resultado.saldo, resultado.cuenta.monedaId)}.`);
+      if (resultado.cuentaAjustada) avisar(`Guardaste el egreso. La cuenta ${resultado.cuenta.nombre} ahora empieza el ${formatearFecha(resultado.cuentaAjustada.fechaSaldoInicial)}.`);
+      else avisar(`Guardaste el egreso. Saldo de ${resultado.cuenta.nombre}: ${formatearMonto(resultado.saldo, resultado.cuenta.monedaId)}.`);
       if (!otro) volver();
       return {};
     },

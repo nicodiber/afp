@@ -65,3 +65,51 @@ export function montoParaEditar(centavos) {
   const absoluto = Math.abs(centavos).toString().padStart(3, '0');
   return `${centavos < 0 ? '-' : ''}${miles(absoluto.slice(0, -2))},${absoluto.slice(-2)}`;
 }
+
+const MAX_CIFRAS_ENTERAS = 13;
+
+/** Agrupa de a tres el entero de un monto: «1250000» → «1.250.000». */
+const agruparMiles = miles;
+
+/**
+ * Lo que se ve en el campo de monto mientras se escribe (HU-02b CA-1): puntos de miles en tiempo real, coma para
+ * los decimales (hasta 2). `texto` es el contenido del campo y `cursor` dónde está el cursor. Devuelve
+ * { texto, cursor } con el cursor en el mismo lugar entre las cifras: «1250|» → «1.250|», «12|50» → «1.2|50».
+ */
+export function formatearMontoEscrito(texto, cursor = String(texto).length) {
+  const crudo = String(texto);
+  const antes = crudo.slice(0, cursor);
+  const significativos = (t) => (t.match(/[\d,]/g) ?? []).length;
+  const hayComa = crudo.includes(',');
+  const [parteEntera, ...resto] = crudo.replace(/[^\d,]/g, '').split(',');
+  let entero = parteEntera.slice(0, MAX_CIFRAS_ENTERAS).replace(/^0+(?=\d)/, '');
+  const decimales = resto.join('').slice(0, 2);
+  let sig = significativos(antes);
+  // Una coma sin entero adelante lleva un 0 («,5» → «0,5»).
+  const ceroAgregado = hayComa && entero === '';
+  if (ceroAgregado) { entero = '0'; if (sig > 0) sig += 1; }
+  // Lo que se descartó (cifras de más, comas repetidas) no cuenta para el cursor.
+  const largoUtil = entero.length + (hayComa ? 1 + decimales.length : 0);
+  sig = Math.min(sig, largoUtil);
+  const formateado = `${agruparMiles(entero)}${hayComa ? `,${decimales}` : ''}`;
+  if (crudo.replace(/[^\d,]/g, '') === '') return { texto: '', cursor: 0 };
+  let posicion = 0;
+  for (let vistos = 0; posicion < formateado.length && vistos < sig; posicion += 1) if (/[\d,]/.test(formateado[posicion])) vistos += 1;
+  return { texto: formateado, cursor: posicion };
+}
+
+/**
+ * Entiende un monto pegado, con la convención argentina o la anglosajona: «12.500,50» y «12500.50» → «12500,50»;
+ * «1.250.000» → «1250000». Con coma, la coma es el decimal; con solo puntos, el último es decimal si lo siguen
+ * 1 o 2 cifras y es el único; si no, son miles. Devuelve texto con cifras y a lo sumo una coma.
+ */
+export function interpretarMontoPegado(texto) {
+  const limpio = String(texto).trim().replace(/[^\d.,]/g, '');
+  if (limpio.includes(',')) {
+    const i = limpio.lastIndexOf(',');
+    return `${limpio.slice(0, i).replace(/[.,]/g, '')},${limpio.slice(i + 1).replace(/[.,]/g, '')}`;
+  }
+  const puntos = limpio.split('.');
+  if (puntos.length === 2 && /^\d{1,2}$/.test(puntos[1])) return `${puntos[0]},${puntos[1]}`;
+  return puntos.join('');
+}

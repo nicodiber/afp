@@ -11,6 +11,7 @@ export function crearCasosMovimientos({ almacen, reloj, nuevoId, cuentas, catego
     todos: () => movimientos,
     hay: () => movimientos.length > 0,
     hoy: () => reloj.hoy(),
+    ahora: () => reloj.ahora(),
 
     /**
      * Valida y guarda un egreso. `formulario`: { fecha, monto, descripcion, categoriaId, cuentaId }.
@@ -22,10 +23,13 @@ export function crearCasosMovimientos({ almacen, reloj, nuevoId, cuentas, catego
       const { errores, datos } = validarEgreso(formulario, { cuentas: cuentas.todas(), categorias: categorias.todas(), hoy: reloj.hoy() });
       if (Object.keys(errores).length) return { errores };
       const cuenta = cuentas.buscar(datos.cuentaId);
+      // HU-02b CA-4: una fecha anterior al saldo inicial lo adelanta (mismo monto), antes de guardar el egreso.
+      const cuentaAjustada = datos.adelantaInicio ? await cuentas.adelantarInicio(cuenta.id, datos.fecha) : null;
       const movimiento = crearEgreso(datos, { id: nuevoId('mov'), cuenta, categoria: categorias.buscar(datos.categoriaId) });
       await almacen.guardar('movimientos', movimiento);
       movimientos = [...movimientos, movimiento];
-      return { movimiento, cuenta, saldo: cuentas.saldoDe(cuenta) };
+      const actual = cuentas.buscar(cuenta.id);
+      return { movimiento, cuenta: actual, saldo: cuentas.saldoDe(actual), ...(cuentaAjustada ? { cuentaAjustada } : {}) };
     },
   };
 }
