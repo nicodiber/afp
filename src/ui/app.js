@@ -41,6 +41,20 @@ export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, datosDi
   };
   const destinoActual = () => rutaActual().split('/')[0];
   const esPC = () => matchMedia(PC).matches;
+  // Marca el ítem de la barra de la pantalla actual. En la PC, Cuentas, Categorías y Monedas son ítems propios y
+  // Ajustes solo se marca en su pantalla; en el celular esas tres siguen dentro de Ajustes (HU-23).
+  const marcarNavegacion = () => {
+    const ruta = rutaActual();
+    for (const enlace of enlaces) {
+      const d = enlace.dataset.destino;
+      let actual;
+      if (d.includes('/')) actual = ruta === d || ruta.startsWith(`${d}/`);
+      else if (d === 'ajustes' && esPC()) actual = ruta === 'ajustes';
+      else actual = d === destinoActual();
+      if (actual) enlace.setAttribute('aria-current', 'page');
+      else enlace.removeAttribute('aria-current');
+    }
+  };
   // Vuelve a dibujar la pantalla y pone el foco en el control indicado (si sigue existiendo).
   const redibujar = (foco) => {
     const anterior = document.activeElement?.id;
@@ -78,6 +92,7 @@ export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, datosDi
       const titulo = TITULOS_PROPIOS[ruta] ?? SUBPANTALLAS[ruta];
       principal.replaceChildren(crear('h1', { class: 'titulo', tabindex: '-1', texto: titulo }));
       document.title = `${titulo} · AFP`;
+      marcarNavegacion();
       return;
     }
     rutaAnterior = ruta;
@@ -89,7 +104,7 @@ export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, datosDi
     else if (destino === 'inicio') pantalla = pantallaInicio({ instalacion, ...acciones, cuentas, movimientos, esPC: esPC(), redibujar });
     else if (destino === 'ajustes') {
       pantalla = pantallaAjustes({
-        preferencias, version, instalacion, alInstalar: acciones.alInstalar, modoPrueba, datosDispositivo, cuentas, ejemplo, redibujar,
+        preferencias, version, instalacion, alInstalar: acciones.alInstalar, modoPrueba, datosDispositivo, cuentas, ejemplo, redibujar, esPC: esPC(),
         alCambiarModoPrueba: () => {
           actualizarFranja(modoPrueba.estado());
           alCambiarModoPrueba();
@@ -102,16 +117,16 @@ export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, datosDi
     } else pantalla = pantallaProximamente(DESTINOS[destino]);
     principal.replaceChildren(...pantalla);
     document.title = `${TITULOS_PROPIOS[ruta] ?? SUBPANTALLAS[ruta] ?? DESTINOS[destino]} · AFP`;
-    for (const enlace of enlaces) {
-      if (enlace.dataset.destino === destino) enlace.setAttribute('aria-current', 'page');
-      else enlace.removeAttribute('aria-current');
-    }
+    marcarNavegacion();
     if (moverFoco) principal.querySelector('h1')?.focus({ preventScroll: true });
     window.scrollTo(0, 0);
   };
 
   // En el celular «Cargar» va en el centro; en la PC, al final (abajo), y el orden del teclado sigue al visual.
   const ordenarNavegacion = () => {
+    marcarNavegacion();
+    // Ajustes muestra los accesos a Cuentas, Categorías y Monedas solo en el celular.
+    if (rutaAnterior === 'ajustes') mostrar(false);
     if (matchMedia(PC).matches) lista.append(cargar);
     else lista.insertBefore(cargar, lista.children[2] === cargar ? cargar : lista.children[2]);
   };

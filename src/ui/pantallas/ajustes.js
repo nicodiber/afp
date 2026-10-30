@@ -6,7 +6,7 @@ import { confirmar, avisar } from '../dialogo.js';
 
 const NOMBRES_TEMA = { claro: 'Claro', oscuro: 'Oscuro', sistema: 'Como el sistema' };
 
-export function pantallaAjustes({ preferencias, version, alElegirTema, instalacion, alInstalar, modoPrueba, alCambiarModoPrueba, datosDispositivo, cuentas, ejemplo, redibujar }) {
+export function pantallaAjustes({ preferencias, version, alElegirTema, instalacion, alInstalar, modoPrueba, alCambiarModoPrueba, datosDispositivo, cuentas, ejemplo, redibujar, esPC }) {
   const elegido = preferencias.temaElegido();
   const botones = preferencias.opcionesDeTema().map((tema) => {
     const boton = crear('button', { type: 'button', 'aria-pressed': String(tema === elegido), texto: NOMBRES_TEMA[tema] });
@@ -18,7 +18,7 @@ export function pantallaAjustes({ preferencias, version, alElegirTema, instalaci
   });
   return [
     crear('h1', { class: 'titulo', tabindex: '-1', texto: 'Ajustes' }),
-    accesos(cuentas),
+    ...(esPC ? [] : [accesos(cuentas)]),
     crear('section', { class: 'seccion', 'aria-labelledby': 'titulo-tema' }, [
       crear('h2', { class: 'subtitulo', id: 'titulo-tema', texto: 'Tema' }),
       crear('div', { class: 'segmentado', role: 'group', 'aria-labelledby': 'titulo-tema' }, botones),
@@ -82,7 +82,7 @@ function seccionDatos(estado) {
   ]);
 }
 
-// Cuentas, categorías y monedas (aep#12, aep#15, D-132, D-140): se administran desde acá.
+// Cuentas, categorías y monedas (aep#12, aep#15, D-132, D-140): en el celular se administran desde acá; en la PC, desde la barra lateral (HU-23).
 function accesos(cuentas) {
   const fila = (href, titulo, detalle) => crear('li', {}, [crear('a', { class: 'fila-cuenta fila-acceso', href }, [
     crear('span', { class: 'fila-datos' }, [crear('span', { class: 'fila-nombre', texto: titulo }), crear('span', { class: 'fila-detalle', texto: detalle })]),

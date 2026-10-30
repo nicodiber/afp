@@ -41,7 +41,7 @@ for (const [nombre, viewport] of [['celular', CELULAR], ['escritorio', ESCRITORI
 for (const [nombre, viewport] of [['celular', CELULAR], ['escritorio', ESCRITORIO]]) {
   test(`aep#2 CA-9 · con Tab y Shift+Tab se llega a todos los controles y el foco siempre se ve (${nombre})`, async () => {
     const { contexto, pagina, errores } = await abrir(entorno.navegador, entorno.servidor, { viewport });
-    const controles = await pagina.evaluate(() => [...document.querySelectorAll('a[href], button')].filter((e) => !e.closest('[hidden]')).length);
+    const controles = await pagina.evaluate(() => [...document.querySelectorAll('a[href], button')].filter((e) => !e.closest('[hidden]') && e.getClientRects().length > 0).length);
     const recorrer = async (tecla) => {
       const vistos = [];
       for (let i = 0; i < controles + 3; i += 1) {
