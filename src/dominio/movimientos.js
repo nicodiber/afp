@@ -1,6 +1,6 @@
 // Reglas de la carga de un egreso simple (RF-MOV-01, modelo de datos §3.7, HU-02). Funciones puras.
 import { capitalizarInicial } from './texto.js';
-import { esFechaValida, formatearFecha } from './fecha.js';
+import { esFechaValida } from './fecha.js';
 import { leerMonto } from './formato.js';
 import { crearMovimiento, verificarPartidaDoble, ErrorPartidaDoble } from './partida-doble.js';
 import { hijasEnOrden, esFamilia } from './categorias.js';
@@ -11,6 +11,7 @@ export const MENSAJES = Object.freeze({
   cuenta: 'Elegí una cuenta.',
   fechaInvalida: 'Elegí una fecha válida.',
   fechaFutura: 'La fecha no puede ser posterior a hoy.',
+  hora: 'Escribí una hora válida (por ejemplo 18:30) o dejala vacía.',
   descripcion: 'La descripción puede tener hasta 120 caracteres.',
 });
 
@@ -38,6 +39,16 @@ export function categoriasDeEgresoAgrupadas(categorias) {
   return grupos;
 }
 
+/**
+ * Un nivel del árbol de categorías de egreso para la ventana de selección (HU-02b CA-2): las hijas activas de
+ * `padreId` (null = el primer nivel) en el orden del árbol, mezclando familias y categorías sueltas. Cada una:
+ * { id, nombre, emoji, esFamilia }.
+ */
+export function nivelDeCategoriasDeEgreso(categorias, padreId = null) {
+  return hijasEnOrden(categorias, padreId, 'egreso')
+    .map((c) => ({ id: c.id, nombre: c.nombre, emoji: c.emoji ?? '', esFamilia: esFamilia(categorias, c.id) }));
+}
+
 /** Minúsculas y sin tildes, para buscar mientras se escribe. */
 export const normalizarBusqueda = (texto) => String(texto ?? '').normalize('NFD').replace(/\p{M}/gu, '').toLocaleLowerCase('es').trim();
 
@@ -59,17 +70,18 @@ export function validarEgreso(formulario, { cuentas, categorias, hoy }) {
   const categoria = hojasDeEgreso(categorias).find((c) => c.id === formulario.categoriaId);
   if (!esFechaValida(fecha)) errores.fecha = MENSAJES.fechaInvalida;
   else if (fecha > hoy) errores.fecha = MENSAJES.fechaFutura;
-  else if (cuenta && fecha < cuenta.fechaSaldoInicial) {
-    // INV-16: los movimientos de una cuenta no son anteriores a su saldo inicial.
-    errores.fecha = `La cuenta ${cuenta.nombre} empieza el ${formatearFecha(cuenta.fechaSaldoInicial)}: elegí esa fecha o una posterior.`;
-  }
+  // Hora opcional (HH:MM): vacía se guarda sin hora.
+  const hora = String(formulario.hora ?? '').trim();
+  if (hora && !/^([01]\d|2[0-3]):[0-5]\d$/.test(hora)) errores.hora = MENSAJES.hora;
   const montoTotal = leerMonto(formulario.monto);
   if (montoTotal === null || montoTotal <= 0 || !Number.isSafeInteger(montoTotal)) errores.monto = MENSAJES.monto;
   const descripcion = capitalizarInicial(String(formulario.descripcion ?? '').trim());
   if (descripcion.length > 120) errores.descripcion = MENSAJES.descripcion;
   if (!categoria) errores.categoria = MENSAJES.categoria;
   if (!cuenta) errores.cuenta = MENSAJES.cuenta;
-  return { errores, datos: { fecha, montoTotal, descripcion, categoriaId: formulario.categoriaId, cuentaId: formulario.cuentaId } };
+  // Una fecha anterior a la del saldo inicial se guarda igual: la cuenta pasa a empezar en esa fecha (HU-02b CA-4).
+  const adelantaInicio = Boolean(cuenta && esFechaValida(fecha) && fecha < cuenta.fechaSaldoInicial);
+  return { errores, datos: { fecha, hora: hora || null, adelantaInicio, montoTotal, descripcion, categoriaId: formulario.categoriaId, cuentaId: formulario.cuentaId } };
 }
 
 /**
@@ -85,6 +97,7 @@ export function crearEgreso(datos, { id, cuenta, categoria }) {
     id,
     tipo: 'egreso',
     fecha: datos.fecha,
+    hora: datos.hora ?? null,
     descripcion: datos.descripcion,
     estado: 'confirmado',
     origen: 'manual',
