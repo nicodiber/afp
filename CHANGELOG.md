@@ -4,6 +4,13 @@ Cada entrega a la versión a probar (`/prueba/`) sube el número dentro del hito
 
 ## v0.3.0 · Movimientos (en curso)
 
+### v0.3.0-7 · HU-04
+
+- Movimientos ya no es «Próximamente»: muestra los del período del más nuevo al más viejo por fecha y hora. Cada fila lleva el ícono de la categoría, la descripción (o el nombre de la categoría si no tiene), «DD/MM/AAAA · HH:MM · Categoría · Cuenta» y el monto con signo (egresos en rojo con −, ingresos en verde con +). Tocar una fila muestra «Editar llega en HU-05.»; sin resultados dice «No hay movimientos con estos filtros.».
+- Filtros: búsqueda por descripción y por nombre de la categoría (sin distinguir mayúsculas ni acentos), período (este mes por defecto, mes anterior, últimos 3 meses —el mes en curso y los dos anteriores—, este año, todo y elegir un mes), tipo, categoría (una familia incluye sus subcategorías) y cuenta. Abajo o en el panel, los totales del filtro: ingresos, egresos y diferencia (uno por moneda si hay más de una).
+- Celular («B · Tarjetas con filtros»): los filtros arriba (la búsqueda a todo el ancho y los selects en grilla), los movimientos como tarjetas y los totales al pie. PC («C · Lista y resumen»): la lista a la izquierda y un panel de 280 px a la derecha con los filtros, los totales y «Egresos por categoría» (barras de mayor a menor; tocar una filtra por esa categoría y tocarla de nuevo saca el filtro). Se usa con el teclado: Tab pasa por los filtros, las barras y la lista.
+- La pantalla se carga recién al abrirla (`import()`) y funciona sin conexión. Con 500 movimientos de prueba filtrar tarda mucho menos de 200 ms.
+
 ### v0.3.0-6 · HU-03
 
 - Registrar un ingreso: la pantalla de Cargar tiene debajo del título un control «Egreso | Ingreso». Al elegir Ingreso, el título pasa a «Nuevo ingreso», el monto se ve en verde (en egreso, en rojo) y la ventana de categorías muestra las de ingresos, por niveles y con sus íconos; la categoría de egreso que hubieras elegido se borra. En la PC, con el foco en el control, ← y → cambian de tipo, y ↑/↓ lo incluyen en el recorrido, antes de la fecha.

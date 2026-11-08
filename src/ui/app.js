@@ -10,7 +10,7 @@ const SUBPANTALLAS = { 'ajustes/cuentas': 'Cuentas', 'ajustes/categorias': 'Cate
 // Las pantallas que no son Inicio se cargan recién cuando se abren, para que Inicio se dibuje antes (LCP, aep#15, FC-19).
 const PROXIMAMENTE = () => import('./pantallas/proximamente.js');
 const CARGAR_SUBPANTALLA = {
-  movimientos: PROXIMAMENTE,
+  movimientos: () => import('./pantallas/movimientos.js'),
   analisis: PROXIMAMENTE,
   ajustes: () => import('./pantallas/ajustes.js'),
   cargar: () => import('./pantallas/cargar.js'),
@@ -21,7 +21,7 @@ const CARGAR_SUBPANTALLA = {
 // Título de pantallas que no se llaman como su destino del menú: «Cargar» abre «Nuevo egreso» (HU-02).
 const TITULOS_PROPIOS = { cargar: 'Nuevo egreso' };
 // Pantallas que usan las categorías, que se cargan después de dibujar Inicio (FC-19).
-const NECESITAN_CATEGORIAS = new Set(['cargar', 'ajustes', 'ajustes/categorias']);
+const NECESITAN_CATEGORIAS = new Set(['cargar', 'movimientos', 'ajustes', 'ajustes/categorias']);
 const subpantallas = {};
 const PC = '(min-width: 720px)';
 const SISTEMA_OSCURO = '(prefers-color-scheme: dark)';
@@ -89,6 +89,7 @@ export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, datosDi
     // Cargar ya está en pantalla: no se vuelve a dibujar para no perder lo que se está escribiendo (los datos se leen al elegir).
     if (ruta === 'cargar' && rutaAnterior === 'cargar' && !moverFoco && principal.querySelector('.formulario-egreso')) return;
     document.body.dataset.ruta = destino;
+    if (ruta !== rutaAnterior && rutaAnterior === 'movimientos') subpantallas[rutaAnterior]?.reiniciarMovimientos();
     if (ruta !== rutaAnterior && rutaAnterior === 'ajustes/cuentas') subpantallas[rutaAnterior]?.reiniciarCuentas();
     if (ruta !== rutaAnterior && rutaAnterior === 'ajustes/categorias') subpantallas[rutaAnterior]?.reiniciarCategorias();
     const faltanCategorias = NECESITAN_CATEGORIAS.has(ruta) && typeof categorias.todas !== 'function';
@@ -106,6 +107,7 @@ export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, datosDi
     if (ruta === 'ajustes/cuentas') pantalla = subpantallas[ruta].pantallaCuentas({ cuentas, esPC: esPC(), redibujar });
     else if (ruta === 'ajustes/monedas') pantalla = subpantallas[ruta].pantallaMonedas({ cuentas, redibujar });
     else if (ruta === 'ajustes/categorias') pantalla = subpantallas[ruta].pantallaCategorias({ categorias, esPC: esPC(), redibujar });
+    else if (ruta === 'movimientos') pantalla = subpantallas[ruta].pantallaMovimientos({ movimientos, cuentas, categorias });
     else if (ruta === 'cargar') pantalla = subpantallas[ruta].pantallaCargar({ movimientos, cuentas, categorias, esPC: esPC(), volver });
     else if (destino === 'inicio') pantalla = pantallaInicio({ instalacion, ...acciones, cuentas, movimientos, esPC: esPC(), redibujar });
     else if (destino === 'ajustes') {
