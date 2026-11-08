@@ -2,9 +2,8 @@
 // mientras no haya movimientos, una frase y un botón que lleva a Cargar (manual §8.1, D-65, D-97).
 import { crear } from '../dom.js';
 import { tarjetaInstalar } from '../instalacion.js';
-import { abrirFormularioEnVentana } from '../cuentas-comun.js';
 import { formatearMonto } from '../../dominio/formato.js';
-import { NOMBRES_DE_TIPO } from '../../dominio/cuentas.js';
+import { NOMBRES_DE_TIPO, iconoDeCuenta } from '../../dominio/cuentas.js';
 
 export function pantallaInicio({ instalacion, alInstalar, alDescartar, cuentas, movimientos, esPC, redibujar }) {
   const { sugerirEnInicio, forma } = instalacion.estado();
@@ -21,7 +20,11 @@ export function pantallaInicio({ instalacion, alInstalar, alDescartar, cuentas, 
 }
 
 function seccionCuentas({ cuentas, esPC, redibujar }) {
-  const abrir = (id) => abrirFormularioEnVentana({ cuentas, id, pantallaCompleta: !esPC, alTerminar: () => redibujar(id ? `tarjeta-${id}` : null) });
+  // El formulario (y la ventana) se cargan recién al tocar: Inicio no los necesita para dibujarse (FC-19).
+  const abrir = async (id) => {
+    const { abrirFormularioEnVentana } = await import('../cuentas-comun.js');
+    abrirFormularioEnVentana({ cuentas, id, pantallaCompleta: !esPC, alTerminar: () => redibujar(id ? `tarjeta-${id}` : null) });
+  };
   const activas = cuentas.activas();
   const contenido = [crear('div', { class: 'cabecera-lista' }, [
     crear('h2', { class: 'subtitulo', id: 'titulo-tus-cuentas', texto: 'Tus cuentas' }),
@@ -35,7 +38,7 @@ function seccionCuentas({ cuentas, esPC, redibujar }) {
     const tarjetas = activas.map((c) => {
       const saldo = cuentas.saldoDe(c);
       const boton = crear('button', { type: 'button', class: 'tarjeta-cuenta', id: `tarjeta-${c.id}` }, [
-        crear('span', { class: 'tarjeta-cuenta-nombre', texto: c.emoji ? `${c.emoji} ${c.nombre}` : c.nombre }),
+        crear('span', { class: 'tarjeta-cuenta-nombre', texto: `${iconoDeCuenta(c)} ${c.nombre}` }),
         crear('span', { class: `tarjeta-cuenta-monto${saldo < 0 ? ' negativo' : ''}`, texto: formatearMonto(saldo, c.monedaId) }),
         crear('span', { class: 'tarjeta-cuenta-detalle', texto: c.tieneRendimiento ? 'Con rendimiento' : NOMBRES_DE_TIPO[c.tipo] }),
       ]);

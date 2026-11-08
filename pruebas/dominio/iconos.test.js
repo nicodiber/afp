@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {
   EMOJIS_DE_CATEGORIA, EMOJIS_DE_PALABRAS, claveIcono, iconoVisible, iconosUsados, proponerIcono, asignarIconosFaltantes,
 } from '../../src/dominio/iconos.js';
-import { validarCategoria, MENSAJES, etiquetasDe, explicacionesDe, EXPLICACIONES } from '../../src/dominio/categorias.js';
+import { validarCategoria, MENSAJES, etiquetasDe, explicacionesDe, EXPLICACIONES, EXPLICACIONES_INGRESO } from '../../src/dominio/categorias.js';
 
 const c = (id, nombre, emoji, extra = {}) => ({ id, nombre, tipo: 'egreso', padreId: null, emoji, orden: 0, estado: 'activa', ...extra });
 const form = (cambios = {}) => ({ nombre: 'Carnicería', emoji: '🥩', fijoVariable: 'variable', necesidadDeseo: 'necesidad', hormiga: false, ...cambios });
@@ -93,7 +93,20 @@ test('HU-31 CA-1 · las etiquetas de la clasificación y sus explicaciones', () 
   const alquiler = c('q', 'Alquiler', '🔑', { fijoVariable: 'fijo', necesidadDeseo: 'necesidad', hormiga: false });
   assert.deepEqual(etiquetasDe(alquiler).map((t) => t.nombre), ['Fijo', 'Necesidad']);
   assert.deepEqual(etiquetasDe(c('t', 'Trabajo', '💼', { tipo: 'ingreso', naturaleza: 'aporte_terceros' })).map((t) => t.nombre), ['Aporte de terceros']);
-  assert.deepEqual(explicacionesDe(c('t', 'Trabajo', '💼', { tipo: 'ingreso', naturaleza: 'ganado' })), []);
+  // HU-34 CA-2: un ingreso también explica su etiqueta (la naturaleza).
+  assert.deepEqual(explicacionesDe(c('t', 'Trabajo', '💼', { tipo: 'ingreso', naturaleza: 'ganado' })).map((t) => t.nombre), ['Ganado']);
   assert.equal(EXPLICACIONES.find((e) => e.clave === 'hormiga').texto, 'Gastos chicos y frecuentes que, sumados, pesan (el kiosco, el café de paso).');
   assert.equal(EXPLICACIONES.length, 5);
+});
+
+test('HU-34 CA-2 · los textos de las tres naturalezas de un ingreso', () => {
+  const textos = Object.fromEntries(EXPLICACIONES_INGRESO.map((e) => [e.nombre, e.texto]));
+  assert.deepEqual(textos, {
+    Ganado: 'Lo que cobrás por tu trabajo o tus inversiones.',
+    'Aporte de terceros': 'Plata que otra persona te da sin que sea a cambio de un trabajo (por ejemplo, ayuda familiar).',
+    Otro: 'Lo que no entra en lo anterior (regalos, reintegros, ventas de cosas usadas).',
+  });
+  for (const [naturaleza, nombre] of [['ganado', 'Ganado'], ['aporte_terceros', 'Aporte de terceros'], ['otro', 'Otro']]) {
+    assert.deepEqual(explicacionesDe(c('i', 'Ingreso', '💰', { tipo: 'ingreso', naturaleza })).map((e) => e.nombre), [nombre]);
+  }
 });

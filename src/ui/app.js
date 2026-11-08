@@ -1,15 +1,18 @@
 // Interfaz de AFP (aep#2): rutas por «#destino», navegación, tema y aviso de versión nueva.
 import { pantallaInicio } from './pantallas/inicio.js';
-import { pantallaAjustes } from './pantallas/ajustes.js';
-import { pantallaProximamente } from './pantallas/proximamente.js';
+import { abreCarga } from '../dominio/atajos.js';
 import { actualizarFranja } from './franja-prueba.js';
 import { crear } from './dom.js';
 
 const DESTINOS = { inicio: 'Inicio', movimientos: 'Movimientos', cargar: 'Cargar', analisis: 'Análisis', ajustes: 'Ajustes' };
 // Pantallas dentro de Ajustes (aep#12): «#ajustes/cuentas» y «#ajustes/monedas».
 const SUBPANTALLAS = { 'ajustes/cuentas': 'Cuentas', 'ajustes/categorias': 'Categorías', 'ajustes/monedas': 'Monedas' };
-// Las pantallas de Ajustes se cargan recién cuando se abren, para que Inicio se dibuje antes (LCP, aep#15).
+// Las pantallas que no son Inicio se cargan recién cuando se abren, para que Inicio se dibuje antes (LCP, aep#15, FC-19).
+const PROXIMAMENTE = () => import('./pantallas/proximamente.js');
 const CARGAR_SUBPANTALLA = {
+  movimientos: PROXIMAMENTE,
+  analisis: PROXIMAMENTE,
+  ajustes: () => import('./pantallas/ajustes.js'),
   cargar: () => import('./pantallas/cargar.js'),
   'ajustes/cuentas': () => import('./pantallas/cuentas.js'),
   'ajustes/categorias': () => import('./pantallas/categorias.js'),
@@ -17,6 +20,8 @@ const CARGAR_SUBPANTALLA = {
 };
 // Título de pantallas que no se llaman como su destino del menú: «Cargar» abre «Nuevo egreso» (HU-02).
 const TITULOS_PROPIOS = { cargar: 'Nuevo egreso' };
+// Pantallas que usan las categorías, que se cargan después de dibujar Inicio (FC-19).
+const NECESITAN_CATEGORIAS = new Set(['cargar', 'ajustes', 'ajustes/categorias']);
 const subpantallas = {};
 const PC = '(min-width: 720px)';
 const SISTEMA_OSCURO = '(prefers-color-scheme: dark)';
@@ -86,10 +91,11 @@ export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, datosDi
     document.body.dataset.ruta = destino;
     if (ruta !== rutaAnterior && rutaAnterior === 'ajustes/cuentas') subpantallas[rutaAnterior]?.reiniciarCuentas();
     if (ruta !== rutaAnterior && rutaAnterior === 'ajustes/categorias') subpantallas[rutaAnterior]?.reiniciarCategorias();
-    if (CARGAR_SUBPANTALLA[ruta] && !subpantallas[ruta]) {
-      // Primera vez: se carga el módulo y se vuelve a dibujar (sin conexión, lo sirve el service worker).
-      CARGAR_SUBPANTALLA[ruta]().then((modulo) => { subpantallas[ruta] = modulo; if (rutaActual() === ruta) { rutaAnterior = null; mostrar(moverFoco); } });
-      const titulo = TITULOS_PROPIOS[ruta] ?? SUBPANTALLAS[ruta];
+    const faltanCategorias = NECESITAN_CATEGORIAS.has(ruta) && typeof categorias.todas !== 'function';
+    if (CARGAR_SUBPANTALLA[ruta] && (!subpantallas[ruta] || faltanCategorias)) {
+      // Primera vez: se carga el módulo (y las categorías, si la pantalla las usa) y se vuelve a dibujar (sin conexión, lo sirve el service worker).
+      Promise.all([CARGAR_SUBPANTALLA[ruta](), faltanCategorias ? categorias.listas() : null]).then(([modulo]) => { subpantallas[ruta] = modulo; if (rutaActual() === ruta) { rutaAnterior = null; mostrar(moverFoco); } });
+      const titulo = TITULOS_PROPIOS[ruta] ?? SUBPANTALLAS[ruta] ?? DESTINOS[destino];
       principal.replaceChildren(crear('h1', { class: 'titulo', tabindex: '-1', texto: titulo }));
       document.title = `${titulo} · AFP`;
       marcarNavegacion();
@@ -103,7 +109,7 @@ export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, datosDi
     else if (ruta === 'cargar') pantalla = subpantallas[ruta].pantallaCargar({ movimientos, cuentas, categorias, esPC: esPC(), volver });
     else if (destino === 'inicio') pantalla = pantallaInicio({ instalacion, ...acciones, cuentas, movimientos, esPC: esPC(), redibujar });
     else if (destino === 'ajustes') {
-      pantalla = pantallaAjustes({
+      pantalla = subpantallas.ajustes.pantallaAjustes({
         preferencias, version, instalacion, alInstalar: acciones.alInstalar, modoPrueba, datosDispositivo, cuentas, ejemplo, redibujar, esPC: esPC(),
         alCambiarModoPrueba: () => {
           actualizarFranja(modoPrueba.estado());
@@ -114,7 +120,7 @@ export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, datosDi
         },
         alElegirTema: (tema) => { preferencias.elegirTema(tema); aplicarTema(); },
       });
-    } else pantalla = pantallaProximamente(DESTINOS[destino]);
+    } else pantalla = subpantallas[ruta].pantallaProximamente(DESTINOS[destino]);
     principal.replaceChildren(...pantalla);
     document.title = `${TITULOS_PROPIOS[ruta] ?? SUBPANTALLAS[ruta] ?? DESTINOS[destino]} · AFP`;
     marcarNavegacion();
@@ -144,6 +150,18 @@ export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, datosDi
   // Si el navegador pasa a ofrecer instalar con un toque (o termina de instalar), se actualiza la pantalla.
   instalacion.alCambiar(() => { if (['inicio', 'ajustes'].includes(destinoActual())) mostrar(false); });
   matchMedia(PC).addEventListener('change', ordenarNavegacion);
+  // Atajo «c» en Inicio: abre Cargar (HU-34, D-165).
+  document.addEventListener('keydown', (evento) => {
+    const objetivo = evento.target instanceof Element ? evento.target : null;
+    const enCampo = Boolean(objetivo?.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"])'));
+    const abre = abreCarga({
+      tecla: evento.key, ctrl: evento.ctrlKey, alt: evento.altKey, meta: evento.metaKey, enCampo,
+      hayVentana: Boolean(document.querySelector('dialog[open]')), esPC: esPC(), ruta: rutaActual(),
+    });
+    if (!abre || evento.defaultPrevented) return;
+    evento.preventDefault();
+    location.hash = '#cargar';
+  });
   matchMedia(SISTEMA_OSCURO).addEventListener('change', aplicarTema);
   return {
     // Vuelve a dibujar la pantalla cuando cambian los datos del dispositivo (base preparada, cuentas), sin perder el foco.

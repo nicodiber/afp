@@ -1,7 +1,7 @@
 // Formulario de una cuenta (aep#12, D-127, D-132). Es un componente: lo usan Cuentas e Inicio, y lo va a usar
 // la carga de movimientos para crear una cuenta sin salir (D-131). No sabe dónde se muestra.
 import { crear } from './dom.js';
-import { TIPOS_ELEGIBLES, NOMBRES_DE_TIPO, PROPOSITOS, NOMBRES_DE_PROPOSITO } from '../dominio/cuentas.js';
+import { TIPOS_ELEGIBLES, NOMBRES_DE_TIPO, PROPOSITOS, NOMBRES_DE_PROPOSITO, iconoDeTipo } from '../dominio/cuentas.js';
 import { montoParaEditar } from '../dominio/formato.js';
 import { capitalizarInicial } from '../dominio/texto.js';
 
@@ -52,7 +52,11 @@ export function formularioCuenta({ cuenta, monedas, hoy, alGuardar, alCancelar, 
     campos.nombre.setSelectionRange(selectionStart, selectionEnd);
   });
   campos.fechaSaldoInicial.value = valor('fechaSaldoInicial', hoy);
-  campos.emoji.value = valor('emoji', '');
+  // AFP propone el ícono según el tipo y lo cambia con él mientras no lo toques a mano (HU-34, D-162).
+  campos.emoji.value = valor('emoji', '') || iconoDeTipo(campos.tipo.value);
+  let iconoAMano = Boolean(cuenta?.emoji);
+  campos.emoji.addEventListener('input', () => { iconoAMano = true; });
+  campos.tipo.addEventListener('change', () => { if (!iconoAMano) campos.emoji.value = iconoDeTipo(campos.tipo.value); });
   campos.notas.value = valor('notas', '');
   const rendimiento = crear('button', { type: 'button', role: 'switch', class: 'interruptor', id: id('rendimiento'), 'aria-checked': String(valor('tieneRendimiento', false)) }, [
     crear('span', { class: 'interruptor-texto', texto: 'Tiene rendimiento' }),
@@ -117,7 +121,7 @@ export function formularioCuenta({ cuenta, monedas, hoy, alGuardar, alCancelar, 
     crear('div', { class: 'campos-juntos' }, [campo('tipo', 'Tipo'), campo('monedaId', 'Moneda')]),
     crear('div', { class: 'campos-juntos' }, [campo('saldoInicial', 'Saldo inicial', 'Puede ser negativo. Vacío es 0.'), campo('fechaSaldoInicial', 'Al día')]),
     rendimiento,
-    crear('div', { class: 'campos-juntos campos-emoji' }, [campo('emoji', 'Emoji'), campo('proposito', 'Propósito')]),
+    crear('div', { class: 'campos-juntos campos-emoji' }, [campo('emoji', 'Emoji', 'Lo propone AFP según el tipo; podés cambiarlo.'), campo('proposito', 'Propósito')]),
     campo('notas', 'Notas', 'Hasta 500 caracteres.'),
     resumen,
     crear('div', { class: 'acciones' }, [cancelar, guardar]),

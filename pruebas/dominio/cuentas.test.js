@@ -134,3 +134,10 @@ test('HU-02b CA-2 · una cuenta sin ícono usa el de su tipo; con ícono, el suy
   for (const [tipo, icono] of Object.entries(esperado)) assert.equal(iconoDeCuenta({ tipo, emoji: '' }), icono, tipo);
   assert.equal(iconoDeCuenta({ tipo: 'banco', emoji: '🛟' }), '🛟');
 });
+
+test('HU-34 CA-3 · el ícono propuesto por tipo: efectivo 💵, banco 🏦, billetera 📱, broker 📈, transporte 🚌 y 🪙 para el resto', async () => {
+  const { iconoDeTipo, ICONO_GENERICO } = await import('../../src/dominio/cuentas.js');
+  const esperado = { efectivo: '💵', banco: '🏦', billetera_virtual: '📱', broker: '📈', transporte: '🚌', cripto: '🪙', deuda: '🪙' };
+  for (const [tipo, icono] of Object.entries(esperado)) assert.equal(iconoDeTipo(tipo), icono, tipo);
+  assert.equal(ICONO_GENERICO, '🪙');
+});

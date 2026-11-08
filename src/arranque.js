@@ -11,10 +11,7 @@ import { crearCasosInstalacion } from './aplicacion/instalacion.js';
 import { crearCasosModoPrueba } from './aplicacion/modo-prueba.js';
 import { crearCasosDatosDispositivo } from './aplicacion/datos-dispositivo.js';
 import { crearCasosCuentas } from './aplicacion/cuentas.js';
-import { crearCasosCategorias } from './aplicacion/categorias.js';
 import { crearCasosMovimientos } from './aplicacion/movimientos.js';
-import { crearCasosDatosEjemplo } from './aplicacion/datos-ejemplo.js';
-import { leerDatosDeEjemplo } from './adaptadores/datos-ejemplo.js';
 import { iniciarInterfaz, avisarVersionNueva } from './ui/app.js';
 
 const almacen = crearPreferenciasLocales();
@@ -30,11 +27,39 @@ const basePara = () => {
   // Los movimientos se crean después de las cuentas y categorías, que los consultan para saldos y para saber si se usan.
   const guardados = { lista: () => [] };
   const cuentas = crearCasosCuentas({ almacen: almacenDatos, reloj: modoPrueba.reloj, nuevoId: () => nuevoId('cue'), movimientos: async () => guardados.lista(), movimientosEnMemoria: () => guardados.lista() });
-  const categorias = crearCasosCategorias({ almacen: almacenDatos, reloj: modoPrueba.reloj, nuevoId, movimientos: async () => guardados.lista() });
-  const movimientos = crearCasosMovimientos({ almacen: almacenDatos, reloj: modoPrueba.reloj, nuevoId, cuentas, categorias });
+  // Las categorías no hacen falta para dibujar Inicio: sus módulos se piden después, con `listas()` (FC-19). Hasta
+  // entonces la interfaz no las usa (Cargar y Categorías esperan a `listas()` antes de dibujarse).
+  let casosDeCategorias = null;
+  let promesaDeCategorias = null;
+  const dispositivo = crearCasosDatosDispositivo(almacenDatos);
+  const listas = () => {
+    promesaDeCategorias ??= import('./aplicacion/categorias.js').then(async ({ crearCasosCategorias }) => {
+      const casos = crearCasosCategorias({ almacen: almacenDatos, reloj: modoPrueba.reloj, nuevoId, movimientos: async () => guardados.lista() });
+      // Si la base no se puede abrir, AFP sigue sin datos (igual que con las cuentas).
+      if (dispositivo.estado() !== 'sin-almacenamiento') await casos.preparar().catch(() => {});
+      casosDeCategorias = casos; // desde acá la interfaz las ve, ya leídas
+      return casos;
+    });
+    return promesaDeCategorias;
+  };
+  const categorias = new Proxy({}, { get: (_, nombre) => (nombre === 'listas' ? listas : casosDeCategorias?.[nombre]) });
+  // Los movimientos usan las categorías solo al guardar, desde Cargar, que ya las esperó.
+  const movimientos = crearCasosMovimientos({
+    almacen: almacenDatos, reloj: modoPrueba.reloj, nuevoId, cuentas,
+    categorias: { todas: () => casosDeCategorias.todas(), buscar: (id) => casosDeCategorias.buscar(id) },
+  });
   guardados.lista = movimientos.todos;
-  const ejemplo = crearCasosDatosEjemplo({ almacen: almacenDatos, recargar: [cuentas.recargar, categorias.recargar, movimientos.recargar] });
-  return { dispositivo: crearCasosDatosDispositivo(almacenDatos), cuentas, categorias, movimientos, ejemplo };
+  // Los datos de ejemplo solo se usan en Ajustes: sus módulos se piden recién ahí (FC-19).
+  let ejemplo = null;
+  const casosDeEjemplo = async () => {
+    if (!ejemplo) {
+      const { crearCasosDatosEjemplo } = await import('./aplicacion/datos-ejemplo.js');
+      const { recargar: recargarCategorias } = await listas();
+      ejemplo = crearCasosDatosEjemplo({ almacen: almacenDatos, recargar: [cuentas.recargar, recargarCategorias, movimientos.recargar] });
+    }
+    return ejemplo;
+  };
+  return { dispositivo, cuentas, categorias, movimientos, casosDeEjemplo };
 };
 let base = basePara();
 const datosParaInterfaz = { estado: () => base.dispositivo.estado() };
@@ -43,18 +68,20 @@ const cuentasParaInterfaz = new Proxy({}, { get: (_, nombre) => base.cuentas[nom
 const categoriasParaInterfaz = new Proxy({}, { get: (_, nombre) => base.categorias[nombre] });
 const movimientosParaInterfaz = new Proxy({}, { get: (_, nombre) => base.movimientos[nombre] });
 const ejemploParaInterfaz = {
-  leer: leerDatosDeEjemplo,
-  cargar: (datos) => base.ejemplo.cargar(datos),
-  borrar: () => base.ejemplo.borrar(),
-  hayDatos: () => base.cuentas.hayCuentas() || base.categorias.hayCategorias() || base.movimientos.hay(),
+  leer: async () => (await import('./adaptadores/datos-ejemplo.js')).leerDatosDeEjemplo(),
+  cargar: async (datos) => (await base.casosDeEjemplo()).cargar(datos),
+  borrar: async () => (await base.casosDeEjemplo()).borrar(),
+  hayDatos: () => base.cuentas.hayCuentas() || Boolean(base.categorias.hayCategorias?.()) || base.movimientos.hay(),
 };
 // Se redibuja apenas se sabe el estado de la base y otra vez con las cuentas.
 const preparar = async (alAvanzar) => {
   await base.dispositivo.preparar();
   alAvanzar();
   // Si la base no se puede abrir (por ejemplo, bloqueada por otra pestaña), AFP sigue sin cuentas.
-  if (base.dispositivo.estado() !== 'sin-almacenamiento') await Promise.all([base.cuentas.preparar(), base.categorias.preparar(), base.movimientos.preparar()]).catch(() => {});
+  if (base.dispositivo.estado() !== 'sin-almacenamiento') await Promise.all([base.cuentas.preparar(), base.movimientos.preparar()]).catch(() => {});
   alAvanzar();
+  // Con Inicio ya dibujado, se cargan las categorías; las pantallas que las usan las esperan solas (ui/app.js).
+  base.categorias.listas().catch(() => {});
 };
 const interfaz = iniciarInterfaz({
   preferencias, instalacion, modoPrueba, datosDispositivo: datosParaInterfaz, version: VERSION,

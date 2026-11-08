@@ -82,7 +82,9 @@ for (const [nombre, viewport] of [['celular', CELULAR], ['PC', ESCRITORIO]]) {
     await pagina.goto(entorno.servidor.url + '#inicio');
     await pagina.locator('.tarjeta-cuenta').first().waitFor();
     const tarjetas = await pagina.locator('.tarjetas-cuentas .tarjeta-cuenta:not(.tarjeta-nueva)').evaluateAll((t) => t.map((x) => [x.children[0].textContent, x.children[1].textContent]));
-    assert.deepEqual(tarjetas, EJEMPLO.map(([n, , m]) => [n, m]));
+    // Las cuentas de ejemplo no traen ícono: Inicio muestra el de su tipo (HU-34 CA-3), escrito a mano.
+    const iconos = ['💵', '💵', '🏦', '📱', '💵', '🚌'];
+    assert.deepEqual(tarjetas, EJEMPLO.map(([n, , m], i) => [`${iconos[i]} ${n}`, m]));
     assert.deepEqual(errores, []);
     await contexto.close();
   });

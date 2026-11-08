@@ -4,6 +4,13 @@ Cada entrega a la versión a probar (`/prueba/`) sube el número dentro del hito
 
 ## v0.3.0 · Movimientos (en curso)
 
+### v0.3.0-5 · HU-34
+
+- Atajo «c» en Inicio (PC): abre Cargar (Nuevo egreso). No se activa con el foco en un campo de texto, con una ventana abierta ni con Ctrl, Alt o Meta. Junto al botón «Cargar» de la barra lateral se ve la ayuda «C» (solo en la PC, con la barra abierta).
+- Los ingresos (las categorías hoja) muestran su naturaleza como etiqueta y el mismo ⓘ que los egresos: Ganado, Aporte de terceros y Otro, cada uno con su explicación. «ⓘ Qué significa» del formulario de un ingreso muestra esas tres.
+- Cuenta nueva: AFP propone el ícono según el tipo (efectivo 💵, banco 🏦, billetera virtual 📱, broker 📈, transporte 🚌, 🪙 para el resto) y lo cambia si cambiás el tipo mientras no lo hayas tocado a mano. Se puede cambiar y repetir. Inicio y Cuentas muestran el ícono de cada cuenta; si no tiene uno guardado, el de su tipo.
+- Rendimiento (FC-19): al arrancar, Inicio ya no carga el formulario de cuenta, la ventana de diálogo, Ajustes, la pantalla «Próximamente», los datos de ejemplo ni las categorías (dominio, casos de uso e íconos); se piden con `import()` al usarlos o, las categorías, justo después de dibujar Inicio. Cargar, Categorías y Ajustes esperan a que lleguen. LCP de la pantalla inicial (mediana de 3 corridas de `npm run medir`): de 2,57 s a 2,26 s.
+
 ### v0.3.0-4 · HU-02 (segunda vuelta)
 
 - Monto: mientras escribís, AFP pone los puntos de miles (1250 → 1.250) y la coma separa hasta 2 decimales; la tecla punto (también la del teclado numérico) escribe una coma, el cursor no se mueve de lugar y al pegar se entiende «12.500,50» o «12500.50».

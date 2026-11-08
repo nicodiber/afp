@@ -126,10 +126,11 @@ test('HU-31 CA-1 · el formulario tiene «ⓘ Qué significa» con las cinco exp
   for (const [clave, explicacion] of Object.entries(TEXTOS)) assert.ok(texto.includes(`${clave}: ${explicacion}`), clave);
   await boton.click();
   assert.equal(await f.locator('.que-significa').isHidden(), true);
-  // Un ingreso no tiene esas etiquetas.
+  // Un ingreso explica sus propias etiquetas (HU-34 CA-2), no las de egresos.
   await f.getByRole('button', { name: 'Cancelar' }).click();
   await pagina.locator('#nueva-ingreso').click();
-  assert.equal(await ventana(pagina).getByRole('button', { name: 'ⓘ Qué significa' }).count(), 0);
+  await ventana(pagina).getByRole('button', { name: 'ⓘ Qué significa' }).click();
+  assert.ok(!(await ventana(pagina).locator('.que-significa').innerText()).includes('Fijo:'));
   assert.deepEqual(errores, []);
   await contexto.close();
 });
