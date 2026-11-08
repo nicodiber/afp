@@ -30,6 +30,13 @@ export const EXPLICACIONES = Object.freeze([
   { clave: 'hormiga', nombre: 'Hormiga', texto: 'Gastos chicos y frecuentes que, sumados, pesan (el kiosco, el café de paso).' },
 ]);
 
+/** Qué significa cada naturaleza de un ingreso (HU-34, D-164). */
+export const EXPLICACIONES_INGRESO = Object.freeze([
+  { clave: 'ganado', nombre: 'Ganado', texto: 'Lo que cobrás por tu trabajo o tus inversiones.' },
+  { clave: 'aporte_terceros', nombre: 'Aporte de terceros', texto: 'Plata que otra persona te da sin que sea a cambio de un trabajo (por ejemplo, ayuda familiar).' },
+  { clave: 'otro', nombre: 'Otro', texto: 'Lo que no entra en lo anterior (regalos, reintegros, ventas de cosas usadas).' },
+]);
+
 /** Las etiquetas de la clasificación de una hoja, en el orden en que se muestran: [{ clave, nombre }]. */
 export function etiquetasDe(categoria) {
   if (categoria.tipo === 'ingreso') return categoria.naturaleza ? [{ clave: categoria.naturaleza, nombre: NOMBRES_DE_NATURALEZA[categoria.naturaleza] }] : [];
@@ -37,8 +44,8 @@ export function etiquetasDe(categoria) {
   return claves.map((k) => ({ clave: k, nombre: EXPLICACIONES.find((e) => e.clave === k).nombre }));
 }
 
-/** Las explicaciones de las etiquetas que tiene una categoría (las de ingresos no tienen). */
-export const explicacionesDe = (categoria) => EXPLICACIONES.filter((e) => etiquetasDe(categoria).some((t) => t.clave === e.clave));
+/** Las explicaciones de las etiquetas que tiene una categoría (un ingreso: la de su naturaleza). */
+export const explicacionesDe = (categoria) => [...EXPLICACIONES, ...EXPLICACIONES_INGRESO].filter((e) => etiquetasDe(categoria).some((t) => t.clave === e.clave));
 
 const clave = (nombre) => nombre.trim().toLocaleLowerCase('es');
 const activa = (c) => c.estado === 'activa';

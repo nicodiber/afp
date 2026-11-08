@@ -59,6 +59,8 @@ test('aep#2 CA-10 · Movimientos y Análisis muestran el aviso y vuelven al inic
   for (const [boton, titulo] of casos) {
     await boton().click();
     await pagina.waitForFunction((t) => document.querySelector('main h1')?.textContent === t, titulo);
+    // La pantalla se carga al abrirla (HU-34, FC-19): el título aparece antes que el aviso.
+    await pagina.getByText('Esta parte llega en una próxima entrega.').waitFor();
     assert.match(await textoPrincipal(pagina), /Esta parte llega en una próxima entrega\./, titulo);
     await pagina.getByRole('link', { name: 'Volver al inicio' }).click();
     await pagina.waitForFunction(() => /Todavía no cargaste movimientos\./.test(document.querySelector('main').innerText));
@@ -82,7 +84,7 @@ test('aep#2 CA-7 · Ajustes → «Acerca de» muestra el nombre completo y la ve
   await pagina.getByRole('heading', { name: 'Acerca de' }).waitFor();
   const texto = await textoPrincipal(pagina);
   assert.match(texto, /AFP · Administración Financiera Personal/);
-  assert.match(texto, /Versión v0\.3\.0-4$/m, 'versión de la entrega actual (HU-02b)');
+  assert.match(texto, /Versión v0\.3\.0-5$/m, 'versión de la entrega actual (HU-34)');
   assert.deepEqual(errores, []);
   await contexto.close();
 });
@@ -101,7 +103,7 @@ test('aep#2 CA-11 · en la PC: barra lateral compacta que se expande con el mous
   const nombreVisible = () => nav.locator('.nav-nombre').first().evaluate((e) => e.getBoundingClientRect().width > 1);
   assert.equal(await nombreVisible(), false, 'compacta: sin nombres a la vista');
   // «Cargar» abajo de todo.
-  const ys = await nav.getByRole('link').evaluateAll((enlaces) => enlaces.map((a) => [a.innerText.trim() || a.getAttribute('aria-label'), a.getBoundingClientRect().y]));
+  const ys = await nav.getByRole('link').evaluateAll((enlaces) => enlaces.map((a) => [a.querySelector('.nav-nombre')?.textContent.trim() || a.getAttribute('aria-label'), a.getBoundingClientRect().y]));
   const cargarY = ys.find(([n]) => n === 'Cargar')[1];
   assert.ok(ys.every(([n, y]) => n === 'Cargar' || y < cargarY), 'Cargar abajo');
 

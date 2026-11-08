@@ -2,7 +2,7 @@
 // de su tipo. Es un componente: lo abre Categorías y lo puede abrir la carga de movimientos más adelante.
 import { crear } from './dom.js';
 import { capitalizarInicial } from '../dominio/texto.js';
-import { NOMBRES_DE_NATURALEZA, NATURALEZAS, NOMBRE_DE_RAIZ, EXPLICACIONES } from '../dominio/categorias.js';
+import { NOMBRES_DE_NATURALEZA, NATURALEZAS, NOMBRE_DE_RAIZ, EXPLICACIONES, EXPLICACIONES_INGRESO } from '../dominio/categorias.js';
 import { EMOJIS_DE_CATEGORIA, claveIcono, iconoVisible } from '../dominio/iconos.js';
 import { panelQueSignifica } from './info-etiquetas.js';
 
@@ -96,7 +96,8 @@ export function formularioCategoria({ categoria, tipo, dondeTexto, esFamilia, cl
       controles.hormiga = { valor: () => hormiga.getAttribute('aria-checked') === 'true' };
       clasif.push(controles.fijoVariable.elemento, controles.necesidadDeseo.elemento, hormiga);
     } else {
-      clasif.push(crear('p', { class: 'apoyo', texto: nueva ? 'Clasificación (la podés cambiar):' : 'Clasificación:' }));
+      const { boton, panel } = panelQueSignifica({ id: id('significado'), explicaciones: EXPLICACIONES_INGRESO });
+      clasif.push(crear('div', { class: 'cabecera-clasificacion' }, [crear('p', { class: 'apoyo', texto: nueva ? 'Clasificación (la podés cambiar):' : 'Clasificación:' }), boton]), panel);
       controles.naturaleza = segmentado({ rotulo: 'Naturaleza', opciones: NATURALEZAS.map((v) => [v, NOMBRES_DE_NATURALEZA[v]]), valor: clasificacion.naturaleza, id: id('naturaleza') });
       clasif.push(controles.naturaleza.elemento);
     }

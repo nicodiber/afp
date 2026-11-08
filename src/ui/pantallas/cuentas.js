@@ -4,7 +4,7 @@
 import { crear } from '../dom.js';
 import { avisar } from '../dialogo.js';
 import { abrirFormularioEnVentana } from '../cuentas-comun.js';
-import { NOMBRES_DE_TIPO } from '../../dominio/cuentas.js';
+import { NOMBRES_DE_TIPO, iconoDeCuenta } from '../../dominio/cuentas.js';
 import { formatearMonto } from '../../dominio/formato.js';
 
 // Estado de la pantalla mientras se está en ella (se reinicia al salir).
@@ -18,7 +18,7 @@ export function datosDeFila(cuentas, c) {
   if (c.tieneRendimiento) nombre.append(crear('span', { class: 'marca', texto: 'con rendimiento' }));
   const datos = crear('span', { class: 'fila-datos' }, [nombre, crear('span', { class: 'fila-detalle', texto: `${NOMBRES_DE_TIPO[c.tipo]} · ${c.monedaId}` })]);
   return [
-    ...(c.emoji ? [crear('span', { class: 'fila-emoji', 'aria-hidden': 'true', texto: c.emoji })] : []),
+    crear('span', { class: 'fila-emoji', 'aria-hidden': 'true', texto: iconoDeCuenta(c) }),
     datos,
   ];
 }

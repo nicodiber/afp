@@ -63,6 +63,8 @@ test('aep#3 CA-2 · en la PC, el contenido va en una columna de hasta 480 px cen
   for (const [ruta, selectores] of [['#ajustes', ['.segmentado', 'main h1']], ['#inicio', ['main h1', '.vacio']], ['#movimientos', ['main h1', '.vacio']]]) {
     await pagina.goto(entorno.servidor.url + ruta);
     await pagina.waitForSelector('main h1');
+    // Ajustes y las demás pantallas se cargan al abrirlas (HU-34, FC-19): se espera su contenido.
+    for (const selector of selectores) await pagina.waitForSelector(selector);
     await pagina.mouse.move(ESCRITORIO.width - 10, ESCRITORIO.height / 2);
     for (const selector of selectores) {
       const { centro, ancho } = await medir(selector);

@@ -493,6 +493,7 @@ button.fila-cuenta, a.fila-cuenta { cursor: pointer; }
   text-decoration: none;
   white-space: nowrap;
 }
+.nav-atajo { display: none; }
 .nav-icono {
   display: grid;
   place-items: center;
@@ -596,6 +597,7 @@ button.fila-cuenta, a.fila-cuenta { cursor: pointer; }
     font-size: var(--texto-md);
   }
   .nav-icono { width: 24px; height: 24px; flex: 0 0 auto; }
+  .nav-atajo { display: inline-block; margin-left: auto; padding: 0 6px; border: 1px solid currentcolor; border-radius: var(--radio-chico); font: inherit; font-size: var(--texto-xs); font-weight: var(--peso-semi); line-height: 1.5; opacity: .85; }
   .nav-lista a[aria-current="page"] { background: var(--color-acento-tenue); }
   .nav-lista a[aria-current="page"] .nav-icono { background: none; }
   .nav-lista a.nav-cargar {
@@ -613,7 +615,7 @@ button.fila-cuenta, a.fila-cuenta { cursor: pointer; }
   .nav-cargar .icono { width: 24px; height: 24px; }
 
   /* Compacta: los nombres quedan para los lectores de pantalla; al abrirse, a la vista. */
-  .nav-nombre, .nav-logo .logo-texto,
+  .nav-nombre, .nav-logo .logo-texto, .nav-atajo,
   .nav-cargar .nav-nombre {
     position: absolute;
     width: 1px;
@@ -623,7 +625,7 @@ button.fila-cuenta, a.fila-cuenta { cursor: pointer; }
     clip-path: inset(50%);
     white-space: nowrap;
   }
-  .navegacion:hover .nav-nombre, .navegacion:focus-within .nav-nombre,
+  .navegacion:hover .nav-nombre, .navegacion:focus-within .nav-nombre, .navegacion:hover .nav-atajo, .navegacion:focus-within .nav-atajo,
   .navegacion:hover .nav-logo .logo-texto, .navegacion:focus-within .nav-logo .logo-texto {
     position: static;
     width: auto;
