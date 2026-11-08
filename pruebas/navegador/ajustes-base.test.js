@@ -60,7 +60,7 @@ test('aep#3 CA-2 · en la PC, el contenido va en una columna de hasta 480 px cen
   const barra = await anchoBarra(pagina);
   const centroEsperado = barra + (ESCRITORIO.width - barra) / 2;
   const medir = (selector) => pagina.evaluate((s) => { const r = document.querySelector(s).getBoundingClientRect(); return { centro: r.x + r.width / 2, ancho: r.width }; }, selector);
-  for (const [ruta, selectores] of [['#ajustes', ['.segmentado', 'main h1']], ['#inicio', ['main h1', '.vacio']], ['#movimientos', ['main h1', '.vacio']]]) {
+  for (const [ruta, selectores] of [['#ajustes', ['.segmentado', 'main h1']], ['#inicio', ['main h1', '.vacio']]]) { // Movimientos (HU-04) usa todo el ancho en la PC: lo prueba movimientos-lista.test.js
     await pagina.goto(entorno.servidor.url + ruta);
     await pagina.waitForSelector('main h1');
     // Ajustes y las demás pantallas se cargan al abrirlas (HU-34, FC-19): se espera su contenido.
