@@ -4,6 +4,12 @@ Cada entrega a la versión a probar (`/prueba/`) sube el número dentro del hito
 
 ## v0.3.0 · Movimientos (en curso)
 
+### v0.3.0-6 · HU-03
+
+- Registrar un ingreso: la pantalla de Cargar tiene debajo del título un control «Egreso | Ingreso». Al elegir Ingreso, el título pasa a «Nuevo ingreso», el monto se ve en verde (en egreso, en rojo) y la ventana de categorías muestra las de ingresos, por niveles y con sus íconos; la categoría de egreso que hubieras elegido se borra. En la PC, con el foco en el control, ← y → cambian de tipo, y ↑/↓ lo incluyen en el recorrido, antes de la fecha.
+- Al abrir Cargar siempre aparece Egreso. «Guardar y cargar otro» vacía la pantalla pero conserva el tipo que estabas cargando.
+- Un ingreso se guarda como movimiento de tipo ingreso (una parte con la naturaleza de la categoría, pasando por la partida doble) y el saldo de la cuenta sube. Mismas validaciones, botones, atajos (Ctrl+Enter, Ctrl+Mayús+Enter), hora y regla de fecha anterior al inicio de la cuenta que el egreso. El aviso dice «Guardaste el ingreso. Saldo de <cuenta>: $ …». Funciona sin conexión y los datos siguen al volver a abrir AFP.
+
 ### v0.3.0-5 · HU-34
 
 - Atajo «c» en Inicio (PC): abre Cargar (Nuevo egreso). No se activa con el foco en un campo de texto, con una ventana abierta ni con Ctrl, Alt o Meta. Junto al botón «Cargar» de la barra lateral se ve la ayuda «C» (solo en la PC, con la barra abierta).

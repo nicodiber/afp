@@ -417,6 +417,10 @@ button.fila-cuenta, a.fila-cuenta { cursor: pointer; }
    fijos abajo; en la PC va en la columna central. */
 .formulario-egreso { display: grid; gap: var(--esp-4); }
 .campo .entrada-monto { min-height: 64px; font-size: var(--texto-monto); font-weight: var(--peso-extra); font-variant-numeric: tabular-nums; }
+/* HU-03: el monto va en el color del tipo (egreso: error; ingreso: acento) y el tipo se elige con un segmentado. */
+.formulario-egreso[data-tipo="egreso"] .entrada-monto { color: var(--color-error); }
+.formulario-egreso[data-tipo="ingreso"] .entrada-monto { color: var(--color-acento); }
+.segmentado-tipo { width: 100%; }
 .boton-campo { display: flex; align-items: center; justify-content: space-between; gap: var(--esp-3); width: 100%; min-height: var(--alto-boton); padding: 0 var(--esp-3); border: 1px solid var(--color-borde-campo); border-radius: var(--radio-campo); background: var(--color-superficie); color: var(--color-texto); font: inherit; text-align: left; cursor: pointer; }
 .boton-campo-valor { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .boton-campo-valor.sin-elegir { color: var(--color-texto-suave); }
