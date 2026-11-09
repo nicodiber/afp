@@ -226,6 +226,8 @@ export function formularioEgreso({ hoy, ahora, esPC, cuentas, categorias, alGuar
       botones[Math.max(0, Math.min(botones.length - 1, j + (evento.key === 'ArrowRight' ? 1 : -1)))].focus();
     }
   });
+  // Mientras se guarda, Esc no vuelve (HU-35): la pantalla ya usó la tecla.
+  formulario.addEventListener('keydown', (evento) => { if (evento.key === 'Escape' && guardando) evento.preventDefault(); });
   cancelar.addEventListener('click', alCancelar);
   otro.addEventListener('click', () => intentar(true));
   formulario.addEventListener('submit', (evento) => { evento.preventDefault(); intentar(false); });

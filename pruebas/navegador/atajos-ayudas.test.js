@@ -116,7 +116,7 @@ for (const [nombre, viewport] of [['celular', CELULAR], ['PC', ESCRITORIO]]) {
     await irAInicio(pagina);
     await pagina.getByRole('button', { name: '+ Nueva cuenta' }).click();
     const f = ventana(pagina);
-    const icono = f.getByLabel('Emoji');
+    const icono = f.getByLabel('Ícono');
     const tipo = f.getByLabel('Tipo');
     assert.equal(await icono.inputValue(), '💵', 'efectivo por defecto');
     for (const [etiqueta, esperado] of [['Banco', '🏦'], ['Billetera virtual', '📱'], ['Broker', '📈'], ['Transporte', '🚌'], ['Cripto/stablecoin', '🪙'], ['Efectivo', '💵']]) {

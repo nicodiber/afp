@@ -84,34 +84,64 @@ export function validarEgreso(formulario, { cuentas, categorias, hoy }) {
   return { errores, datos: { fecha, hora: hora || null, adelantaInicio, montoTotal, descripcion, categoriaId: formulario.categoriaId, cuentaId: formulario.cuentaId } };
 }
 
-/**
- * Arma el egreso (tipo `egreso`, una parte, estado confirmado, origen manual) y lo pasa por el núcleo de partida
- * doble. Lanza ErrorPartidaDoble si no cuadra.
- */
-export function crearEgreso(datos, { id, cuenta, categoria }) {
+// Arma un ingreso o un egreso simple (una parte, estado confirmado) y lo pasa por el núcleo de partida doble.
+function crearSimple(tipo, datos, { id, cuenta, categoria }, origen) {
   const contexto = {
     monedaDeCuenta: () => cuenta.monedaId,
-    cuentaDePersona: () => { throw new ErrorPartidaDoble('Un egreso simple no usa cuentas de personas.'); },
+    cuentaDePersona: () => { throw new ErrorPartidaDoble(`Un ${tipo} simple no usa cuentas de personas.`); },
   };
+  // La parte copia la clasificación de la categoría al crearla (RN-17): la de un ingreso es su naturaleza.
+  const clasificacion = tipo === 'ingreso'
+    ? { naturaleza: categoria.naturaleza ?? null }
+    : { fijoVariable: categoria.fijoVariable, necesidadDeseo: categoria.necesidadDeseo, hormiga: categoria.hormiga };
   const movimiento = crearMovimiento({
     id,
-    tipo: 'egreso',
+    tipo,
     fecha: datos.fecha,
     hora: datos.hora ?? null,
     descripcion: datos.descripcion,
     estado: 'confirmado',
-    origen: 'manual',
+    origen,
     cuentaId: cuenta.id,
     monedaId: cuenta.monedaId,
     montoTotal: datos.montoTotal,
-    // La parte copia la clasificación de la categoría al crearla (RN-17).
-    partes: [{
-      categoriaId: categoria.id, monto: datos.montoTotal,
-      fijoVariable: categoria.fijoVariable, necesidadDeseo: categoria.necesidadDeseo, hormiga: categoria.hormiga,
-    }],
+    partes: [{ categoriaId: categoria.id, monto: datos.montoTotal, ...clasificacion }],
     revisarCategoria: false,
   }, contexto);
   const problemas = verificarPartidaDoble(movimiento, contexto);
   if (problemas.length) throw new ErrorPartidaDoble(problemas.join('; '));
   return movimiento;
+}
+
+/**
+ * Arma el egreso (tipo `egreso`, una parte, estado confirmado, origen manual) y lo pasa por el núcleo de partida
+ * doble. Lanza ErrorPartidaDoble si no cuadra.
+ */
+export function crearEgreso(datos, { id, cuenta, categoria }, origen = 'manual') {
+  return crearSimple('egreso', datos, { id, cuenta, categoria }, origen);
+}
+
+/**
+ * Arma un ingreso simple (una parte con la naturaleza de la categoría) con origen `datos_ejemplo`: por ahora solo lo
+ * usan los datos de ejemplo (HU-38); la carga de ingresos llega con su propia historia.
+ */
+export function crearIngresoDeEjemplo(datos, { id, cuenta, categoria }) {
+  return crearSimple('ingreso', datos, { id, cuenta, categoria }, 'datos_ejemplo');
+}
+
+/**
+ * Arma los movimientos de los datos de ejemplo (HU-38) a partir de su forma compacta { id, fecha, hora, tipo, cuentaId,
+ * categoriaId, monto, descripcion }. Lanza si alguno no cumple las reglas de partida doble, usa una cuenta o una
+ * categoría que no existe o una categoría que no es hoja activa del tipo del movimiento.
+ */
+export function armarMovimientosDeEjemplo(compactos, { cuentas, categorias }) {
+  return compactos.map((c) => {
+    const cuenta = cuentas.find((x) => x.id === c.cuentaId && activa(x));
+    const categoria = categorias.find((x) => x.id === c.categoriaId && activa(x) && x.tipo === c.tipo && !esFamilia(categorias, x.id));
+    if (!cuenta) throw new ErrorPartidaDoble(`${c.id}: la cuenta ${c.cuentaId} no existe o no está activa`);
+    if (!categoria) throw new ErrorPartidaDoble(`${c.id}: la categoría ${c.categoriaId} no es una hoja activa de ${c.tipo}`);
+    const datos = { fecha: c.fecha, hora: c.hora ?? null, descripcion: c.descripcion ?? '', montoTotal: c.monto };
+    const contexto = { id: c.id, cuenta, categoria };
+    return c.tipo === 'ingreso' ? crearIngresoDeEjemplo(datos, contexto) : crearEgreso(datos, contexto, 'datos_ejemplo');
+  });
 }

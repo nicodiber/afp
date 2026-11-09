@@ -56,7 +56,8 @@ const leerBase = (pagina, almacen) => pagina.evaluate((a) => new Promise((ok) =>
   p.onsuccess = () => { const g = p.result.transaction(a).objectStore(a).getAll(); g.onsuccess = () => { p.result.close(); ok(g.result); }; };
 }), almacen);
 
-const INGRESOS = [['Trabajo', 0], ['Ventas', 0], ['Rendimientos', 0], ['Aporte familiar', 0], ['Regalos recibidos', 0]];
+const INGRESOS = [['Trabajo', 0], ['Ventas', 0], ['Rendimientos', 0], ['Aporte familiar', 0], ['Regalos recibidos', 0],
+  ['Sueldo', 0], ['Trabajos independientes', 0], ['Encargos', 1], ['Clases', 1], ['Ayuda familiar', 0], ['Regalos y Reintegros', 0]];
 const EGRESOS = [
   ['Vivienda', 0], ['Alquiler', 1], ['Electricidad', 1], ['Internet', 1], ['Limpieza', 1],
   ['Alimentación', 0], ['Supermercado', 1], ['Verdulería', 1], ['Kiosco', 1],
@@ -236,13 +237,19 @@ test('aep#15 CA-14 a CA-16 · archivar, reactivar y eliminar', async () => {
   await ventana(pagina).getByRole('button', { name: 'Eliminar' }).click();
   await aviso(pagina).filter({ hasText: 'Primero mové o eliminá sus categorías.' }).waitFor();
   await ventana(pagina).getByRole('button', { name: 'Cancelar' }).click();
-  // CA-15 · una hoja sin movimientos se elimina después de confirmar.
+  // Una hoja con movimientos (Salud tiene en los datos de ejemplo, HU-38) no se elimina: se ofrece archivarla.
   await abrirCategoria(pagina, 'cat-salud');
   await ventana(pagina).getByRole('button', { name: 'Eliminar' }).click();
-  assert.match(await ventana(pagina).innerText(), /¿Eliminar Salud\?[\s\S]*No se puede deshacer\./);
+  assert.match(await ventana(pagina).innerText(), /No podés eliminarla porque tiene movimientos\. Podés archivarla\./);
+  await ventana(pagina).getByRole('button', { name: 'Cancelar' }).click(); // cierra la pregunta de archivar
+  await ventana(pagina).getByRole('button', { name: 'Cancelar' }).click(); // y la ventana de la categoría
+  // CA-15 · una hoja sin movimientos (Rendimientos) se elimina después de confirmar.
+  await abrirCategoria(pagina, 'cat-rendimientos');
   await ventana(pagina).getByRole('button', { name: 'Eliminar' }).click();
-  await aviso(pagina).filter({ hasText: 'Eliminaste Salud.' }).waitFor();
-  assert.equal(await pagina.locator('#categoria-cat-salud').count(), 0);
+  assert.match(await ventana(pagina).innerText(), /¿Eliminar Rendimientos\?[\s\S]*No se puede deshacer\./);
+  await ventana(pagina).getByRole('button', { name: 'Eliminar' }).click();
+  await aviso(pagina).filter({ hasText: 'Eliminaste Rendimientos.' }).waitFor();
+  assert.equal(await pagina.locator('#categoria-cat-rendimientos').count(), 0);
   assert.deepEqual(errores, []);
   await contexto.close();
 });

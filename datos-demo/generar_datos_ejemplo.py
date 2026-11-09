@@ -11,7 +11,7 @@ from pathlib import Path
 def c(pesos):  # pesos → centavos
     return round(pesos * 100)
 
-SALDO_INICIAL_AL = '2026-09-01'
+SALDO_INICIAL_AL = '2026-08-01'  # antes del primer movimiento de ejemplo (1/8)
 # Cuentas y monedas con los campos del modelo de datos (02-modelo-de-datos.md §3.3 y §3.4, D-128).
 def cuenta(orden, id, nombre, tipo, moneda, saldo, rendimiento=False):
     return {'id': f'cue-{id}', 'nombre': nombre, 'tipo': tipo, 'monedaId': moneda, 'saldoInicial': c(saldo),
@@ -39,6 +39,7 @@ def _slug(nombre):
 # Un emoji único por categoría (HU-31): no se repite entre categorías de ingresos y de egresos.
 ICONOS = {
     'Trabajo': '💼', 'Ventas': '🏷️', 'Rendimientos': '💹', 'Aporte familiar': '👪', 'Regalos recibidos': '🎀',
+    'Sueldo': '💵', 'Trabajos independientes': '🧰', 'Encargos': '📝', 'Clases': '🎓', 'Ayuda familiar': '🤝', 'Regalos y Reintegros': '🎁',
     'Vivienda': '🏠', 'Alquiler': '🔑', 'Electricidad': '💡', 'Internet': '🌐', 'Limpieza': '🧹',
     'Alimentación': '🍽️', 'Supermercado': '🛒', 'Verdulería': '🥦', 'Kiosco': '🍬',
     'Transporte': '🚌', 'Transporte público': '🚇', 'Ocio': '🎉', 'Juntada': '🍕', 'Vacaciones': '🏖️', 'Salud': '🩺',
@@ -53,6 +54,13 @@ for hoja in ('Trabajo', 'Ventas', 'Rendimientos'):
     cat('ingreso', hoja, naturaleza='ganado')
 cat('ingreso', 'Aporte familiar', naturaleza='aporte_terceros')
 cat('ingreso', 'Regalos recibidos', naturaleza='otro')
+# HU-38: ingresos para los movimientos de ejemplo. «Trabajos independientes» es una familia con dos hojas.
+cat('ingreso', 'Sueldo', naturaleza='ganado')
+cat('ingreso', 'Trabajos independientes')
+for hoja in ('Encargos', 'Clases'):
+    cat('ingreso', hoja, 'Trabajos independientes', naturaleza='ganado')
+cat('ingreso', 'Ayuda familiar', naturaleza='aporte_terceros')
+cat('ingreso', 'Regalos y Reintegros', naturaleza='otro')
 egreso = lambda fv, nd, hormiga=False: {'fijoVariable': fv, 'necesidadDeseo': nd, 'hormiga': hormiga}
 cat('egreso', 'Vivienda')
 for hoja in ('Alquiler', 'Electricidad', 'Internet'):
@@ -119,6 +127,83 @@ MOVIMIENTOS = [
     egr('M34', '2026-10-28', 'cue-billetera-virtual', 'Supermercado', 9_000, estado='pendiente_de_revision'),
     egr('M35', '2026-10-29', 'cue-billetera', 'Kiosco', 1_000, estado='en_papelera'),
 ]
+# HU-38 · Movimientos de ejemplo que carga la app: (fecha, hora, cuenta, categoría, monto en pesos, descripción).
+# Ingresos: la categoría es de ingreso; egresos: una hoja de egreso. Solo cuentas en pesos; ninguna queda en negativo.
+_ING = ('Sueldo', 'Encargos', 'Clases', 'Regalos y Reintegros')
+_EJEMPLO = [
+    ('2026-08-01', '09:10', 'banco', 'Sueldo', 880_000, 'Sueldo de agosto'),
+    ('2026-08-02', '18:20', 'billetera', 'Verdulería', 6_500, 'Compra de verdura'),
+    ('2026-08-03', '10:05', 'banco', 'Alquiler', 340_000, 'Alquiler de agosto'),
+    ('2026-08-04', '19:40', 'billetera-virtual', 'Supermercado', 48_000, 'Compra mensual'),
+    ('2026-08-06', '11:15', 'banco', 'Internet', 19_000, 'Abono mensual'),
+    ('2026-08-07', '08:30', 'tarjeta-transporte', 'Transporte público', 3_000, 'Viajes de la semana'),
+    ('2026-08-08', '17:50', 'billetera', 'Kiosco', 1_800, 'Golosinas'),
+    ('2026-08-10', '12:00', 'banco', 'Electricidad', 23_500, 'Factura de luz'),
+    ('2026-08-11', '20:10', 'billetera-virtual', 'Juntada', 14_000, 'Salida con amigos'),
+    ('2026-08-13', '18:05', 'billetera', 'Verdulería', 5_200, 'Compra de verdura'),
+    ('2026-08-14', '15:30', 'billetera-virtual', 'Encargos', 60_000, 'Trabajo para un cliente'),
+    ('2026-08-16', '10:20', 'caja', 'Salud', 12_000, 'Farmacia'),
+    ('2026-08-18', '19:00', 'billetera-virtual', 'Supermercado', 15_500, 'Compra semanal'),
+    ('2026-08-20', '13:45', 'billetera', 'Limpieza', 4_200, 'Artículos de limpieza'),
+    ('2026-08-22', '09:15', 'billetera', 'Kiosco', 2_400, 'Golosinas'),
+    ('2026-08-25', '18:30', 'billetera-virtual', 'Supermercado', 17_800, 'Compra semanal'),
+    ('2026-08-27', '11:00', 'caja', 'Vacaciones', 45_000, 'Reserva de alojamiento'),
+    ('2026-08-29', '17:40', 'billetera', 'Verdulería', 4_800, 'Compra de verdura'),
+    ('2026-09-01', '09:00', 'banco', 'Sueldo', 900_000, 'Sueldo de septiembre'),
+    ('2026-09-02', '18:15', 'billetera', 'Verdulería', 5_600, 'Compra de verdura'),
+    ('2026-09-03', '10:30', 'banco', 'Alquiler', 350_000, 'Alquiler de septiembre'),
+    ('2026-09-05', '19:20', 'billetera-virtual', 'Supermercado', 52_000, 'Compra mensual'),
+    ('2026-09-06', '11:05', 'banco', 'Internet', 20_000, 'Abono mensual'),
+    ('2026-09-08', '08:25', 'tarjeta-transporte', 'Transporte público', 2_500, 'Viajes de la semana'),
+    ('2026-09-09', '17:35', 'billetera', 'Kiosco', 2_100, 'Golosinas'),
+    ('2026-09-10', '12:10', 'banco', 'Electricidad', 24_800, 'Factura de luz'),
+    ('2026-09-12', '20:30', 'billetera-virtual', 'Juntada', 16_000, 'Cena con amigos'),
+    ('2026-09-13', '18:10', 'billetera', 'Verdulería', 6_100, 'Compra de verdura'),
+    ('2026-09-15', '16:00', 'banco', 'Salud', 18_000, 'Consulta médica'),
+    ('2026-09-17', '19:25', 'billetera-virtual', 'Supermercado', 14_200, 'Compra semanal'),
+    ('2026-09-19', '14:50', 'banco', 'Encargos', 85_000, 'Trabajo para un cliente'),
+    ('2026-09-21', '09:45', 'billetera', 'Limpieza', 3_600, 'Artículos de limpieza'),
+    ('2026-09-23', '18:00', 'billetera', 'Verdulería', 5_300, 'Compra de verdura'),
+    ('2026-09-24', '19:15', 'billetera-virtual', 'Supermercado', 16_900, 'Compra semanal'),
+    ('2026-09-26', '10:40', 'billetera', 'Clases', 25_000, 'Clase particular'),
+    ('2026-09-27', '17:20', 'billetera', 'Kiosco', 1_900, 'Golosinas'),
+    ('2026-10-01', '09:05', 'banco', 'Sueldo', 950_000, 'Sueldo de octubre'),
+    ('2026-10-02', '18:25', 'billetera', 'Verdulería', 5_900, 'Compra de verdura'),
+    ('2026-10-03', '10:15', 'banco', 'Alquiler', 350_000, 'Alquiler de octubre'),
+    ('2026-10-04', '19:35', 'billetera-virtual', 'Supermercado', 55_000, 'Compra mensual'),
+    ('2026-10-06', '11:20', 'banco', 'Internet', 22_000, 'Abono mensual'),
+    ('2026-10-07', '08:35', 'tarjeta-transporte', 'Transporte público', 2_000, 'Viajes de la semana'),
+    ('2026-10-08', '17:45', 'billetera', 'Kiosco', 2_200, 'Golosinas'),
+    ('2026-10-09', '12:25', 'caja', 'Clases', 30_000, 'Clase particular'),
+    ('2026-10-10', '13:00', 'banco', 'Electricidad', 27_000, 'Factura de luz'),
+    ('2026-10-12', '16:30', 'billetera', 'Regalos y Reintegros', 20_000, 'Regalo de cumpleaños'),
+    ('2026-10-13', '20:20', 'billetera-virtual', 'Juntada', 12_500, 'Salida con amigos'),
+    ('2026-10-14', '18:15', 'billetera', 'Verdulería', 6_400, 'Compra de verdura'),
+    ('2026-10-16', '15:40', 'banco', 'Salud', 9_500, 'Farmacia'),
+    ('2026-10-18', '19:10', 'billetera-virtual', 'Supermercado', 18_300, 'Compra semanal'),
+    ('2026-10-20', '10:10', 'billetera', 'Limpieza', 4_700, 'Artículos de limpieza'),
+    ('2026-10-21', '08:40', 'tarjeta-transporte', 'Transporte público', 1_500, 'Viajes de la semana'),
+    ('2026-10-22', '18:35', 'billetera', 'Verdulería', 5_700, 'Compra de verdura'),
+    ('2026-10-23', '14:20', 'billetera-virtual', 'Encargos', 70_000, 'Trabajo para un cliente'),
+    ('2026-10-25', '19:05', 'billetera-virtual', 'Supermercado', 17_400, 'Compra semanal'),
+    ('2026-10-26', '17:55', 'billetera', 'Kiosco', 2_600, 'Golosinas'),
+    ('2026-10-27', '11:10', 'caja', 'Limpieza', 6_100, 'Artículos de limpieza'),
+    ('2026-10-28', '11:30', 'caja', 'Salud', 8_000, 'Consulta médica'),
+    ('2026-10-29', '18:40', 'billetera', 'Verdulería', 5_100, 'Compra de verdura'),
+    ('2026-10-30', '12:15', 'billetera-virtual', 'Juntada', 9_800, 'Almuerzo con amigos'),
+    ('2026-10-31', '10:00', 'billetera-virtual', 'Supermercado', 9_200, 'Compra rápida'),
+]
+MOVIMIENTOS_EJEMPLO = [
+    {'id': f'mov-ej-{i:02d}', 'fecha': f, 'hora': h, 'tipo': 'ingreso' if cat_ in _ING else 'egreso', 'cuentaId': f'cue-{cu}',
+     'categoriaId': _slug(cat_), 'monto': c(m), 'descripcion': d, 'origen': 'datos_ejemplo'}
+    for i, (f, h, cu, cat_, m, d) in enumerate(sorted(_EJEMPLO, key=lambda x: (x[0], x[1])), start=1)
+]
+# Control: ninguna cuenta queda negativa en ningún momento.
+_saldo = {x['id']: x['saldoInicial'] for x in CUENTAS}
+for _m in MOVIMIENTOS_EJEMPLO:
+    _saldo[_m['cuentaId']] += _m['monto'] if _m['tipo'] == 'ingreso' else -_m['monto']
+    assert _saldo[_m['cuentaId']] >= 0, _m
+
 RECURRENTES = [
     {'nombre': 'Trabajo', 'tipo': 'ingreso', 'cuenta': 'cue-banco', 'dia': 1, 'montoEstimado': c(950_000), 'registradas': ['M01', 'M12']},
     {'nombre': 'Aporte familiar', 'tipo': 'ingreso', 'cuenta': 'cue-billetera-virtual', 'dia': 2, 'montoEstimado': c(150_000), 'registradas': ['M02', 'M13']},
@@ -133,13 +218,13 @@ COTIZACIONES = [
 IPC = [{'mes': '2026-08', 'valor': '100.00'}, {'mes': '2026-09', 'valor': '102.00'}, {'mes': '2026-10', 'valor': '104.04'}]
 
 datos = {
-    'formato': 'afp-datos-de-ejemplo', 'version': 3, 'fechaSimulada': '2026-10-31',
+    'formato': 'afp-datos-de-ejemplo', 'version': 4, 'fechaSimulada': '2026-10-31',
     'nota': 'Datos ficticios (05-roadmap.md §5 del repo aep). Ninguna persona, cuenta ni monto es real.',
     'cuentas': CUENTAS, 'monedas': MONEDAS, 'categorias': CATEGORIAS, 'ubicacionesCategoria': UBICACIONES,
-    'movimientos': MOVIMIENTOS, 'recurrentes': {'desde': '2026-09-01', 'lista': RECURRENTES},
+    'movimientos': MOVIMIENTOS, 'movimientosDeEjemplo': MOVIMIENTOS_EJEMPLO, 'recurrentes': {'desde': '2026-09-01', 'lista': RECURRENTES},
     'cotizaciones': {'estado': 'corregida_a_mano', 'compraIgualVenta': True, 'periodos': COTIZACIONES},
     'indices': {'ipcGeneral': {'estado': 'corregida_a_mano', 'valores': IPC}},
 }
 destino = Path(__file__).with_name('datos-ejemplo.json')
 destino.write_text(json.dumps(datos, ensure_ascii=False, indent=1), encoding='utf-8')
-print(destino, len(MOVIMIENTOS), 'movimientos')
+print(destino, len(MOVIMIENTOS), 'movimientos del plan;', len(MOVIMIENTOS_EJEMPLO), 'movimientos de ejemplo')

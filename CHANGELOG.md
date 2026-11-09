@@ -4,6 +4,14 @@ Cada entrega a la versión a probar (`/prueba/`) sube el número dentro del hito
 
 ## v0.3.0 · Movimientos (en curso)
 
+### v0.3.0-8 · HU-35 y HU-38
+
+- Esc vuelve (solo en la PC): desde Cargar, Movimientos, Cuentas, Categorías, Monedas, Ajustes y sus subpantallas vuelve a la pantalla anterior; repetido, llega a Inicio, donde no hace nada. Si no hay historial dentro de AFP (por ejemplo, abriste `#ajustes/categorias` directo), va a la pantalla padre: la subpantalla a Ajustes y la pantalla a Inicio. Antes que él, lo que esté abierto: una ventana o un tooltip ⓘ se cierra y no se vuelve. Con el foco en un campo, el primer Esc lo suelta y el segundo vuelve. En Cargar, Esc equivale a «Cancelar» (vuelve sin guardar y sin preguntar, como el botón). Una tecla mantenida apretada cuenta una sola vez, y mientras se guarda un egreso no vuelve. En el celular no cambia nada. El lugar en el historial de AFP se guarda en `history.state` (sobrevive a recargar); «Cancelar» y «Guardar» de Cargar usan el mismo criterio, así que ya no salen de AFP si se llegó por una recarga directa.
+- Datos de ejemplo (versión 4): suman las categorías de ingresos Sueldo, Trabajos independientes (familia con Encargos y Clases), Ayuda familiar y Regalos y Reintegros, cada una con ícono único y su naturaleza, y 61 movimientos ficticios con hora entre el 1/8 y el 31/10/2026 (sueldo mensual, trabajos independientes, un regalo y egresos en 11 hojas, varias de Alimentación), repartidos entre las cuentas en pesos. Los saldos de Inicio salen del saldo inicial más los movimientos y ninguna cuenta queda negativa. Las cuentas de ejemplo ahora empiezan el 01/08/2026. «Restablecer datos de ejemplo» vuelve al mismo estado y «Borrar datos de prueba» borra también los movimientos. Los movimientos se arman con las reglas de partida doble al cargar: si alguno no cumple, no se guarda nada.
+- El campo «Emoji» del formulario de cuenta pasa a llamarse «Ícono» (D-170).
+- Períodos de Movimientos (P-043): el dominio calcula el rango de cada período y su texto debajo del selector («01/09/2026 al 31/10/2026»; «Últimos 3 meses» son el mes en curso y los dos anteriores completos; «Todo»: «desde el primer movimiento (DD/MM/AAAA)»). La pantalla de Movimientos todavía no existe, así que aún no se ve.
+- Rendimiento: LCP de la pantalla inicial 2,37 s (mediana de 3 corridas de `npm run medir`: 2,37 / 2,26 / 2,49), dentro del límite de 2,5 s.
+
 ### v0.3.0-5 · HU-34
 
 - Atajo «c» en Inicio (PC): abre Cargar (Nuevo egreso). No se activa con el foco en un campo de texto, con una ventana abierta ni con Ctrl, Alt o Meta. Junto al botón «Cargar» de la barra lateral se ve la ayuda «C» (solo en la PC, con la barra abierta).

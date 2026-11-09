@@ -13,12 +13,12 @@ before(async () => { entorno = await prepararEntorno(); });
 after(async () => { await entorno.cerrar(); });
 
 const EJEMPLO = [
-  ['Billetera', 'Efectivo · ARS', `$${E}50.000,00`],
-  ['Caja', 'Efectivo · ARS', `$${E}200.000,00`],
-  ['Banco', 'Banco · ARS', `$${E}800.000,00`],
-  ['Billetera virtual', 'Billetera virtual · ARS', `$${E}300.000,00`],
+  ['Billetera', 'Efectivo · ARS', `$${E}12.900,00`],
+  ['Caja', 'Efectivo · ARS', `$${E}158.900,00`],
+  ['Banco', 'Banco · ARS', `$${E}2.411.200,00`],
+  ['Billetera virtual', 'Billetera virtual · ARS', `$${E}113.400,00`],
   ['Dólares billete', 'Efectivo · USD', `US$${E}500,00`],
-  ['Tarjeta transporte', 'Transporte · ARS', `$${E}10.000,00`],
+  ['Tarjeta transporte', 'Transporte · ARS', `$${E}1.000,00`],
 ];
 
 /** Abre AFP en modo prueba (base afp-dev-prueba) y, si se pide, carga los datos de ejemplo. */
@@ -52,7 +52,7 @@ async function completar(pagina, datos, { enviar = true } = {}) {
   if (datos.moneda) await f.getByLabel('Moneda').selectOption(datos.moneda);
   if (datos.saldo !== undefined) await f.getByLabel('Saldo inicial').fill(datos.saldo);
   if (datos.fecha) await f.getByLabel('Al día').fill(datos.fecha);
-  if (datos.emoji !== undefined) await f.getByLabel('Emoji').fill(datos.emoji);
+  if (datos.emoji !== undefined) await f.getByLabel('Ícono').fill(datos.emoji);
   if (datos.notas !== undefined) await f.getByLabel('Notas').fill(datos.notas);
   if (datos.proposito) await f.getByLabel('Propósito').selectOption({ label: datos.proposito });
   if (enviar) await f.getByRole('button', { name: /^(Crear cuenta|Guardar)$/ }).click();
@@ -72,7 +72,7 @@ for (const [nombre, viewport] of [['celular', CELULAR], ['PC', ESCRITORIO]]) {
     assert.equal(await pagina.locator('.fila-cuenta', { hasText: 'Billetera virtual' }).locator('.marca').textContent(), 'con rendimiento');
     assert.equal(await pagina.locator('.seccion-archivadas').count(), 0, 'ninguna archivada');
     await pagina.locator('#cuenta-cue-caja').click();
-    assert.equal(await pagina.locator('form.formulario-cuenta').last().getByLabel('Al día').inputValue(), '2026-09-01');
+    assert.equal(await pagina.locator('form.formulario-cuenta').last().getByLabel('Al día').inputValue(), '2026-08-01');
     await pagina.keyboard.press('Escape');
     await pagina.goto(entorno.servidor.url + '#ajustes/monedas');
     await pagina.getByRole('heading', { name: 'Monedas' }).waitFor();
@@ -204,7 +204,7 @@ test('aep#12 CA-10 y CA-11 · editar nombre, saldo y moneda; el nombre se muestr
   await pagina.locator('#cuenta-cue-caja').click();
   await completar(pagina, { nombre: 'Caja fuerte', saldo: '250.000' });
   await aviso(pagina).filter({ hasText: 'Guardaste los cambios.' }).waitFor();
-  assert.deepEqual((await filas(pagina))[1], ['Caja fuerte', 'Efectivo · ARS', `$${E}250.000,00`], 'en el mismo lugar del orden');
+  assert.deepEqual((await filas(pagina))[1], ['Caja fuerte', 'Efectivo · ARS', `$${E}208.900,00`], 'en el mismo lugar del orden (saldo inicial 250.000 menos los 41.100 que gastó la Caja en los movimientos de ejemplo)');
   await pagina.locator('#cuenta-cue-caja').click();
   await completar(pagina, { nombre: '<b>Caja</b>' });
   await pagina.waitForFunction(() => document.querySelector('#cuenta-cue-caja .fila-nombre > span').textContent === '<b>Caja</b>');
