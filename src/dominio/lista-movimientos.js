@@ -2,6 +2,7 @@
 // por parámetro (puerto Reloj) y los montos son enteros en centavos.
 import { normalizarBusqueda } from './movimientos.js';
 import { descendientes } from './categorias.js';
+import { formatearFecha } from './fecha.js';
 
 export const PERIODOS = Object.freeze([
   ['este-mes', 'Este mes'], ['mes-anterior', 'Mes anterior'], ['ultimos-3', 'Últimos 3 meses'],
@@ -34,6 +35,15 @@ export function rangoDePeriodo(periodo, hoy, mesElegido = null) {
     }
     default: return { desde: null, hasta: null };
   }
+}
+
+/**
+ * El texto con las fechas del período, debajo del selector (HU-38, P-043): «01/09/2026 al 31/10/2026». Para «Todo» no hay
+ * límite: «desde el primer movimiento (DD/MM/AAAA)», con la fecha del más viejo (`primerMovimiento`, AAAA-MM-DD o null).
+ */
+export function textoDelRango(periodo, rango, primerMovimiento = null) {
+  if (periodo === 'todo' || !rango.desde) return primerMovimiento ? `desde el primer movimiento (${formatearFecha(primerMovimiento)})` : 'todavía no hay movimientos';
+  return `${formatearFecha(rango.desde)} al ${formatearFecha(rango.hasta)}`;
 }
 
 /** Ids de una categoría y de todas las que cuelgan de ella (elegir una familia incluye sus subcategorías). */

@@ -3,7 +3,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  rangoDePeriodo, idsDeCategoria, filtrarMovimientos, totales, totalesPorMoneda, egresosPorCategoria, filaDeMovimiento, ordenarPorFechaYHora,
+  rangoDePeriodo, textoDelRango, idsDeCategoria, filtrarMovimientos, totales, totalesPorMoneda, egresosPorCategoria, filaDeMovimiento, ordenarPorFechaYHora,
 } from '../../src/dominio/lista-movimientos.js';
 
 const HOY = '2026-10-31';
@@ -138,4 +138,16 @@ test('HU-04 CA-3 · con 500 movimientos, filtrar y calcular los totales tarda me
   const ms = performance.now() - t0;
   assert.ok(lista.length > 0 && t.length === 1 && barras.length > 0);
   assert.ok(ms < 200, `tardó ${ms.toFixed(1)} ms`);
+});
+
+test('HU-38 ajuste B (P-043) · el texto de las fechas de cada período, debajo del selector', () => {
+  const texto = (periodo, mes) => textoDelRango(periodo, rangoDePeriodo(periodo, HOY, mes), '2026-08-03');
+  assert.equal(texto('este-mes'), '01/10/2026 al 31/10/2026');
+  assert.equal(texto('mes-anterior'), '01/09/2026 al 30/09/2026');
+  assert.equal(texto('ultimos-3'), '01/08/2026 al 31/10/2026', 'el mes en curso y los dos anteriores completos');
+  assert.equal(texto('este-anio'), '01/01/2026 al 31/12/2026');
+  assert.equal(texto('mes', '2026-02'), '01/02/2026 al 28/02/2026');
+  assert.equal(texto('todo'), 'desde el primer movimiento (03/08/2026)');
+  assert.equal(textoDelRango('todo', rangoDePeriodo('todo', HOY), null), 'todavía no hay movimientos');
+  assert.equal(textoDelRango('ultimos-3', rangoDePeriodo('ultimos-3', '2027-02-10')), '01/12/2026 al 28/02/2027', 'cruza el año');
 });

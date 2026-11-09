@@ -1,6 +1,6 @@
 // Interfaz de AFP (aep#2): rutas por «#destino», navegación, tema y aviso de versión nueva.
 import { pantallaInicio } from './pantallas/inicio.js';
-import { abreCarga } from '../dominio/atajos.js';
+import { abreCarga, accionDeEscape, destinoAlVolver } from '../dominio/atajos.js';
 import { actualizarFranja } from './franja-prueba.js';
 import { crear } from './dom.js';
 
@@ -68,11 +68,22 @@ export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, datosDi
     if (destino) destino.focus(); else if (foco !== undefined) principal.querySelector('h1')?.focus({ preventScroll: true });
   };
   let rutaAnterior = null;
-  // Cuántas veces se cambió de pantalla dentro de AFP: «Cancelar» y «Guardar» vuelven atrás si hay a dónde (HU-02).
-  let cambiosDePantalla = 0;
-  const volver = () => {
-    if (cambiosDePantalla > 0) history.back(); else location.replace('#inicio');
+  // Lugar de la pantalla actual en el historial de AFP (0 = la primera entrada de esta pestaña): se guarda en
+  // history.state para no perderlo al recargar ni al ir atrás o adelante (HU-35). Hay historial previo si es > 0.
+  let indiceHistorial = Number.isInteger(history.state?.afp) ? history.state.afp : 0;
+  let reemplazando = false;
+  const guardarIndice = () => { try { history.replaceState({ afp: indiceHistorial }, ''); } catch { /* sin historial: se sigue sin él */ } };
+  guardarIndice();
+  const hayHistorial = () => indiceHistorial > 0;
+  // Va a otra pantalla reemplazando la entrada actual (no suma una al historial).
+  const reemplazarPor = (hash) => { reemplazando = true; location.replace(hash); };
+  // «Cancelar» y «Guardar» (HU-02) y Esc (HU-35): vuelven atrás si hay a dónde; si no, a la pantalla padre.
+  const volverAlPadre = () => {
+    const destino = destinoAlVolver({ ruta: rutaActual(), hayHistorial: hayHistorial() });
+    if (!destino) return;
+    if (destino.accion === 'atras') history.back(); else reemplazarPor(`#${destino.ruta}`);
   };
+  const volver = volverAlPadre;
 
   const acciones = {
     alInstalar: () => instalacion.instalar().then(() => mostrar(false)),
@@ -145,7 +156,10 @@ export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, datosDi
   mostrar(false);
   // Al cambiar de pantalla (por ejemplo, con «Atrás» del celular), se cierra cualquier ventana abierta.
   window.addEventListener('hashchange', () => {
-    cambiosDePantalla += 1;
+    if (Number.isInteger(history.state?.afp)) indiceHistorial = history.state.afp; // ir atrás o adelante
+    else if (reemplazando) guardarIndice(); // una entrada reemplazada ocupa el mismo lugar
+    else { indiceHistorial += 1; guardarIndice(); }
+    reemplazando = false;
     for (const ventana of document.querySelectorAll('dialog[open]')) ventana.close();
     mostrar(true);
   });
@@ -163,6 +177,22 @@ export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, datosDi
     if (!abre || evento.defaultPrevented) return;
     evento.preventDefault();
     location.hash = '#cargar';
+  });
+  // Esc en la PC (HU-35): vuelve a la pantalla anterior hasta Inicio. Antes que él, lo que esté abierto (ventana, tooltip ⓘ)
+  // y los campos con el foco. La pantalla que ya usó la tecla (por ejemplo, el formulario de cuenta) la marca con preventDefault.
+  let ayudaAbiertaAlPulsar = false;
+  document.addEventListener('keydown', () => { ayudaAbiertaAlPulsar = Boolean(document.querySelector('#globo-info:not([hidden])')); }, true);
+  document.addEventListener('keydown', (evento) => {
+    if (evento.defaultPrevented) return;
+    const objetivo = evento.target instanceof Element ? evento.target : null;
+    const accion = accionDeEscape({
+      tecla: evento.key, ctrl: evento.ctrlKey, alt: evento.altKey, meta: evento.metaKey, shift: evento.shiftKey, repetida: evento.repeat || evento.isComposing,
+      enCampo: Boolean(objetivo?.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"])')),
+      hayVentana: Boolean(document.querySelector('dialog[open]')), hayAyuda: ayudaAbiertaAlPulsar, esPC: esPC(), ruta: rutaActual(),
+    });
+    if (accion === 'ignorar') return;
+    evento.preventDefault();
+    if (accion === 'soltar-foco') objetivo.blur(); else volverAlPadre();
   });
   matchMedia(SISTEMA_OSCURO).addEventListener('change', aplicarTema);
   return {

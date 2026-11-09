@@ -1,5 +1,5 @@
 // HU-03: registrar un ingreso en el navegador (celular 390×844 y PC). Valores esperados escritos a mano a partir de la
-// historia y de los datos de ejemplo (Banco: $ 800.000,00 al 01/09/2026; Hoy = 31/10/2026).
+// historia y de los datos de ejemplo (Banco: $ 800.000,00 al 01/08/2026 más los movimientos de ejemplo de HU-38; Hoy = 31/10/2026).
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { prepararEntorno, abrir, CELULAR, ESCRITORIO } from './comun.mjs';
@@ -48,6 +48,8 @@ const movimientosGuardados = (pagina) => pagina.evaluate(() => new Promise((ok) 
     g.onsuccess = () => { db.close(); ok(g.result); };
   };
 }));
+// Los que cargó la persona; los 61 de los datos de ejemplo (origen datos_ejemplo, HU-38) quedan afuera.
+const movimientosPropios = async (pagina) => (await movimientosGuardados(pagina)).filter((m) => m.origen !== 'datos_ejemplo');
 const saldoEnInicio = (pagina, id) => pagina.locator(`#tarjeta-${id} .tarjeta-cuenta-monto`).textContent();
 const sinDesplazamientoHorizontal = (pagina) => pagina.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);
 
@@ -75,7 +77,7 @@ for (const [nombre, viewport] of VIEWPORTS) {
     assert.equal(await pagina.locator('.boton-campo-valor').first().textContent(), 'Elegir…', 'la categoría de egreso se borró');
     // La ventana de categorías muestra las de ingresos, con su ícono.
     await pagina.getByRole('button', { name: /^Categoría/ }).click();
-    assert.deepEqual(await opciones(pagina), ['💼Trabajo', '🏷️Ventas', '💹Rendimientos', '👪Aporte familiar', '🎀Regalos recibidos']);
+    assert.deepEqual(await opciones(pagina), ['💼Trabajo', '🏷️Ventas', '💹Rendimientos', '👪Aporte familiar', '🎀Regalos recibidos', '💵Sueldo', '🧰Trabajos independientes›', '🤝Ayuda familiar', '🎁Regalos y Reintegros']);
     await ventana(pagina).getByRole('button', { name: 'Cerrar' }).click();
     // Y vuelve a Egreso.
     await elegirTipo(pagina, 'Egreso');
@@ -93,18 +95,18 @@ for (const [nombre, viewport] of VIEWPORTS) {
     const { contexto, pagina, errores } = await enModoPrueba({ viewport });
     await pagina.goto(`${entorno.servidor.url}#inicio`);
     await pagina.locator('#titulo-tus-cuentas').waitFor();
-    assert.equal(await saldoEnInicio(pagina, 'cue-banco'), `$${E}800.000,00`);
+    assert.equal(await saldoEnInicio(pagina, 'cue-banco'), `$${E}2.411.200,00`);
     await abrirCarga(pagina);
     await elegirTipo(pagina, 'Ingreso');
     await campo(pagina, 'Monto').fill('150000');
     await campo(pagina, 'Descripción (opcional)').fill('sueldo de octubre');
-    await elegir(pagina, 'Categoría', 'trab', /Trabajo/);
+    await elegir(pagina, 'Categoría', 'trab', /Trabajo$/);
     await elegir(pagina, 'Cuenta', 'banc', /^Banco/);
     await pagina.getByRole('button', { name: 'Guardar', exact: true }).click();
-    await aviso(pagina).filter({ hasText: `Guardaste el ingreso. Saldo de Banco: $${E}950.000,00.` }).waitFor();
+    await aviso(pagina).filter({ hasText: `Guardaste el ingreso. Saldo de Banco: $${E}2.561.200,00.` }).waitFor();
     await pagina.locator('#titulo-tus-cuentas').waitFor();
-    assert.equal(await saldoEnInicio(pagina, 'cue-banco'), `$${E}950.000,00`);
-    const guardados = await movimientosGuardados(pagina);
+    assert.equal(await saldoEnInicio(pagina, 'cue-banco'), `$${E}2.561.200,00`);
+    const guardados = await movimientosPropios(pagina);
     assert.equal(guardados.length, 1);
     const m = guardados[0];
     assert.deepEqual(
@@ -123,7 +125,7 @@ test('HU-03 CA-3 · mismas validaciones: sin monto, categoría ni cuenta no guar
   await elegirTipo(pagina, 'Ingreso');
   await pagina.getByRole('button', { name: 'Guardar', exact: true }).click();
   await pagina.waitForFunction(() => [...document.querySelectorAll('.error-campo:not([hidden])')].map((x) => x.textContent).join('|') === 'Escribí un monto mayor que 0.|Elegí una categoría.|Elegí una cuenta.');
-  assert.equal((await movimientosGuardados(pagina)).length, 0);
+  assert.equal((await movimientosPropios(pagina)).length, 0);
   // Cambiar de tipo quita solo el error de la categoría.
   await elegirTipo(pagina, 'Egreso');
   await pagina.waitForFunction(() => [...document.querySelectorAll('.error-campo:not([hidden])')].map((x) => x.textContent).join('|') === 'Escribí un monto mayor que 0.|Elegí una cuenta.');
@@ -139,7 +141,7 @@ test('HU-03 CA-2 · al abrir Cargar siempre aparece Egreso, y «Guardar y cargar
   await elegir(pagina, 'Categoría', 'vent', /Ventas/);
   await elegir(pagina, 'Cuenta', 'caja', /^Caja/);
   await pagina.getByRole('button', { name: 'Guardar y cargar otro' }).click();
-  await aviso(pagina).filter({ hasText: `Guardaste el ingreso. Saldo de Caja: $${E}201.000,00.` }).waitFor();
+  await aviso(pagina).filter({ hasText: `Guardaste el ingreso. Saldo de Caja: $${E}159.900,00.` }).waitFor();
   // La pantalla queda vacía, pero sigue siendo un ingreso.
   assert.equal(await campo(pagina, 'Monto').inputValue(), '');
   assert.equal(await pagina.locator('.boton-campo-valor').first().textContent(), 'Elegir…');
@@ -151,20 +153,20 @@ test('HU-03 CA-2 · al abrir Cargar siempre aparece Egreso, y «Guardar y cargar
   await elegir(pagina, 'Categoría', 'rend', /Rendimientos/);
   await elegir(pagina, 'Cuenta', 'caja', /^Caja/);
   await pagina.keyboard.press('Control+Shift+Enter');
-  await aviso(pagina).filter({ hasText: `Saldo de Caja: $${E}201.500,00.` }).waitFor();
+  await aviso(pagina).filter({ hasText: `Saldo de Caja: $${E}160.400,00.` }).waitFor();
   assert.equal(await botonTipo(pagina, 'Ingreso').getAttribute('aria-pressed'), 'true');
   // Ctrl+Enter guarda y vuelve atrás.
   await campo(pagina, 'Monto').fill('250');
-  await elegir(pagina, 'Categoría', 'trab', /Trabajo/);
+  await elegir(pagina, 'Categoría', 'trab', /Trabajo$/);
   await elegir(pagina, 'Cuenta', 'caja', /^Caja/);
   await pagina.keyboard.press('Control+Enter');
-  await aviso(pagina).filter({ hasText: `Saldo de Caja: $${E}201.750,00.` }).waitFor();
+  await aviso(pagina).filter({ hasText: `Saldo de Caja: $${E}160.650,00.` }).waitFor();
   assert.equal(new URL(pagina.url()).hash, '#ajustes', 'vuelve a la pantalla anterior (Ajustes, de donde se vino)');
   // Al volver a abrir Cargar, otra vez Egreso.
   await abrirCarga(pagina);
   assert.equal(await botonTipo(pagina, 'Egreso').getAttribute('aria-pressed'), 'true');
   assert.equal(await colorMonto(pagina), ERROR);
-  assert.deepEqual((await movimientosGuardados(pagina)).map((m) => [m.tipo, m.montoTotal]).sort((a, b) => a[1] - b[1]), [['ingreso', 25000], ['ingreso', 50000], ['ingreso', 100000]]);
+  assert.deepEqual((await movimientosPropios(pagina)).map((m) => [m.tipo, m.montoTotal]).sort((a, b) => a[1] - b[1]), [['ingreso', 25000], ['ingreso', 50000], ['ingreso', 100000]]);
   assert.deepEqual(errores, []);
   await contexto.close();
 });
@@ -206,16 +208,16 @@ test('HU-03 CA-3 · sin conexión funciona, y al cerrar y volver a abrir AFP el 
   await abrirCarga(pagina);
   await elegirTipo(pagina, 'Ingreso');
   await campo(pagina, 'Monto').fill('150000');
-  await elegir(pagina, 'Categoría', 'trab', /Trabajo/);
+  await elegir(pagina, 'Categoría', 'trab', /Trabajo$/);
   await elegir(pagina, 'Cuenta', 'banc', /^Banco/);
   await pagina.getByRole('button', { name: 'Guardar', exact: true }).click();
-  await aviso(pagina).filter({ hasText: `Guardaste el ingreso. Saldo de Banco: $${E}950.000,00.` }).waitFor();
+  await aviso(pagina).filter({ hasText: `Guardaste el ingreso. Saldo de Banco: $${E}2.561.200,00.` }).waitFor();
   await pagina.close();
   const nueva = await contexto.newPage();
   await nueva.goto(`${entorno.servidor.url}#inicio`);
   await nueva.locator('#tarjeta-cue-banco').waitFor();
-  assert.equal(await saldoEnInicio(nueva, 'cue-banco'), `$${E}950.000,00`);
-  assert.equal((await movimientosGuardados(nueva))[0].tipo, 'ingreso');
+  assert.equal(await saldoEnInicio(nueva, 'cue-banco'), `$${E}2.561.200,00`);
+  assert.equal((await movimientosPropios(nueva))[0].tipo, 'ingreso');
   await contexto.setOffline(false);
   assert.deepEqual(errores, []);
   await contexto.close();

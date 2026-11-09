@@ -5,7 +5,7 @@ import { crear } from '../dom.js';
 import { avisar } from '../dialogo.js';
 import { formatearMonto } from '../../dominio/formato.js';
 import {
-  PERIODOS, TIPOS_DE_FILTRO, rangoDePeriodo, idsDeCategoria, filtrarMovimientos, totalesPorMoneda, egresosPorCategoria, filaDeMovimiento,
+  PERIODOS, TIPOS_DE_FILTRO, rangoDePeriodo, textoDelRango, idsDeCategoria, filtrarMovimientos, totalesPorMoneda, egresosPorCategoria, filaDeMovimiento,
 } from '../../dominio/lista-movimientos.js';
 
 let contador = 0;
@@ -47,13 +47,16 @@ export function pantallaMovimientos({ movimientos, cuentas, categorias }) {
     id: id('buscar'), type: 'search', class: 'movs-buscador', autocomplete: 'off', spellcheck: 'false', placeholder: 'Buscar por descripción o categoría', 'aria-label': 'Buscar',
   });
   buscador.value = estado.texto;
-  const selector = (campo, rotulo, control, clase = '') => crear('div', { class: `campo campo-filtro ${clase}`.trim() }, [crear('label', { for: control.id, texto: rotulo }), control]);
+  const selector = (campo, rotulo, control, clase = '', extras = []) => crear('div', { class: `campo campo-filtro ${clase}`.trim() }, [crear('label', { for: control.id, texto: rotulo }), control, ...extras]);
+  // Las fechas del período, debajo del selector (HU-38, P-043).
+  const fechasDelPeriodo = crear('p', { class: 'ayuda fechas-periodo', id: id('periodo-fechas') });
   const selectPeriodo = crear('select', { id: id('periodo') }, PERIODOS.map(([valor, texto]) => crear('option', { value: valor, texto })));
   const entradaMes = crear('input', { id: id('mes'), type: 'month', max: hoy.slice(0, 7) });
   const selectTipo = crear('select', { id: id('tipo') }, TIPOS_DE_FILTRO.map(([valor, texto]) => crear('option', { value: valor, texto })));
   const selectCategoria = crear('select', { id: id('categoria') });
   const selectCuenta = crear('select', { id: id('cuenta') });
   selectPeriodo.value = estado.periodo;
+  selectPeriodo.setAttribute('aria-describedby', fechasDelPeriodo.id);
   entradaMes.value = estado.mes ?? hoy.slice(0, 7);
   selectTipo.value = estado.tipo;
 
@@ -88,7 +91,7 @@ export function pantallaMovimientos({ movimientos, cuentas, categorias }) {
   const filtros = crear('section', { class: 'movs-filtros', 'aria-label': 'Filtros' }, [
     crear('div', { class: 'movs-busqueda' }, [buscador]),
     crear('div', { class: 'movs-selects' }, [
-      selector('periodo', 'Período', selectPeriodo),
+      selector('periodo', 'Período', selectPeriodo, '', [fechasDelPeriodo]),
       selector('mes', 'Mes', entradaMes, 'campo-mes'),
       selector('tipo', 'Tipo', selectTipo),
       selector('categoria', 'Categoría', selectCategoria),
@@ -180,6 +183,7 @@ export function pantallaMovimientos({ movimientos, cuentas, categorias }) {
     const base = { texto: estado.texto, ...rango, tipo: estado.tipo, cuentaId: estado.cuentaId };
     const visibles = filtrarMovimientos(todos, { ...base, categoriaIds: estado.categoriaId ? idsDeCategoria(todasCategorias, estado.categoriaId) : null }, categoriasPorId);
     entradaMes.closest('.campo').hidden = estado.periodo !== 'mes';
+    fechasDelPeriodo.textContent = textoDelRango(estado.periodo, rango, todos.reduce((primero, m) => (primero === null || m.fecha < primero ? m.fecha : primero), null));
     pintarLista(visibles, { categoriasPorId, cuentasPorId });
     pintarTotales(visibles);
     // Las barras no se achican al elegir una: se calculan sin el filtro de categoría para poder cambiar de barra.

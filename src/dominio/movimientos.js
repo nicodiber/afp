@@ -94,10 +94,10 @@ export const validarEgreso = (formulario, contexto) => validarMovimiento(formula
 export const validarIngreso = (formulario, contexto) => validarMovimiento(formulario, contexto, 'ingreso');
 
 /**
- * Arma el movimiento simple (tipo `egreso` o `ingreso`, una parte, estado confirmado, origen manual) y lo pasa por el
+ * Arma el movimiento simple (tipo `egreso` o `ingreso`, una parte, estado confirmado, origen manual salvo que se indique otro) y lo pasa por el
  * núcleo de partida doble. Lanza ErrorPartidaDoble si no cuadra.
  */
-export function crearMovimientoSimple(tipo, datos, { id, cuenta, categoria }) {
+export function crearMovimientoSimple(tipo, datos, { id, cuenta, categoria }, origen = 'manual') {
   const contexto = {
     monedaDeCuenta: () => cuenta.monedaId,
     cuentaDePersona: () => { throw new ErrorPartidaDoble('Un movimiento simple no usa cuentas de personas.'); },
@@ -113,7 +113,7 @@ export function crearMovimientoSimple(tipo, datos, { id, cuenta, categoria }) {
     hora: datos.hora ?? null,
     descripcion: datos.descripcion,
     estado: 'confirmado',
-    origen: 'manual',
+    origen,
     cuentaId: cuenta.id,
     monedaId: cuenta.monedaId,
     montoTotal: datos.montoTotal,
@@ -127,3 +127,18 @@ export function crearMovimientoSimple(tipo, datos, { id, cuenta, categoria }) {
 
 export const crearEgreso = (datos, referencias) => crearMovimientoSimple('egreso', datos, referencias);
 export const crearIngreso = (datos, referencias) => crearMovimientoSimple('ingreso', datos, referencias);
+
+/**
+ * Arma los movimientos de los datos de ejemplo (HU-38, origen `datos_ejemplo`) a partir de su forma compacta { id, fecha,
+ * hora, tipo, cuentaId, categoriaId, monto, descripcion }. Lanza ErrorPartidaDoble si alguno no cumple las reglas de
+ * partida doble, usa una cuenta o una categoría que no existe, o una categoría que no es hoja activa de su tipo.
+ */
+export function armarMovimientosDeEjemplo(compactos, { cuentas, categorias }) {
+  return compactos.map((c) => {
+    const cuenta = cuentas.find((x) => x.id === c.cuentaId && activa(x));
+    const categoria = hojasDeTipo(categorias, c.tipo).find((x) => x.id === c.categoriaId);
+    if (!cuenta) throw new ErrorPartidaDoble(`${c.id}: la cuenta ${c.cuentaId} no existe o no está activa`);
+    if (!categoria) throw new ErrorPartidaDoble(`${c.id}: la categoría ${c.categoriaId} no es una hoja activa de ${c.tipo}`);
+    return crearMovimientoSimple(c.tipo, { fecha: c.fecha, hora: c.hora ?? null, descripcion: c.descripcion ?? '', montoTotal: c.monto }, { id: c.id, cuenta, categoria }, 'datos_ejemplo');
+  });
+}

@@ -41,6 +41,8 @@ async function conMovimientos(opciones = {}, { movimientos = SEMILLA, ruta = '#m
     p.onsuccess = () => {
       const db = p.result;
       const t = db.transaction('movimientos', 'readwrite');
+      // Los 61 movimientos de los datos de ejemplo (HU-38) se quitan: estas pruebas esperan solo los que siembran.
+      t.objectStore('movimientos').clear();
       for (const m of lista) t.objectStore('movimientos').put(m);
       t.oncomplete = () => { db.close(); ok(); };
       t.onerror = () => fallo(t.error);

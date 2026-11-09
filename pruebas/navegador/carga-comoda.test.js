@@ -27,6 +27,8 @@ const leerBase = (pagina, almacen) => pagina.evaluate((a) => new Promise((ok) =>
   const p = indexedDB.open('afp-dev-prueba');
   p.onsuccess = () => { const g = p.result.transaction(a).objectStore(a).getAll(); g.onsuccess = () => { p.result.close(); ok(g.result); }; };
 }), almacen);
+// Los que cargó la persona; los 61 de los datos de ejemplo quedan afuera (HU-38).
+const propios = async (pagina) => (await leerBase(pagina, 'movimientos')).filter((m) => m.origen !== 'datos_ejemplo');
 const cursor = (pagina) => monto(pagina).evaluate((e) => [e.selectionStart, e.selectionEnd]);
 
 for (const [nombre, viewport] of [['celular', CELULAR], ['PC', ESCRITORIO]]) {
@@ -120,7 +122,7 @@ test('HU-02b CA-1 · pegar «12.500,50» o «12500.50» se entiende igual y se g
   await ventana(pagina).getByRole('option', { name: /Banco/ }).click();
   await pagina.getByRole('button', { name: 'Guardar', exact: true }).click();
   await pagina.locator('#aviso-breve', { hasText: 'Guardaste el egreso.' }).waitFor();
-  assert.equal((await leerBase(pagina, 'movimientos'))[0].montoTotal, 1250050);
+  assert.equal((await propios(pagina))[0].montoTotal, 1250050);
   assert.deepEqual(errores, []);
   await contexto.close();
 });
@@ -155,7 +157,7 @@ test('HU-02b CA-4 · el campo «Hora» está entre la fecha y el monto, arranca 
   assert.notEqual(await hora(pagina).inputValue(), '');
   await hora(pagina).fill('');
   await cargar('sin hora');
-  const guardados = await leerBase(pagina, 'movimientos');
+  const guardados = await propios(pagina);
   assert.deepEqual(guardados.map((x) => [x.descripcion, x.hora]).sort(), [['Con hora', '18:30'], ['Sin hora', null]]);
   assert.deepEqual(errores, []);
   await contexto.close();
@@ -163,8 +165,8 @@ test('HU-02b CA-4 · el campo «Hora» está entre la fecha y el monto, arranca 
 
 test('HU-02b CA-4 · un egreso anterior al saldo inicial se guarda y la cuenta pasa a empezar en esa fecha', async () => {
   const { contexto, pagina, errores } = await enModoPrueba({ viewport: CELULAR });
-  // Caja empieza el 01/09/2026 con $ 200.000,00.
-  await pagina.locator('input[type="date"]').fill('2026-08-20');
+  // Caja empieza el 01/08/2026 con $ 200.000,00 (los movimientos de ejemplo empiezan ese día).
+  await pagina.locator('input[type="date"]').fill('2026-07-20');
   await monto(pagina).fill('500');
   await pagina.getByRole('button', { name: /^Categoría/ }).click();
   await ventana(pagina).getByRole('combobox').fill('kiosco');
@@ -173,15 +175,15 @@ test('HU-02b CA-4 · un egreso anterior al saldo inicial se guarda y la cuenta p
   await ventana(pagina).getByRole('combobox').fill('caja');
   await ventana(pagina).getByRole('option', { name: /Caja/ }).click();
   await pagina.getByRole('button', { name: 'Guardar', exact: true }).click();
-  await pagina.locator('#aviso-breve', { hasText: 'Guardaste el egreso. La cuenta Caja ahora empieza el 20/08/2026.' }).waitFor();
+  await pagina.locator('#aviso-breve', { hasText: 'Guardaste el egreso. La cuenta Caja ahora empieza el 20/07/2026.' }).waitFor();
   const caja = (await leerBase(pagina, 'cuentas')).find((c) => c.id === 'cue-caja');
-  assert.deepEqual([caja.fechaSaldoInicial, caja.saldoInicial], ['2026-08-20', 20000000], 'mismo monto');
-  const [mov] = await leerBase(pagina, 'movimientos');
-  assert.equal(mov.fecha, '2026-08-20');
+  assert.deepEqual([caja.fechaSaldoInicial, caja.saldoInicial], ['2026-07-20', 20000000], 'mismo monto');
+  const [mov] = await propios(pagina);
+  assert.equal(mov.fecha, '2026-07-20');
   // El saldo en Inicio refleja el egreso.
   await pagina.goto(`${entorno.servidor.url}#inicio`);
   await pagina.locator('#titulo-tus-cuentas').waitFor();
-  assert.ok((await pagina.locator('main').innerText()).includes(`$${E}199.500,00`));
+  assert.ok((await pagina.locator('main').innerText()).includes(`$${E}158.400,00`));
   assert.deepEqual(errores, []);
   await contexto.close();
 });

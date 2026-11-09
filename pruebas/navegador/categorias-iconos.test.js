@@ -180,7 +180,7 @@ test('HU-31 CA-2 · guardar con un ícono repetido da el error y no guarda; el p
   await f.locator('.error-campo', { hasText: 'Elegí un ícono que no use otra categoría.' }).waitFor();
   assert.equal(await f.getByRole('alert').textContent(), 'Elegí un ícono que no use otra categoría.');
   assert.equal(await pagina.evaluate(() => document.activeElement.id.startsWith('categoria-icono')), true, 'el foco va al ícono');
-  assert.equal((await iconosDeLaBase(pagina)).length, 20, 'no se guardó nada');
+  assert.equal((await iconosDeLaBase(pagina)).length, 26, 'no se guardó nada');
   // Editar sin tocar el ícono funciona.
   await f.getByRole('button', { name: 'Cancelar' }).click();
   await pagina.locator('#categoria-cat-supermercado').click();

@@ -1,5 +1,5 @@
 // HU-02: Nuevo egreso en el navegador (celular 390×844 y PC). Valores esperados escritos a mano a partir de la
-// historia y de los datos de ejemplo de 05-roadmap.md §5.1 (Banco: $ 800.000,00 al 01/09/2026).
+// historia y de los datos de ejemplo de 05-roadmap.md §5.1 (Banco: $ 800.000,00 al 01/08/2026, más los movimientos de ejemplo de HU-38).
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
@@ -58,6 +58,8 @@ const movimientosGuardados = (pagina, base = 'afp-dev-prueba') => pagina.evaluat
     g.onsuccess = () => { db.close(); ok(g.result); };
   };
 }), base);
+// Los que cargó la persona durante la prueba; los 61 de los datos de ejemplo (origen datos_ejemplo, HU-38) quedan afuera.
+const movimientosPropios = async (pagina, base) => ((await movimientosGuardados(pagina, base)) ?? []).filter((m) => m.origen !== 'datos_ejemplo');
 // Las reglas de la carga se cargan al guardar por primera vez: se espera a que aparezcan los mensajes.
 const mensajesSon = (pagina, esperados) => pagina.waitForFunction((e) => JSON.stringify([...document.querySelectorAll('.error-campo:not([hidden])')].map((x) => x.textContent)) === JSON.stringify(e), esperados);
 const saldoEnInicio = async (pagina, id) => (await pagina.locator(`#tarjeta-${id} .tarjeta-cuenta-monto`).textContent());
@@ -139,10 +141,10 @@ for (const [nombre, viewport] of VIEWPORTS) {
     await pagina.getByRole('button', { name: /^Cuenta/ }).click();
     const v = ventana(pagina);
     assert.deepEqual(await v.getByRole('option').allTextContents(), [
-      `💵Billetera$${E}50.000,00`, `💵Caja$${E}200.000,00`, `🏦Banco$${E}800.000,00`, `📱Billetera virtual$${E}300.000,00`, `💵Dólares billeteUS$${E}500,00`, `🚌Tarjeta transporte$${E}10.000,00`,
+      `💵Billetera$${E}12.900,00`, `💵Caja$${E}158.900,00`, `🏦Banco$${E}2.411.200,00`, `📱Billetera virtual$${E}113.400,00`, `💵Dólares billeteUS$${E}500,00`, `🚌Tarjeta transporte$${E}1.000,00`,
     ]);
     await v.getByRole('combobox').fill('banc');
-    assert.deepEqual(await v.getByRole('option').allTextContents(), [`🏦Banco$${E}800.000,00`]);
+    assert.deepEqual(await v.getByRole('option').allTextContents(), [`🏦Banco$${E}2.411.200,00`]);
     await opcion(pagina, /^Banco/).click();
     await v.waitFor({ state: 'detached' });
     assert.equal(await pagina.locator('.boton-campo-valor').nth(1).textContent(), '🏦 Banco');
@@ -172,22 +174,22 @@ for (const [nombre, viewport] of VIEWPORTS) {
   test(`HU-02 CA-2 · «Guardar» guarda el egreso, vuelve atrás y avisa el saldo nuevo; Inicio y Cuentas lo muestran (${nombre})`, async () => {
     const { contexto, pagina, errores } = await enModoPrueba({ viewport });
     await irAInicio(pagina);
-    assert.equal(await saldoEnInicio(pagina, 'cue-banco'), `$${E}800.000,00`);
+    assert.equal(await saldoEnInicio(pagina, 'cue-banco'), `$${E}2.411.200,00`);
     await abrirCarga(pagina);
     await completar(pagina, { monto: '12500,5', descripcion: 'cuota del gimnasio', categoria: ['alq', 'Alquiler'], cuenta: ['banc', /^Banco/] });
     // Al salir del campo, el monto queda en formato argentino; la descripción empieza con mayúscula.
     assert.equal(await campo(pagina, 'Monto').inputValue(), '12.500,50');
     assert.equal(await campo(pagina, 'Descripción (opcional)').inputValue(), 'Cuota del gimnasio');
     await pagina.getByRole('button', { name: 'Guardar', exact: true }).click();
-    await aviso(pagina).filter({ hasText: `Guardaste el egreso. Saldo de Banco: $${E}787.499,50.` }).waitFor();
+    await aviso(pagina).filter({ hasText: `Guardaste el egreso. Saldo de Banco: $${E}2.398.699,50.` }).waitFor();
     await pagina.locator('#titulo-tus-cuentas').waitFor();
     assert.equal(new URL(pagina.url()).hash, '#inicio', 'vuelve a la pantalla anterior');
-    assert.equal(await saldoEnInicio(pagina, 'cue-banco'), `$${E}787.499,50`);
-    assert.equal(await saldoEnInicio(pagina, 'cue-caja'), `$${E}200.000,00`, 'las otras cuentas no cambian');
+    assert.equal(await saldoEnInicio(pagina, 'cue-banco'), `$${E}2.398.699,50`);
+    assert.equal(await saldoEnInicio(pagina, 'cue-caja'), `$${E}158.900,00`, 'las otras cuentas no cambian');
     await pagina.goto(`${entorno.servidor.url}#ajustes/cuentas`);
     await pagina.locator('#cuenta-cue-banco .fila-monto').waitFor();
-    assert.equal(await pagina.locator('#cuenta-cue-banco .fila-monto').textContent(), `$${E}787.499,50`);
-    const guardados = await movimientosGuardados(pagina);
+    assert.equal(await pagina.locator('#cuenta-cue-banco .fila-monto').textContent(), `$${E}2.398.699,50`);
+    const guardados = await movimientosPropios(pagina);
     assert.equal(guardados.length, 1);
     const m = guardados[0];
     assert.deepEqual(
@@ -216,7 +218,7 @@ for (const [nombre, viewport] of VIEWPORTS) {
     await completar(pagina, { monto: '2,50', categoria: ['kio', 'Kiosco'], cuenta: ['dól', /^Dólares/] });
     await pagina.getByRole('button', { name: 'Guardar y cargar otro' }).click();
     await aviso(pagina).filter({ hasText: `Saldo de Dólares billete: US$${E}487,50.` }).waitFor();
-    assert.equal((await movimientosGuardados(pagina)).length, 2);
+    assert.equal((await movimientosPropios(pagina)).length, 2);
     assert.ok(await sinDesplazamientoHorizontal(pagina));
     assert.deepEqual(errores, []);
     await contexto.close();
@@ -246,7 +248,7 @@ for (const [nombre, viewport] of VIEWPORTS) {
     // Al elegir la categoría desaparece su error.
     await elegir(pagina, 'Categoría', 'sal', 'Salud');
     assert.deepEqual(await mensajes(), []);
-    assert.equal((await movimientosGuardados(pagina)).length, 0, 'nada se guardó');
+    assert.equal((await movimientosPropios(pagina)).length, 0, 'nada se guardó');
     assert.ok(await sinDesplazamientoHorizontal(pagina));
     assert.deepEqual(errores, []);
     await contexto.close();
@@ -260,7 +262,7 @@ for (const [nombre, viewport] of VIEWPORTS) {
     await pagina.getByRole('button', { name: 'Guardar', exact: true }).click();
     await mensajesSon(pagina, ['La fecha no puede ser posterior a hoy.']);
     assert.deepEqual(await pagina.locator('.error-campo:not([hidden])').allTextContents(), ['La fecha no puede ser posterior a hoy.']);
-    assert.equal((await movimientosGuardados(pagina)).length, 0);
+    assert.equal((await movimientosPropios(pagina)).length, 0);
     assert.deepEqual(errores, []);
     await contexto.close();
   });
@@ -271,10 +273,10 @@ for (const [nombre, viewport] of VIEWPORTS) {
     await abrirCarga(pagina);
     await completar(pagina, { monto: '500', categoria: ['sal', 'Salud'], cuenta: ['caja', /^Caja/] });
     await pagina.getByRole('button', { name: 'Guardar', exact: true }).dblclick();
-    await aviso(pagina).filter({ hasText: `Saldo de Caja: $${E}199.500,00.` }).waitFor();
+    await aviso(pagina).filter({ hasText: `Saldo de Caja: $${E}158.400,00.` }).waitFor();
     await pagina.locator('#titulo-tus-cuentas').waitFor();
-    assert.equal((await movimientosGuardados(pagina)).length, 1);
-    assert.equal(await saldoEnInicio(pagina, 'cue-caja'), `$${E}199.500,00`);
+    assert.equal((await movimientosPropios(pagina)).length, 1);
+    assert.equal(await saldoEnInicio(pagina, 'cue-caja'), `$${E}158.400,00`);
     assert.deepEqual(errores, []);
     await contexto.close();
   });
@@ -288,14 +290,16 @@ for (const [nombre, viewport] of VIEWPORTS) {
     await pagina.getByRole('button', { name: 'Cancelar' }).click();
     await pagina.getByRole('heading', { name: 'Cuentas', level: 1 }).waitFor();
     assert.equal(new URL(pagina.url()).hash, '#ajustes/cuentas');
-    assert.equal((await movimientosGuardados(pagina)).length, 0);
-    // Si se entró directo a #cargar, no hay pantalla anterior en AFP: vuelve a Inicio.
-    await pagina.goto(`${entorno.servidor.url}#cargar`);
-    await pagina.reload();
-    await pagina.locator('.formulario-egreso').waitFor();
-    await pagina.getByRole('button', { name: 'Cancelar' }).click();
-    await pagina.locator('#titulo-tus-cuentas').waitFor();
-    assert.equal(new URL(pagina.url()).hash, '#inicio');
+    assert.equal((await movimientosPropios(pagina)).length, 0);
+    // Si se entró directo a #cargar (una pestaña nueva), no hay pantalla anterior en AFP: vuelve a Inicio.
+    // (Antes se simulaba con goto + reload en la misma pestaña; desde HU-35 el historial de AFP sobrevive a recargar, así que
+    // esa pestaña sí tiene pantalla anterior.)
+    const directa = await contexto.newPage();
+    await directa.goto(`${entorno.servidor.url}#cargar`);
+    await directa.locator('.formulario-egreso').waitFor();
+    await directa.getByRole('button', { name: 'Cancelar' }).click();
+    await directa.locator('#titulo-tus-cuentas').waitFor();
+    assert.equal(new URL(directa.url()).hash, '#inicio');
     assert.deepEqual(errores, []);
     await contexto.close();
   });
@@ -363,9 +367,9 @@ test('HU-02 CA-3 · la carga completa con el teclado, sin un solo clic (PC)', as
   await v.waitFor({ state: 'detached' });
   // Ctrl+Enter guarda y vuelve a la pantalla anterior (Ajustes, de donde se vino).
   await pagina.keyboard.press('Control+Enter');
-  await aviso(pagina).filter({ hasText: `Saldo de Billetera virtual: $${E}298.500,00.` }).waitFor();
+  await aviso(pagina).filter({ hasText: `Saldo de Billetera virtual: $${E}111.900,00.` }).waitFor();
   await pagina.getByRole('heading', { name: 'Ajustes', level: 1 }).waitFor();
-  const [m] = await movimientosGuardados(pagina);
+  const [m] = await movimientosPropios(pagina);
   assert.deepEqual([m.montoTotal, m.descripcion, m.cuentaId, m.partes[0].categoriaId], [150000, 'Pan y leche', 'cue-billetera-virtual', 'cat-supermercado']);
   // HU-02b CA-3: toda la carga con las flechas ↓/↑ y ← →, sin clics. Se empieza en la fecha con Tab.
   await pagina.goto(`${entorno.servidor.url}#cargar`);
@@ -403,7 +407,7 @@ test('HU-02 CA-3 · la carga completa con el teclado, sin un solo clic (PC)', as
   await hacia('ArrowDown', 'egreso-cancelar');
   await hacia('ArrowRight', 'egreso-otro');
   await pagina.keyboard.press('Enter'); // «Guardar y cargar otro»
-  await aviso(pagina).filter({ hasText: `Saldo de Caja: $${E}199.800,00.` }).waitFor();
+  await aviso(pagina).filter({ hasText: `Saldo de Caja: $${E}158.700,00.` }).waitFor();
   assert.equal(new URL(pagina.url()).hash, '#cargar');
   assert.equal(await campo(pagina, 'Monto').inputValue(), '');
   // Ctrl+Mayús+Enter guarda y deja la pantalla para otro.
@@ -419,9 +423,9 @@ test('HU-02 CA-3 · la carga completa con el teclado, sin un solo clic (PC)', as
   await pagina.keyboard.type('caja');
   await pagina.keyboard.press('Enter');
   await pagina.keyboard.press('Control+Shift+Enter');
-  await aviso(pagina).filter({ hasText: `Saldo de Caja: $${E}199.700,00.` }).waitFor();
+  await aviso(pagina).filter({ hasText: `Saldo de Caja: $${E}158.600,00.` }).waitFor();
   assert.equal(await campo(pagina, 'Monto').inputValue(), '');
-  assert.equal((await movimientosGuardados(pagina)).length, 3);
+  assert.equal((await movimientosPropios(pagina)).length, 3);
   assert.deepEqual(errores, []);
   await contexto.close();
 });
@@ -501,14 +505,14 @@ test('HU-02 CA-4 · sin conexión funciona, y al cerrar y volver a abrir AFP el 
   await abrirCarga(pagina);
   await completar(pagina, { monto: '12.500,50', descripcion: 'comida', categoria: ['sup', 'Supermercado'], cuenta: ['banc', /^Banco/] });
   await pagina.getByRole('button', { name: 'Guardar', exact: true }).click();
-  await aviso(pagina).filter({ hasText: `Saldo de Banco: $${E}787.499,50.` }).waitFor();
+  await aviso(pagina).filter({ hasText: `Saldo de Banco: $${E}2.398.699,50.` }).waitFor();
   // Cerrar y volver a abrir: una página nueva en el mismo contexto (mismo almacenamiento), todavía sin conexión.
   await pagina.close();
   const nueva = await contexto.newPage();
   await nueva.goto(`${entorno.servidor.url}#inicio`);
   await nueva.locator('#tarjeta-cue-banco').waitFor();
-  assert.equal(await saldoEnInicio(nueva, 'cue-banco'), `$${E}787.499,50`);
-  assert.equal((await movimientosGuardados(nueva)).length, 1);
+  assert.equal(await saldoEnInicio(nueva, 'cue-banco'), `$${E}2.398.699,50`);
+  assert.equal((await movimientosPropios(nueva)).length, 1);
   await contexto.setOffline(false);
   assert.deepEqual(errores, []);
   await contexto.close();
@@ -519,23 +523,24 @@ test('HU-02 CA-4 · el modo prueba: «Borrar» y «Restablecer» vacían los mov
   await abrirCarga(pagina);
   await completar(pagina, { monto: '700', categoria: ['sal', 'Salud'], cuenta: ['caja', /^Caja/] });
   await pagina.getByRole('button', { name: 'Guardar y cargar otro' }).click();
-  await aviso(pagina).filter({ hasText: `Saldo de Caja: $${E}199.300,00.` }).waitFor();
-  assert.equal((await movimientosGuardados(pagina)).length, 1);
+  await aviso(pagina).filter({ hasText: `Saldo de Caja: $${E}158.200,00.` }).waitFor();
+  assert.equal((await movimientosPropios(pagina)).length, 1);
   assert.deepEqual(await movimientosGuardados(pagina, 'afp-dev'), [], 'la base real (afp-dev) no tiene movimientos');
   // Restablecer los datos de ejemplo los deja vacíos y los saldos vuelven a los de ejemplo.
   await pagina.goto(`${entorno.servidor.url}#ajustes`);
   await pagina.getByRole('button', { name: 'Restablecer datos de ejemplo' }).click();
   await ventana(pagina).getByRole('button', { name: 'Restablecer' }).click();
   await aviso(pagina).filter({ hasText: 'Cargaste los datos de ejemplo.' }).waitFor();
-  assert.deepEqual(await movimientosGuardados(pagina), []);
+  assert.equal((await movimientosGuardados(pagina)).length, 61, 'quedan solo los 61 de ejemplo');
+  assert.deepEqual(await movimientosPropios(pagina), []);
   await irAInicio(pagina);
-  assert.equal(await saldoEnInicio(pagina, 'cue-caja'), `$${E}200.000,00`);
+  assert.equal(await saldoEnInicio(pagina, 'cue-caja'), `$${E}158.900,00`);
   // Y «Borrar datos de prueba» también.
   await abrirCarga(pagina);
   await completar(pagina, { monto: '700', categoria: ['sal', 'Salud'], cuenta: ['caja', /^Caja/] });
   await pagina.getByRole('button', { name: 'Guardar', exact: true }).click();
   await pagina.locator('#titulo-tus-cuentas').waitFor();
-  assert.equal((await movimientosGuardados(pagina)).length, 1);
+  assert.equal((await movimientosPropios(pagina)).length, 1);
   await pagina.goto(`${entorno.servidor.url}#ajustes`);
   await pagina.getByRole('button', { name: 'Borrar datos de prueba' }).click();
   await ventana(pagina).getByRole('button', { name: 'Borrar', exact: true }).click();

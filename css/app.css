@@ -678,7 +678,8 @@ button.fila-cuenta, a.fila-cuenta { cursor: pointer; }
 .movs-buscador { width: 100%; min-height: var(--objetivo-tactil); padding: 0 var(--esp-3); border: 1px solid var(--color-borde-campo); border-radius: var(--radio-campo); background: var(--color-superficie); color: var(--color-texto); font: inherit; }
 .movs-buscador:focus { outline: 2px solid var(--color-foco); outline-offset: 2px; }
 .movs-selects { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--esp-2) var(--esp-3); }
-.campo-filtro { min-width: 0; }
+.campo-filtro { min-width: 0; align-content: start; }
+.fechas-periodo { margin: 0; }
 .campo-filtro[hidden] { display: none; }
 .movs-items { display: grid; gap: var(--esp-2); margin: 0; padding: 0; list-style: none; }
 .movs-fila { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--esp-3); width: 100%; min-height: var(--objetivo-tactil); padding: var(--esp-3); border: 1px solid var(--color-linea); border-radius: var(--radio-campo); background: var(--color-superficie); color: var(--color-texto); font: inherit; text-align: left; cursor: pointer; content-visibility: auto; contain-intrinsic-size: auto 72px; }
