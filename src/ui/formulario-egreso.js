@@ -1,10 +1,10 @@
-// Formulario «Nuevo egreso» (HU-02 CA-1 a CA-3, HU-02b): fecha, hora, monto, descripción, categoría y cuenta. Categoría y
+// Formulario «Nuevo egreso» / «Nuevo ingreso» (HU-02 CA-1 a CA-3, HU-02b, HU-03): tipo, fecha, hora, monto, descripción, categoría y cuenta. Categoría y
 // cuenta se eligen en una ventana con buscador (selector.js), no en una lista desplegable. Es un componente:
 // no sabe cómo se guarda; llama a `alGuardar`. Atajos en la PC: Ctrl+Enter guarda y Ctrl+Mayús+Enter guarda y
 // deja la pantalla lista para otro.
 import { crear } from './dom.js';
 import { abrirSelector } from './selector.js';
-import { categoriasDeEgresoAgrupadas, nivelDeCategoriasDeEgreso } from '../dominio/movimientos.js';
+import { categoriasAgrupadas, nivelDeCategorias } from '../dominio/movimientos.js';
 import { iconoDeCuenta } from '../dominio/cuentas.js';
 import { formatearFecha } from '../dominio/fecha.js';
 import { formatearMonto, leerMonto, montoParaEditar, formatearMontoEscrito, interpretarMontoPegado } from '../dominio/formato.js';
@@ -13,6 +13,7 @@ import { capitalizarInicial } from '../dominio/texto.js';
 let siguiente = 0;
 
 const textoDeFecha = (fecha, hoy) => (fecha === hoy ? `Hoy · ${formatearFecha(fecha)}` : (fecha ? formatearFecha(fecha) : 'Sin fecha'));
+const TIPOS = [['egreso', 'Egreso'], ['ingreso', 'Ingreso']];
 const conEmoji = (x) => (x.emoji ? `${x.emoji} ${x.nombre}` : x.nombre);
 
 /**
@@ -28,6 +29,7 @@ const conEmoji = (x) => (x.emoji ? `${x.emoji} ${x.nombre}` : x.nombre);
 export function formularioEgreso({ hoy, ahora, esPC, cuentas, categorias, alGuardar, alCancelar }) {
   const n = ++siguiente;
   const id = (campo) => `egreso-${campo}-${n}`;
+  let tipo = 'egreso'; // al abrir Cargar siempre es un egreso (HU-03 CA-2)
   let categoriaId = null;
   let cuentaId = null;
   let guardando = false;
@@ -50,6 +52,11 @@ export function formularioEgreso({ hoy, ahora, esPC, cuentas, categorias, alGuar
   const campoCategoria = botonCampo('categoria');
   const campoCuenta = botonCampo('cuenta');
   const controles = { fecha, hora, monto, descripcion, categoria: campoCategoria.boton, cuenta: campoCuenta.boton };
+
+  // Control segmentado «Egreso | Ingreso» (HU-03 CA-1): solo el elegido entra con Tab; ← y → cambian de tipo.
+  const botonesTipo = TIPOS.map(([valor, texto]) => crear('button', { type: 'button', id: id(`tipo-${valor}`), 'data-tipo': valor, 'aria-pressed': 'false', texto }));
+  const segmentado = crear('div', { class: 'segmentado segmentado-tipo', role: 'group', 'aria-label': 'Tipo de movimiento' }, botonesTipo);
+  const botonDelTipo = () => botonesTipo.find((b) => b.dataset.tipo === tipo);
 
   const mostrarElegido = () => {
     const categoria = categoriaId ? categorias.buscar(categoriaId) : null;
@@ -95,15 +102,15 @@ export function formularioEgreso({ hoy, ahora, esPC, cuentas, categorias, alGuar
   const pendientes = () => Object.fromEntries(Object.entries(errores).filter(([, e]) => !e.hidden).map(([nombre, e]) => [nombre, e.textContent]));
 
   campoCategoria.boton.addEventListener('click', () => {
-    const grupos = categoriasDeEgresoAgrupadas(categorias.todas()).map((g) => ({
+    const grupos = categoriasAgrupadas(categorias.todas(), tipo).map((g) => ({
       titulo: g.familia ? conEmoji(g.familia) : 'Sin familia',
       opciones: g.categorias.map((c) => ({ id: c.id, nombre: c.nombre, emoji: c.emoji })),
     }));
     // Sin texto escrito se ve el primer nivel del árbol; al escribir, se busca entre todas las hojas.
     abrirSelector({
       titulo: 'Categoría', grupos,
-      nivel: { opciones: (padreId) => nivelDeCategoriasDeEgreso(categorias.todas(), padreId), nombreDe: (familiaId) => conEmoji(categorias.buscar(familiaId)) }, elegidoId: categoriaId, alElegir: alElegirCategoria, pantallaCompleta: !esPC,
-      vacio: { texto: 'Todavía no tenés categorías de egreso.', boton: 'Crear categorías', alTocar: () => { location.hash = '#ajustes/categorias'; } },
+      nivel: { opciones: (padreId) => nivelDeCategorias(categorias.todas(), padreId, tipo), nombreDe: (familiaId) => conEmoji(categorias.buscar(familiaId)) }, elegidoId: categoriaId, alElegir: alElegirCategoria, pantallaCompleta: !esPC,
+      vacio: { texto: `Todavía no tenés categorías de ${tipo}.`, boton: 'Crear categorías', alTocar: () => { location.hash = '#ajustes/categorias'; } },
     });
   });
   campoCuenta.boton.addEventListener('click', () => {
@@ -156,6 +163,19 @@ export function formularioEgreso({ hoy, ahora, esPC, cuentas, categorias, alGuar
   });
   fecha.addEventListener('change', () => { textoFecha.textContent = textoDeFecha(fecha.value, hoy()); });
 
+  // Cambia el tipo: el título, el color del monto y las categorías cambian; la categoría de egreso elegida se borra.
+  const elegirTipo = (nuevo, { borrar = true } = {}) => {
+    const cambio = nuevo !== tipo;
+    tipo = nuevo;
+    for (const b of botonesTipo) { b.setAttribute('aria-pressed', String(b.dataset.tipo === tipo)); b.tabIndex = b.dataset.tipo === tipo ? 0 : -1; }
+    formulario.dataset.tipo = tipo;
+    const texto = tipo === 'ingreso' ? 'Nuevo ingreso' : 'Nuevo egreso';
+    titulo.textContent = texto;
+    if (titulo.isConnected || cambio) document.title = `${texto} · AFP`;
+    if (cambio && borrar) { categoriaId = null; mostrarElegido(); pintarErrores({ ...pendientes(), categoria: undefined }); }
+  };
+  for (const b of botonesTipo) b.addEventListener('click', () => elegirTipo(b.dataset.tipo));
+
   const vaciar = () => {
     categoriaId = null;
     cuentaId = null;
@@ -173,11 +193,13 @@ export function formularioEgreso({ hoy, ahora, esPC, cuentas, categorias, alGuar
   const otro = crear('button', { type: 'button', class: 'boton-secundario', id: id('otro'), texto: 'Guardar y cargar otro' });
   const guardar = crear('button', { type: 'submit', class: 'boton-principal', id: id('guardar'), texto: 'Guardar' });
   const titulo = crear('h1', { class: 'titulo', tabindex: '-1', texto: 'Nuevo egreso' });
+  const formulario = crear('form', { class: 'formulario-egreso', 'aria-labelledby': 'titulo-egreso', novalidate: '' });
   const atajos = crear('p', { class: 'atajos apoyo' }, [
     crear('kbd', { texto: 'Ctrl + Enter' }), ' guarda · ', crear('kbd', { texto: 'Ctrl + Mayús + Enter' }), ' guarda y carga otro',
   ]);
 
-  const formulario = crear('form', { class: 'formulario-egreso', 'aria-labelledby': 'titulo-egreso', novalidate: '' }, [
+  formulario.append(
+    segmentado,
     campo('fecha', 'Fecha', fecha, [textoFecha]),
     campo('hora', 'Hora', hora),
     campo('monto', 'Monto', monto, [textoMonto]),
@@ -187,7 +209,7 @@ export function formularioEgreso({ hoy, ahora, esPC, cuentas, categorias, alGuar
     resumen,
     crear('div', { class: 'acciones-carga' }, [cancelar, otro, guardar]),
     atajos,
-  ]);
+  );
   titulo.id = 'titulo-egreso';
 
   // Un doble toque no guarda dos veces: mientras se guarda, se ignoran los pedidos nuevos.
@@ -198,7 +220,7 @@ export function formularioEgreso({ hoy, ahora, esPC, cuentas, categorias, alGuar
     let seVa = false;
     try {
       const resultado = await alGuardar({
-        fecha: fecha.value, hora: hora.value, monto: monto.value, descripcion: descripcion.value, categoriaId, cuentaId,
+        fecha: fecha.value, hora: hora.value, monto: monto.value, descripcion: descripcion.value, categoriaId, cuentaId, tipo,
       }, seguir);
       if (resultado?.errores) mostrarErrores(resultado.errores);
       else if (seguir) { vaciar(); monto.focus(); } else seVa = true; // vuelve a la pantalla anterior: no se habilita nada más
@@ -211,16 +233,22 @@ export function formularioEgreso({ hoy, ahora, esPC, cuentas, categorias, alGuar
   };
   // Flechas en la PC (HU-02b CA-3): ↓ va al campo o botón siguiente y ↑ al anterior; entre los tres botones, ← y →.
   // En la ventana de selección las flechas son de ella (vive fuera del formulario). Tab no cambia.
-  const orden = [fecha, hora, monto, descripcion, campoCategoria.boton, campoCuenta.boton, cancelar, otro, guardar];
+  // El segmentado va primero: con el foco en él, ← y → cambian de tipo (HU-03 CA-1).
+  const orden = [null, fecha, hora, monto, descripcion, campoCategoria.boton, campoCuenta.boton, cancelar, otro, guardar];
   const botones = [cancelar, otro, guardar];
+  const enfocarOrden = (k) => (k === 0 ? botonDelTipo() : orden[k]).focus();
   formulario.addEventListener('keydown', (evento) => {
     if (evento.altKey || evento.ctrlKey || evento.metaKey || evento.shiftKey) return;
-    const i = orden.indexOf(evento.target);
+    const i = botonesTipo.includes(evento.target) ? 0 : orden.indexOf(evento.target);
     if (i < 0) return;
     const j = botones.indexOf(evento.target);
     if (evento.key === 'ArrowDown' || evento.key === 'ArrowUp') {
       evento.preventDefault();
-      orden[Math.max(0, Math.min(orden.length - 1, i + (evento.key === 'ArrowDown' ? 1 : -1)))].focus();
+      enfocarOrden(Math.max(0, Math.min(orden.length - 1, i + (evento.key === 'ArrowDown' ? 1 : -1))));
+    } else if (i === 0 && (evento.key === 'ArrowLeft' || evento.key === 'ArrowRight')) {
+      evento.preventDefault();
+      elegirTipo(TIPOS[evento.key === 'ArrowRight' ? 1 : 0][0]);
+      botonDelTipo().focus();
     } else if ((evento.key === 'ArrowLeft' || evento.key === 'ArrowRight') && j >= 0) {
       evento.preventDefault();
       botones[Math.max(0, Math.min(botones.length - 1, j + (evento.key === 'ArrowRight' ? 1 : -1)))].focus();
@@ -241,6 +269,7 @@ export function formularioEgreso({ hoy, ahora, esPC, cuentas, categorias, alGuar
   };
   document.addEventListener('keydown', atajo);
 
+  elegirTipo('egreso', { borrar: false });
   vaciar();
   return { elementos: [titulo, formulario], enfocar: () => titulo.focus({ preventScroll: true }) };
 }

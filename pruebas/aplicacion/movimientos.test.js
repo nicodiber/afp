@@ -115,3 +115,27 @@ test('HU-02b CA-4 · con errores, la cuenta no se toca', async () => {
   assert.ok(r.errores.monto);
   assert.equal(almacen.datos.cuentas[0].fechaSaldoInicial, '2026-09-01');
 });
+
+test('HU-03 CA-3 · registrar un ingreso lo guarda como ingreso y el saldo de la cuenta sube', async () => {
+  const almacen = almacenEnMemoria({
+    cuentas: [CUENTA],
+    categorias: [...CATEGORIAS, { id: 'cat-trabajo', nombre: 'Trabajo', tipo: 'ingreso', padreId: null, orden: 3, estado: 'activa', naturaleza: 'ganado' }],
+  });
+  let n = 0;
+  const nuevoId = (prefijo = 'x') => `${prefijo}-${++n}`;
+  const reloj = { hoy: () => HOY };
+  const guardados = { lista: () => [] };
+  const cuentas = crearCasosCuentas({ almacen, reloj, nuevoId, movimientos: async () => guardados.lista(), movimientosEnMemoria: () => guardados.lista() });
+  const categorias = crearCasosCategorias({ almacen, reloj, nuevoId, movimientos: async () => guardados.lista() });
+  const movimientos = crearCasosMovimientos({ almacen, reloj, nuevoId, cuentas, categorias });
+  guardados.lista = movimientos.todos;
+  await Promise.all([cuentas.recargar(), categorias.recargar(), movimientos.recargar()]);
+  const resultado = await movimientos.registrarIngreso(formulario({ categoriaId: 'cat-trabajo', monto: '150.000', descripcion: 'sueldo' }));
+  assert.equal(resultado.errores, undefined);
+  assert.equal(resultado.saldo, 80000000 + 15000000);
+  const guardado = almacen.datos.movimientos[0];
+  assert.deepEqual([guardado.tipo, guardado.montoTotal, guardado.asientos], ['ingreso', 15000000, [{ cuentaId: 'cue-banco', monto: 15000000 }]]);
+  assert.equal(cuentas.saldoDe(cuentas.buscar('cue-banco')), 95000000);
+  const conEgreso = await movimientos.registrarIngreso(formulario({ categoriaId: 'cat-alquiler' }));
+  assert.deepEqual(conEgreso.errores, { categoria: 'Elegí una categoría.' }, 'una categoría de egreso no vale para un ingreso');
+});

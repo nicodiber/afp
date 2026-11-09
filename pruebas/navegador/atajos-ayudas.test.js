@@ -179,7 +179,7 @@ test('HU-34 CA-4 · Inicio no carga el formulario de cuenta, Ajustes ni la venta
   const { contexto, pagina, pedidos, errores } = await abrir(entorno.navegador, entorno.servidor, { viewport: ESCRITORIO });
   await pagina.waitForLoadState('networkidle');
   const cargados = () => pedidos.map((u) => new URL(u).pathname.split('/src/')[1]).filter(Boolean);
-  for (const diferido of ['ui/pantallas/ajustes.js', 'ui/formulario-cuenta.js', 'ui/cuentas-comun.js', 'ui/dialogo.js', 'ui/pantallas/proximamente.js', 'ui/pantallas/cargar.js', 'ui/pantallas/categorias.js', 'ui/formulario-egreso.js']) {
+  for (const diferido of ['ui/pantallas/ajustes.js', 'ui/formulario-cuenta.js', 'ui/cuentas-comun.js', 'ui/dialogo.js', 'ui/pantallas/proximamente.js', 'ui/pantallas/cargar.js', 'ui/pantallas/categorias.js', 'ui/formulario-egreso.js', 'ui/pantallas/movimientos.js', 'dominio/lista-movimientos.js']) {
     assert.ok(!cargados().includes(diferido), `${diferido} no se pide al abrir Inicio`);
   }
   await pagina.getByRole('link', { name: 'Ajustes', exact: true }).click();
@@ -187,7 +187,9 @@ test('HU-34 CA-4 · Inicio no carga el formulario de cuenta, Ajustes ni la venta
   await pagina.getByRole('switch', { name: 'Modo prueba' }).waitFor();
   assert.ok(cargados().includes('ui/pantallas/ajustes.js'), 'Ajustes se pide al abrirlo');
   await pagina.getByRole('link', { name: 'Movimientos', exact: true }).click();
-  await pagina.getByText('Esta parte llega en una próxima entrega.').waitFor();
+  // Desde HU-04 Movimientos es una pantalla real, que también se pide recién al abrirla.
+  await pagina.locator('.movs').waitFor();
+  assert.ok(cargados().includes('ui/pantallas/movimientos.js') && cargados().includes('dominio/lista-movimientos.js'), 'Movimientos se pide al abrirlo');
   assert.deepEqual(errores, []);
   await contexto.close();
 });

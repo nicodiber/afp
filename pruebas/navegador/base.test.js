@@ -49,11 +49,10 @@ test('aep#2 CA-1 · en el celular: logotipo, barra inferior con los cinco destin
   await contexto.close();
 });
 
-test('aep#2 CA-10 · Movimientos y Análisis muestran el aviso y vuelven al inicio; Cargar y «Cargar el primero» abren «Nuevo egreso» (HU-02)', async () => {
+test('aep#2 CA-10 · Análisis muestra el aviso y vuelve al inicio; Cargar y «Cargar el primero» abren «Nuevo egreso» (HU-02; Movimientos ya es real desde HU-04)', async () => {
   const { contexto, pagina, errores } = await abrir(entorno.navegador, entorno.servidor);
   const nav = pagina.getByRole('navigation', { name: 'Principal' });
   const casos = [
-    [() => nav.getByRole('link', { name: 'Movimientos' }), 'Movimientos'],
     [() => nav.getByRole('link', { name: 'Análisis' }), 'Análisis'],
   ];
   for (const [boton, titulo] of casos) {

@@ -97,3 +97,28 @@ test('HU-38 ajuste A (D-170) · el campo del formulario de cuenta se llama «Íc
   assert.deepEqual(errores, []);
   await contexto.close();
 });
+
+for (const [nombre, viewport] of [['celular', CELULAR], ['PC', ESCRITORIO]]) {
+  test(`HU-38 ajuste B (P-043) · Movimientos muestra las fechas de cada período debajo del selector (${nombre})`, async () => {
+    const { contexto, pagina, errores } = await conModoPrueba({ viewport });
+    await pagina.getByRole('button', { name: 'Cargar datos de ejemplo' }).click();
+    await pagina.getByRole('button', { name: 'Restablecer datos de ejemplo' }).waitFor();
+    await pagina.goto(`${entorno.servidor.url}#movimientos`);
+    const periodo = pagina.getByLabel('Período');
+    const fechas = pagina.locator('.fechas-periodo');
+    await fechas.waitFor();
+    assert.equal(await fechas.textContent(), '01/10/2026 al 31/10/2026', 'este mes por defecto');
+    for (const [opcion, esperado] of [
+      ['mes-anterior', '01/09/2026 al 30/09/2026'],
+      ['ultimos-3', '01/08/2026 al 31/10/2026'],
+      ['este-anio', '01/01/2026 al 31/12/2026'],
+      ['todo', 'desde el primer movimiento (01/08/2026)'],
+    ]) {
+      await periodo.selectOption(opcion);
+      assert.equal(await fechas.textContent(), esperado, opcion);
+    }
+    assert.equal(await periodo.getAttribute('aria-describedby'), await fechas.getAttribute('id'));
+    assert.deepEqual(errores, []);
+    await contexto.close();
+  });
+}

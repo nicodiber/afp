@@ -323,7 +323,8 @@ test('HU-02 CA-3 · la carga completa con el teclado, sin un solo clic (PC)', as
     if (f.id.startsWith('egreso-')) { assert.ok(f.contorno, `se ve el foco en ${f.id}`); if (recorrido.at(-1) !== f.id) recorrido.push(f.id); }
     if (f.id === 'egreso-guardar') break;
   }
-  assert.deepEqual(recorrido, ['egreso-fecha', 'egreso-hora', 'egreso-monto', 'egreso-descripcion', 'egreso-categoria', 'egreso-cuenta', 'egreso-cancelar', 'egreso-otro', 'egreso-guardar']);
+  // HU-03: el segmentado «Egreso | Ingreso» (solo el elegido entra con Tab) va antes de la fecha.
+  assert.deepEqual(recorrido, ['egreso-tipo-egreso', 'egreso-fecha', 'egreso-hora', 'egreso-monto', 'egreso-descripcion', 'egreso-categoria', 'egreso-cuenta', 'egreso-cancelar', 'egreso-otro', 'egreso-guardar']);
   // Atrás hasta la fecha y de nuevo hacia adelante hasta el monto.
   for (let i = 0; i < 12 && (await enfocado()).id !== 'egreso-cuenta'; i += 1) await pagina.keyboard.press('Shift+Tab');
   for (let i = 0; i < 12 && (await enfocado()).id !== 'egreso-monto'; i += 1) await pagina.keyboard.press('Shift+Tab');
@@ -375,8 +376,9 @@ test('HU-02 CA-3 · la carga completa con el teclado, sin un solo clic (PC)', as
   await pagina.locator('.formulario-egreso').waitFor();
   await pagina.evaluate(() => document.activeElement?.blur());
   await pagina.keyboard.press('Tab');
-  assert.equal((await enfocado()).id, 'egreso-fecha');
+  assert.equal((await enfocado()).id, 'egreso-tipo-egreso'); // HU-03: el segmentado va antes de la fecha
   const hacia = async (tecla, id) => { await pagina.keyboard.press(tecla); assert.equal((await enfocado()).id, id, `${tecla} → ${id}`); };
+  await hacia('ArrowDown', 'egreso-fecha');
   await hacia('ArrowDown', 'egreso-hora');
   await hacia('ArrowDown', 'egreso-monto');
   await hacia('ArrowUp', 'egreso-hora');

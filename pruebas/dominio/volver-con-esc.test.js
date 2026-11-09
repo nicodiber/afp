@@ -1,8 +1,7 @@
 // HU-35: a dónde vuelve Esc. Valores escritos a mano.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { padreDe, destinoAlVolver } from '../../src/dominio/navegacion.js';
-import { accionDeEscape } from '../../src/dominio/atajos.js';
+import { padreDe, destinoAlVolver, accionDeEscape } from '../../src/dominio/atajos.js';
 
 test('HU-35 CA-1 · la pantalla padre: las subpantallas vuelven a Ajustes; el resto, a Inicio; Inicio no tiene', () => {
   for (const sub of ['ajustes/cuentas', 'ajustes/categorias', 'ajustes/monedas']) assert.equal(padreDe(sub), 'ajustes', sub);
