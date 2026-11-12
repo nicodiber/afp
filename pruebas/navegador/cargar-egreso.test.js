@@ -144,7 +144,7 @@ for (const [nombre, viewport] of VIEWPORTS) {
       `💵Billetera$${E}12.900,00`, `💵Caja$${E}158.900,00`, `🏦Banco$${E}2.411.200,00`, `📱Billetera virtual$${E}113.400,00`, `💵Dólares billeteUS$${E}500,00`, `🚌Tarjeta transporte$${E}1.000,00`, '＋ Nueva cuenta',
     ]);
     await v.getByRole('combobox').fill('banc');
-    assert.deepEqual(await v.getByRole('option').allTextContents(), [`🏦Banco$${E}2.411.200,00`]);
+    assert.deepEqual(await v.getByRole('option').allTextContents(), [`🏦Banco$${E}2.411.200,00`, '＋ Nueva cuenta']);
     await opcion(pagina, /^Banco/).click();
     await v.waitFor({ state: 'detached' });
     assert.equal(await pagina.locator('.boton-campo-valor').nth(1).textContent(), '🏦 Banco');
