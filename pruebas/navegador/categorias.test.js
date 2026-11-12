@@ -56,7 +56,7 @@ const leerBase = (pagina, almacen) => pagina.evaluate((a) => new Promise((ok) =>
   p.onsuccess = () => { const g = p.result.transaction(a).objectStore(a).getAll(); g.onsuccess = () => { p.result.close(); ok(g.result); }; };
 }), almacen);
 
-const INGRESOS = [['Trabajo', 0], ['Ventas', 0], ['Rendimientos', 0], ['Aporte familiar', 0], ['Regalos recibidos', 0],
+const INGRESOS = [['Trabajo', 0], ['Ventas', 0], ['Rendimientos', 0], ['Regalos recibidos', 0],
   ['Sueldo', 0], ['Trabajos independientes', 0], ['Encargos', 1], ['Clases', 1], ['Ayuda familiar', 0], ['Regalos y Reintegros', 0]];
 const EGRESOS = [
   ['Vivienda', 0], ['Alquiler', 1], ['Electricidad', 1], ['Internet', 1], ['Limpieza', 1],
@@ -74,7 +74,7 @@ for (const [nombre, viewport] of [['celular', CELULAR], ['PC', ESCRITORIO]]) {
     const etiquetas = (id) => pagina.locator(`#categoria-${id} .etiqueta`).allTextContents();
     assert.deepEqual(await etiquetas('cat-kiosco'), ['Variable', 'Deseo', 'Hormiga']);
     assert.deepEqual(await etiquetas('cat-alquiler'), ['Fijo', 'Necesidad']);
-    assert.deepEqual(await etiquetas('cat-aporte-familiar'), ['Aporte de terceros']);
+    assert.deepEqual(await etiquetas('cat-ayuda-familiar'), ['Aporte de terceros']);
     assert.equal(await pagina.locator('#categoria-cat-alimentacion .fila-detalle').textContent(), '3 categorías');
     assert.deepEqual(errores, []);
     await contexto.close();
@@ -139,7 +139,7 @@ test('aep#15 CA-4 a CA-8 · crear, validar y editar, con la clasificación de la
   await pagina.waitForFunction(() => document.querySelector('#categoria-cat-kiosco .fila-nombre').textContent === '<b>Kiosco</b>');
   assert.equal(await pagina.locator('#categoria-cat-kiosco b').count(), 0);
   // CA-8 · un ingreso ofrece solo la naturaleza.
-  await abrirCategoria(pagina, 'cat-aporte-familiar');
+  await abrirCategoria(pagina, 'cat-ayuda-familiar');
   assert.equal(await ventana(pagina).getByRole('button', { name: 'Aporte de terceros' }).getAttribute('aria-pressed'), 'true');
   assert.equal(await ventana(pagina).getByRole('button', { name: 'Fijo' }).count(), 0);
   assert.deepEqual(errores, []);

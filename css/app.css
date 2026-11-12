@@ -721,3 +721,41 @@ button.fila-cuenta, a.fila-cuenta { cursor: pointer; }
   .movs-items li:last-child .movs-fila { border-bottom: 0; }
   .movs-fila:hover { background: var(--color-acento-tenue); }
 }
+
+/* La PC aprovecha el ancho (D-171): Categorías (HU-36) e Inicio (HU-37) usan hasta 1120 px. */
+@media (min-width: 720px) {
+  main > .ancho-pc { width: min(100%, 1120px); }
+}
+
+/* Categorías (HU-36, D-177): en la PC, Ingresos y Egresos en dos columnas iguales, cada una con su «Nueva»; en el celular, apiladas. */
+.categorias-columnas { display: grid; gap: var(--esp-2); }
+@media (min-width: 720px) {
+  .categorias-columnas { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: var(--esp-8); }
+}
+
+/* Inicio como tablero (HU-37, D-178). Celular: cuentas, resumen del mes y últimos movimientos, en ese orden (sin «Saldos de hoy»: son
+   las cuentas). PC: arriba los dos grupos de indicadores; debajo, las cuentas y, al lado, los últimos movimientos. */
+.tablero { display: grid; gap: var(--esp-6); min-width: 0; }
+.tablero > section { min-width: 0; }
+.seccion-cuentas { order: 1; margin-bottom: 0; }
+.grupo-mes { order: 2; }
+.seccion-ultimos { order: 3; display: grid; gap: var(--esp-2); align-content: start; }
+.grupo-indicadores { display: grid; gap: var(--esp-2); align-content: start; }
+.grupo-indicadores .subtitulo { margin: 0; }
+.grupo-indicadores.grupo-saldos { display: none; }
+.indicadores { display: grid; gap: var(--esp-2); margin: 0; }
+.indicador { display: flex; justify-content: space-between; gap: var(--esp-3); padding: var(--esp-3); border: var(--borde-tarjeta); border-radius: var(--radio-tarjeta); background: var(--color-superficie); box-shadow: var(--sombra-tarjeta); }
+.indicador-rotulo { color: var(--color-texto-suave); font-weight: var(--peso-semi); }
+.indicador-valor { margin: 0; font-weight: var(--peso-negrita); font-variant-numeric: tabular-nums; text-align: right; }
+@media (min-width: 720px) {
+  .tablero { grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); align-items: start; gap: var(--esp-6) var(--esp-8); }
+  .grupo-indicadores.grupo-saldos { display: grid; grid-column: 1; grid-row: 1; }
+  .grupo-mes { grid-column: 2; grid-row: 1; order: 0; }
+  .seccion-cuentas { grid-column: 1; grid-row: 2; order: 0; }
+  .seccion-ultimos { grid-column: 2; grid-row: 2; order: 0; }
+  .indicadores { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--esp-3); }
+  .indicador { flex-direction: column; justify-content: flex-start; gap: var(--esp-1); padding: var(--esp-4); }
+  .indicador-valor { font-size: var(--texto-lg); font-weight: var(--peso-extra); text-align: left; overflow-wrap: anywhere; }
+  .tablero.tablero-vacio { display: flex; flex-direction: column; align-items: stretch; }
+  .tablero .tarjetas-cuentas { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+}

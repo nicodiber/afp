@@ -77,7 +77,7 @@ for (const [nombre, viewport] of VIEWPORTS) {
     assert.equal(await pagina.locator('.boton-campo-valor').first().textContent(), 'Elegir…', 'la categoría de egreso se borró');
     // La ventana de categorías muestra las de ingresos, con su ícono.
     await pagina.getByRole('button', { name: /^Categoría/ }).click();
-    assert.deepEqual(await opciones(pagina), ['💼Trabajo', '🏷️Ventas', '💹Rendimientos', '👪Aporte familiar', '🎀Regalos recibidos', '💵Sueldo', '🧰Trabajos independientes›', '🤝Ayuda familiar', '🎁Regalos y Reintegros']);
+    assert.deepEqual(await opciones(pagina), ['💼Trabajo', '🏷️Ventas', '💹Rendimientos', '🎀Regalos recibidos', '💵Sueldo', '🧰Trabajos independientes›', '🤝Ayuda familiar', '🎁Regalos y Reintegros']);
     await ventana(pagina).getByRole('button', { name: 'Cerrar' }).click();
     // Y vuelve a Egreso.
     await elegirTipo(pagina, 'Egreso');
