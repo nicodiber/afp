@@ -457,6 +457,9 @@ button.fila-cuenta, a.fila-cuenta { cursor: pointer; }
 .selector-nivel .rotulo-grupo { margin: 0; }
 .selector-atras { min-height: var(--objetivo-tactil); }
 .selector-opcion .chevron { flex: 0 0 auto; }
+.selector-nueva { color: var(--color-acento); font-weight: 600; }
+.selector-formulario { display: block; overflow-y: auto; }
+.icono-propuesto { display: flex; align-items: center; gap: var(--esp-3); margin: 0; }
 .selector-emoji { flex: 0 0 auto; width: 28px; font-size: var(--texto-lg); text-align: center; }
 .selector-nombre { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .selector-detalle { flex: 0 0 auto; color: var(--color-texto-suave); font-size: var(--texto-sm); font-variant-numeric: tabular-nums; white-space: nowrap; }

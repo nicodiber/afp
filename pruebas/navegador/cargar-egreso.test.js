@@ -100,26 +100,26 @@ for (const [nombre, viewport] of VIEWPORTS) {
     assert.equal(await v.getByRole('combobox').evaluate((e) => e === document.activeElement), true, 'el foco queda en el buscador');
     // HU-02b CA-2: sin buscar, el primer nivel del árbol (familias con › y categorías sueltas) con su ícono.
     const nivel = () => v.getByRole('option').allTextContents();
-    assert.deepEqual(await nivel(), ['🏠Vivienda›', '🍽️Alimentación›', '🚌Transporte›', '🎉Ocio›', '🩺Salud']);
+    assert.deepEqual(await nivel(), ['🏠Vivienda›', '🍽️Alimentación›', '🚌Transporte›', '🎉Ocio›', '🩺Salud', '＋ Nueva categoría']);
     const altos = await v.getByRole('option').evaluateAll((os) => os.map((o) => o.getBoundingClientRect().height));
-    assert.equal(altos.length, 5);
+    assert.equal(altos.length, 6, 'las 5 del primer nivel y «＋ Nueva categoría»');
     assert.ok(altos.every((alto) => alto >= 44), `alto mínimo ${Math.min(...altos)}`);
     // Tocar una familia muestra sus subcategorías con «‹ Atrás»; el foco sigue en el buscador.
     await opcion(pagina, 'Alimentación').click();
-    assert.deepEqual(await nivel(), ['🛒Supermercado', '🥦Verdulería', '🍬Kiosco']);
+    assert.deepEqual(await nivel(), ['🛒Supermercado', '🥦Verdulería', '🍬Kiosco', '＋ Nueva categoría en Alimentación']);
     assert.equal(await v.getByRole('combobox').evaluate((e) => e === document.activeElement), true);
     await v.getByRole('button', { name: '‹ Atrás' }).click();
-    assert.deepEqual(await nivel(), ['🏠Vivienda›', '🍽️Alimentación›', '🚌Transporte›', '🎉Ocio›', '🩺Salud']);
+    assert.deepEqual(await nivel(), ['🏠Vivienda›', '🍽️Alimentación›', '🚌Transporte›', '🎉Ocio›', '🩺Salud', '＋ Nueva categoría']);
     assert.equal(await v.getByRole('button', { name: '‹ Atrás' }).count(), 0, 'en el primer nivel no hay «Atrás»');
     // El buscador filtra mientras se escribe, sin distinguir tildes ni mayúsculas, entre todas las hojas.
     await v.getByRole('combobox').pressSequentially('verdul');
-    assert.deepEqual(await nivel(), ['🥦Verdulería']);
+    assert.deepEqual(await nivel(), ['🥦Verdulería', '＋ Nueva categoría']);
     await v.getByRole('combobox').fill('ALIMENTACION');
-    assert.deepEqual(await nivel(), ['🛒Supermercado', '🥦Verdulería', '🍬Kiosco'], 'también por familia');
+    assert.deepEqual(await nivel(), ['🛒Supermercado', '🥦Verdulería', '🍬Kiosco', '＋ Nueva categoría'], 'también por familia');
     await v.getByRole('combobox').fill('zzz');
     assert.equal(await v.getByRole('status').textContent(), 'No hay resultados para «zzz».');
     await v.getByRole('combobox').fill('');
-    assert.equal((await nivel()).length, 5, 'sin texto, vuelve el primer nivel');
+    assert.equal((await nivel()).length, 6, 'sin texto, vuelve el primer nivel');
     // Una categoría sin hijas se elige directo.
     await opcion(pagina, 'Salud').click();
     await v.waitFor({ state: 'detached' });
@@ -141,10 +141,10 @@ for (const [nombre, viewport] of VIEWPORTS) {
     await pagina.getByRole('button', { name: /^Cuenta/ }).click();
     const v = ventana(pagina);
     assert.deepEqual(await v.getByRole('option').allTextContents(), [
-      `💵Billetera$${E}12.900,00`, `💵Caja$${E}158.900,00`, `🏦Banco$${E}2.411.200,00`, `📱Billetera virtual$${E}113.400,00`, `💵Dólares billeteUS$${E}500,00`, `🚌Tarjeta transporte$${E}1.000,00`,
+      `💵Billetera$${E}12.900,00`, `💵Caja$${E}158.900,00`, `🏦Banco$${E}2.411.200,00`, `📱Billetera virtual$${E}113.400,00`, `💵Dólares billeteUS$${E}500,00`, `🚌Tarjeta transporte$${E}1.000,00`, '＋ Nueva cuenta',
     ]);
     await v.getByRole('combobox').fill('banc');
-    assert.deepEqual(await v.getByRole('option').allTextContents(), [`🏦Banco$${E}2.411.200,00`]);
+    assert.deepEqual(await v.getByRole('option').allTextContents(), [`🏦Banco$${E}2.411.200,00`, '＋ Nueva cuenta']);
     await opcion(pagina, /^Banco/).click();
     await v.waitFor({ state: 'detached' });
     assert.equal(await pagina.locator('.boton-campo-valor').nth(1).textContent(), '🏦 Banco');
@@ -152,21 +152,16 @@ for (const [nombre, viewport] of VIEWPORTS) {
     await contexto.close();
   });
 
-  test(`HU-02 CA-1 · sin cuentas ni categorías, la ventana lo dice y lleva a crearlas (${nombre})`, async () => {
+  test(`HU-02 CA-1 y HU-39 · sin cuentas ni categorías, la ventana lo dice y ofrece crearlas ahí mismo (${nombre})`, async () => {
     const { contexto, pagina, errores } = await abrir(entorno.navegador, entorno.servidor, { viewport }, '#cargar');
     await pagina.locator('.formulario-egreso').waitFor();
     await pagina.getByRole('button', { name: /^Cuenta/ }).click();
     assert.match(await ventana(pagina).innerText(), /Todavía no tenés cuentas\./);
-    await ventana(pagina).getByRole('button', { name: 'Crear una cuenta' }).click();
-    await pagina.getByRole('heading', { name: 'Cuentas', level: 1 }).waitFor();
-    assert.equal(new URL(pagina.url()).hash, '#ajustes/cuentas');
-    await pagina.goBack();
-    await pagina.locator('.formulario-egreso').waitFor();
+    assert.deepEqual(await ventana(pagina).getByRole('option').allTextContents(), ['＋ Nueva cuenta']);
+    await ventana(pagina).getByRole('button', { name: 'Cerrar' }).click();
     await pagina.getByRole('button', { name: /^Categoría/ }).click();
     assert.match(await ventana(pagina).innerText(), /Todavía no tenés categorías de egreso\./);
-    await ventana(pagina).getByRole('button', { name: 'Crear categorías' }).click();
-    await pagina.getByRole('heading', { name: 'Categorías', level: 1 }).waitFor();
-    assert.equal(new URL(pagina.url()).hash, '#ajustes/categorias');
+    assert.deepEqual(await ventana(pagina).getByRole('option').allTextContents(), ['＋ Nueva categoría']);
     assert.deepEqual(errores, []);
     await contexto.close();
   });
@@ -345,7 +340,7 @@ test('HU-02 CA-3 · la carga completa con el teclado, sin un solo clic (PC)', as
   assert.equal(await marcada(), '🍽️Alimentación›');
   await pagina.keyboard.press('ArrowUp');
   await pagina.keyboard.press('ArrowUp');
-  assert.equal(await marcada(), '🩺Salud', 'da la vuelta al llegar al principio');
+  assert.equal(await marcada(), '＋ Nueva categoría', 'da la vuelta al llegar al principio y llega a «＋ Nueva categoría», la última');
   await pagina.keyboard.press('Escape');
   await v.waitFor({ state: 'detached' });
   assert.equal(await pagina.locator('.boton-campo-valor').first().textContent(), 'Elegir…', 'Esc no cambia nada');

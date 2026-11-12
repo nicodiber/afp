@@ -7,7 +7,8 @@ import { abrirSelector } from './selector.js';
 import { categoriasAgrupadas, nivelDeCategorias } from '../dominio/movimientos.js';
 import { iconoDeCuenta } from '../dominio/cuentas.js';
 import { formatearFecha } from '../dominio/fecha.js';
-import { formatearMonto, leerMonto, montoParaEditar, formatearMontoEscrito, interpretarMontoPegado } from '../dominio/formato.js';
+import { formatearMonto } from '../dominio/formato.js';
+import { darFormatoDeMonto } from './campo-monto.js';
 import { capitalizarInicial } from '../dominio/texto.js';
 
 let siguiente = 0;
@@ -110,7 +111,12 @@ export function formularioEgreso({ hoy, ahora, esPC, cuentas, categorias, alGuar
     abrirSelector({
       titulo: 'Categoría', grupos,
       nivel: { opciones: (padreId) => nivelDeCategorias(categorias.todas(), padreId, tipo), nombreDe: (familiaId) => conEmoji(categorias.buscar(familiaId)) }, elegidoId: categoriaId, alElegir: alElegirCategoria, pantallaCompleta: !esPC,
-      vacio: { texto: `Todavía no tenés categorías de ${tipo}.`, boton: 'Crear categorías', alTocar: () => { location.hash = '#ajustes/categorias'; } },
+      vacio: { texto: `Todavía no tenés categorías de ${tipo}.` },
+      // «＋ Nueva categoría» al final (HU-39 CA-1): crea del tipo del movimiento, en la familia abierta si se entró a una.
+      nuevo: {
+        texto: (familiaId) => (familiaId ? `＋ Nueva categoría en ${categorias.buscar(familiaId).nombre}` : '＋ Nueva categoría'),
+        formulario: async (contexto) => (await import('./formulario-rapido.js')).formularioCategoriaRapida({ categorias, tipo, ...contexto }),
+      },
     });
   });
   campoCuenta.boton.addEventListener('click', () => {
@@ -120,7 +126,12 @@ export function formularioEgreso({ hoy, ahora, esPC, cuentas, categorias, alGuar
     });
     abrirSelector({
       titulo: 'Cuenta', grupos: [{ titulo: null, opciones }], elegidoId: cuentaId, alElegir: alElegirCuenta, pantallaCompleta: !esPC,
-      vacio: { texto: 'Todavía no tenés cuentas.', boton: 'Crear una cuenta', alTocar: () => { location.hash = '#ajustes/cuentas'; } },
+      vacio: { texto: 'Todavía no tenés cuentas.' },
+      // «＋ Nueva cuenta» al final (HU-39 CA-2): nombre, tipo y saldo inicial; en pesos.
+      nuevo: {
+        texto: () => '＋ Nueva cuenta',
+        formulario: async (contexto) => (await import('./formulario-rapido.js')).formularioCuentaRapida({ cuentas, ...contexto }),
+      },
     });
   });
 
@@ -133,34 +144,8 @@ export function formularioEgreso({ hoy, ahora, esPC, cuentas, categorias, alGuar
     descripcion.value = corregido;
     descripcion.setSelectionRange(selectionStart, selectionEnd);
   });
-  // El monto se va formateando mientras se escribe (HU-02b CA-1): puntos de miles, coma decimal con hasta 2 cifras.
-  // La tecla punto escribe una coma (la del teclado numérico también) y al pegar se entiende «12.500,50» o «12500.50».
-  const darFormatoAlMonto = () => {
-    const resultado = formatearMontoEscrito(monto.value, monto.selectionStart ?? monto.value.length);
-    monto.value = resultado.texto;
-    monto.setSelectionRange(resultado.cursor, resultado.cursor);
-  };
-  const insertarEnMonto = (texto) => {
-    monto.setRangeText(texto, monto.selectionStart, monto.selectionEnd, 'end');
-    darFormatoAlMonto();
-  };
-  // Teclado físico: el punto (también el del teclado numérico) se vuelve coma.
-  monto.addEventListener('keydown', (evento) => {
-    if ((evento.key === '.' || evento.code === 'NumpadDecimal') && !evento.ctrlKey && !evento.metaKey && !evento.altKey) { evento.preventDefault(); insertarEnMonto(','); }
-  });
-  // Teclados del celular, que no mandan la tecla: se mira el texto que entra.
-  monto.addEventListener('beforeinput', (evento) => {
-    if (evento.inputType === 'insertText' && evento.data === '.') { evento.preventDefault(); insertarEnMonto(','); }
-  });
-  monto.addEventListener('paste', (evento) => {
-    evento.preventDefault();
-    insertarEnMonto(interpretarMontoPegado(evento.clipboardData?.getData('text') ?? ''));
-  });
-  monto.addEventListener('input', darFormatoAlMonto);
-  monto.addEventListener('blur', () => {
-    const centavos = leerMonto(monto.value);
-    if (centavos !== null && centavos > 0) monto.value = montoParaEditar(centavos);
-  });
+  // El monto se va formateando mientras se escribe (HU-02b CA-1).
+  darFormatoDeMonto(monto);
   fecha.addEventListener('change', () => { textoFecha.textContent = textoDeFecha(fecha.value, hoy()); });
 
   // Cambia el tipo: el título, el color del monto y las categorías cambian; la categoría de egreso elegida se borra.
