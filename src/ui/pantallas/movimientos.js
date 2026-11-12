@@ -3,13 +3,15 @@
 // (filtros, totales y barras por categoría). Las reglas están en dominio/lista-movimientos.js.
 import { crear } from '../dom.js';
 import { avisar } from '../dialogo.js';
+import { itemDeMovimiento } from '../fila-movimiento.js';
 import { formatearMonto } from '../../dominio/formato.js';
 import {
-  PERIODOS, TIPOS_DE_FILTRO, rangoDePeriodo, textoDelRango, idsDeCategoria, filtrarMovimientos, totalesPorMoneda, egresosPorCategoria, filaDeMovimiento,
+  PERIODOS, TIPOS_DE_FILTRO, rangoDePeriodo, textoDelRango, idsDeCategoria, filtrarMovimientos, totalesPorMoneda, egresosPorCategoria,
 } from '../../dominio/lista-movimientos.js';
 
 let contador = 0;
-const INICIAL = { texto: '', periodo: 'este-mes', mes: null, tipo: 'todos', categoriaId: null, cuentaId: null };
+// `categoriaDeBarra`: la categoría la eligió una barra (y no el selector); las barras no se achican para poder cambiar de una a otra.
+const INICIAL = { texto: '', periodo: 'este-mes', mes: null, tipo: 'todos', categoriaId: null, cuentaId: null, categoriaDeBarra: false };
 const estado = { ...INICIAL };
 /** Al salir de la pantalla, los filtros vuelven a los de siempre (el mes en curso). */
 export const reiniciarMovimientos = () => Object.assign(estado, INICIAL);
@@ -124,8 +126,8 @@ export function pantallaMovimientos({ movimientos, cuentas, categorias }) {
     );
   };
 
-  const pintarBarras = (movsSinCategoria, categoriasPorId) => {
-    const barras = egresosPorCategoria(movsSinCategoria, categoriasPorId, 'ARS');
+  const pintarBarras = (movs, categoriasPorId) => {
+    const barras = egresosPorCategoria(movs, categoriasPorId, 'ARS');
     const maximo = barras[0]?.monto ?? 1;
     const items = barras.map((b) => {
       const relleno = crear('span', { class: 'barra-relleno' });
@@ -140,6 +142,7 @@ export function pantallaMovimientos({ movimientos, cuentas, categorias }) {
       // Tocar una barra filtra por esa categoría; tocarla de nuevo saca el filtro.
       boton.addEventListener('click', () => {
         estado.categoriaId = estado.categoriaId === b.categoriaId ? null : b.categoriaId;
+        estado.categoriaDeBarra = estado.categoriaId !== null;
         selectCategoria.value = estado.categoriaId ?? '';
         actualizar();
         // Las barras se vuelven a dibujar: el foco vuelve a la que se tocó (con el teclado, Enter la saca de nuevo).
@@ -158,19 +161,7 @@ export function pantallaMovimientos({ movimientos, cuentas, categorias }) {
       lista.replaceChildren(crear('div', { class: 'vacio' }, [crear('p', { texto: 'No hay movimientos con estos filtros.' })]));
       return;
     }
-    const items = movs.map((m) => {
-      const fila = filaDeMovimiento(m, contexto);
-      const boton = crear('button', { type: 'button', class: 'movs-fila', id: id(`fila-${fila.id}`) }, [
-        crear('span', { class: 'movs-icono', 'aria-hidden': 'true', texto: fila.emoji }),
-        crear('span', { class: 'movs-texto' }, [
-          crear('span', { class: 'movs-titulo', texto: fila.titulo }),
-          crear('span', { class: 'movs-detalle', texto: fila.detalle }),
-        ]),
-        crear('span', { class: `movs-monto ${fila.tipo === 'egreso' ? 'monto-egreso' : 'monto-ingreso'}`, texto: formatearMonto(fila.monto, fila.monedaId, { conSigno: true }) }),
-      ]);
-      boton.addEventListener('click', () => avisar('Editar llega en HU-05.'));
-      return crear('li', {}, [boton]);
-    });
+    const items = movs.map((m) => itemDeMovimiento(m, contexto, { id: id(`fila-${m.id}`), alTocar: () => avisar('Editar llega en HU-05.') }));
     lista.replaceChildren(crear('ul', { class: 'movs-items', 'aria-label': 'Movimientos' }, items));
   };
 
@@ -186,16 +177,17 @@ export function pantallaMovimientos({ movimientos, cuentas, categorias }) {
     fechasDelPeriodo.textContent = textoDelRango(estado.periodo, rango, todos.reduce((primero, m) => (primero === null || m.fecha < primero ? m.fecha : primero), null));
     pintarLista(visibles, { categoriasPorId, cuentasPorId });
     pintarTotales(visibles);
-    // Las barras no se achican al elegir una: se calculan sin el filtro de categoría para poder cambiar de barra.
-    pintarBarras(estado.categoriaId ? filtrarMovimientos(todos, { ...base, categoriaIds: null }, categoriasPorId) : visibles, categoriasPorId);
+    // HU-04 (corrección P-053, D-180): las barras siguen los mismos filtros que los totales y la lista. Única excepción: con una
+    // categoría elegida tocando una barra, las otras barras quedan (sin el filtro de categoría) para poder cambiar de una a otra.
+    pintarBarras(estado.categoriaId && estado.categoriaDeBarra ? filtrarMovimientos(todos, { ...base, categoriaIds: null }, categoriasPorId) : visibles, categoriasPorId);
     resumenLectores.textContent = visibles.length === 1 ? '1 movimiento.' : `${visibles.length} movimientos.`;
   }
 
   buscador.addEventListener('input', () => { estado.texto = buscador.value; actualizar(); });
   selectPeriodo.addEventListener('change', () => { estado.periodo = selectPeriodo.value; if (estado.periodo === 'mes') estado.mes = entradaMes.value || hoy.slice(0, 7); actualizar(); });
   entradaMes.addEventListener('change', () => { estado.mes = entradaMes.value || hoy.slice(0, 7); actualizar(); });
-  selectTipo.addEventListener('change', () => { estado.tipo = selectTipo.value; llenarCategorias(); actualizar(); });
-  selectCategoria.addEventListener('change', () => { estado.categoriaId = selectCategoria.value || null; actualizar(); });
+  selectTipo.addEventListener('change', () => { estado.tipo = selectTipo.value; estado.categoriaDeBarra = false; llenarCategorias(); actualizar(); });
+  selectCategoria.addEventListener('change', () => { estado.categoriaId = selectCategoria.value || null; estado.categoriaDeBarra = false; actualizar(); });
   selectCuenta.addEventListener('change', () => { estado.cuentaId = selectCuenta.value || null; actualizar(); });
 
   actualizar();

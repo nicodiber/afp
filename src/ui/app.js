@@ -120,7 +120,7 @@ export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, datosDi
     else if (ruta === 'ajustes/categorias') pantalla = subpantallas[ruta].pantallaCategorias({ categorias, esPC: esPC(), redibujar });
     else if (ruta === 'movimientos') pantalla = subpantallas[ruta].pantallaMovimientos({ movimientos, cuentas, categorias });
     else if (ruta === 'cargar') pantalla = subpantallas[ruta].pantallaCargar({ movimientos, cuentas, categorias, esPC: esPC(), volver });
-    else if (destino === 'inicio') pantalla = pantallaInicio({ instalacion, ...acciones, cuentas, movimientos, esPC: esPC(), redibujar });
+    else if (destino === 'inicio') pantalla = pantallaInicio({ instalacion, ...acciones, cuentas, movimientos, categorias, esPC: esPC(), redibujar });
     else if (destino === 'ajustes') {
       pantalla = subpantallas.ajustes.pantallaAjustes({
         preferencias, version, instalacion, alInstalar: acciones.alInstalar, modoPrueba, datosDispositivo, cuentas, ejemplo, redibujar, esPC: esPC(),

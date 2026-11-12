@@ -220,6 +220,7 @@ export function pantallaCategorias({ categorias, esPC, redibujar }) {
     crear('a', { class: 'volver', href: '#ajustes', texto: '‹ Ajustes' }),
     crear('div', { class: 'cabecera-lista' }, [crear('h1', { class: 'titulo', id: 'titulo-categorias', tabindex: '-1', texto: 'Categorías' }), botonOrdenar]),
   ];
+  const columnas = [];
   for (const tipo of TIPOS) {
     const raiz = categorias.hijas(null, tipo);
     const nueva = crear('button', { type: 'button', class: 'boton-principal boton-chico', id: `nueva-${tipo}`, texto: raiz.length ? '+ Nueva' : 'Crear la primera' });
@@ -228,8 +229,10 @@ export function pantallaCategorias({ categorias, esPC, redibujar }) {
     const cuerpo = raiz.length
       ? (ordenar ? grupos(tipo) : [arbol(tipo)])
       : [crear('p', { class: 'apoyo', texto: `Todavía no tenés categorías de ${tipo === 'ingreso' ? 'ingresos' : 'egresos'}.` })];
-    contenido.push(crear('section', { class: 'seccion-categorias', 'aria-labelledby': `titulo-${tipo}` }, [cabecera, ...cuerpo]));
+    columnas.push(crear('section', { class: 'seccion-categorias', 'aria-labelledby': `titulo-${tipo}` }, [cabecera, ...cuerpo]));
   }
+  // HU-36 (D-177): en la PC, Ingresos y Egresos van en dos columnas iguales; en el celular, una debajo de la otra.
+  contenido.push(crear('div', { class: 'categorias-columnas' }, columnas));
   if (ordenar) contenido.push(crear('p', { class: 'apoyo', texto: 'Arrastrá cada categoría por ⠿, o usá ↑ y ↓. Se ordena dentro de su familia.' }));
   const archivadas = categorias.archivadas();
   if (archivadas.length && !ordenar) {
@@ -250,6 +253,8 @@ export function pantallaCategorias({ categorias, esPC, redibujar }) {
       })),
     ]));
   }
+  // En la PC la pantalla usa más ancho (D-171).
+  for (const elemento of contenido) elemento.classList.add('ancho-pc');
   return contenido;
 }
 

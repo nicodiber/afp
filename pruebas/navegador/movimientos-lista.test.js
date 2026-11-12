@@ -283,3 +283,29 @@ test('HU-04 CA-3 · con 500 movimientos filtrar responde en menos de 200 ms (cel
   assert.deepEqual(errores, []);
   await contexto.close();
 });
+
+test('HU-04 corrección P-053 · «Egresos por categoría» sigue los mismos filtros que los totales y la lista', async () => {
+  const { contexto, pagina, errores } = await conMovimientos({ viewport: ESCRITORIO });
+  // Antes de filtrar: las 4 barras de siempre.
+  assert.deepEqual(await pagina.locator('.barra .barra-nombre').allTextContents(), ['🔑 Alquiler', '🥦 Verdulería', '🛒 Supermercado', '💡 Electricidad']);
+  // Categoría = Trabajo (un ingreso, elegida en el selector): totales sin egresos y, ahora también, sin barras.
+  await pagina.getByLabel('Categoría', { exact: true }).selectOption('cat-trabajo');
+  await esperarTitulos(pagina, ['Sueldo']);
+  assert.deepEqual(await totales(pagina), { Ingresos: `+$${E}150.000,00`, Egresos: `$${E}0,00`, Diferencia: `+$${E}150.000,00` });
+  assert.equal(await pagina.locator('.barra').count(), 0, 'sin barras');
+  assert.equal(await pagina.locator('.movs-barras').getByText('No hay egresos con estos filtros.').count(), 1);
+  // Cuenta = Caja: los egresos de Caja (Compra del mes 3.500 y Feria 4.200 en octubre) y solo esas barras.
+  await pagina.getByLabel('Categoría', { exact: true }).selectOption('');
+  await pagina.getByLabel('Cuenta', { exact: true }).selectOption('cue-caja');
+  await esperarTitulos(pagina, ['Compra del mes', 'Feria']);
+  assert.deepEqual(await pagina.locator('.barra .barra-nombre').allTextContents(), ['🥦 Verdulería', '🛒 Supermercado']);
+  assert.deepEqual(await pagina.locator('.barra .barra-monto').allTextContents(), [`$${E}4.200,00`, `$${E}3.500,00`]);
+  // Tipo = Ingresos: ningún egreso en la lista, en los totales ni en las barras.
+  await pagina.getByLabel('Cuenta', { exact: true }).selectOption('');
+  await pagina.getByLabel('Tipo', { exact: true }).selectOption('ingreso');
+  await esperarTitulos(pagina, ['Sueldo']);
+  assert.equal(await pagina.locator('.barra').count(), 0);
+  assert.equal(await pagina.locator('.movs-barras').getByText('No hay egresos con estos filtros.').count(), 1);
+  assert.deepEqual(errores, []);
+  await contexto.close();
+});
