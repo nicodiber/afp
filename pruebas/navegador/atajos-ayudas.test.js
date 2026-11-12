@@ -92,8 +92,8 @@ for (const [nombre, viewport] of [['celular', CELULAR], ['PC', ESCRITORIO]]) {
     await pagina.goto(`${entorno.servidor.url}#ajustes/categorias`);
     await pagina.locator('#titulo-ingreso').waitFor();
     assert.deepEqual(await pagina.locator('#categoria-cat-trabajo .etiqueta').allTextContents(), ['Ganado']);
-    assert.deepEqual(await pagina.locator('#categoria-cat-aporte-familiar .etiqueta').allTextContents(), ['Aporte de terceros']);
-    const info = pagina.getByRole('button', { name: 'Qué significan las etiquetas de Aporte familiar' });
+    assert.deepEqual(await pagina.locator('#categoria-cat-ayuda-familiar .etiqueta').allTextContents(), ['Aporte de terceros']);
+    const info = pagina.getByRole('button', { name: 'Qué significan las etiquetas de Ayuda familiar' });
     await info.click();
     assert.equal(await pagina.locator('#globo-info').innerText(), 'Aporte de terceros: Plata que otra persona te da sin que sea a cambio de un trabajo (por ejemplo, ayuda familiar).');
     await pagina.keyboard.press('Escape');

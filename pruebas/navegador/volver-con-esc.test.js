@@ -102,7 +102,7 @@ test('HU-35 CA-2 · un tooltip ⓘ abierto se cierra con Esc y no se vuelve', as
   await pagina.getByRole('button', { name: 'Cargar datos de ejemplo' }).click();
   await pagina.getByRole('button', { name: 'Restablecer datos de ejemplo' }).waitFor();
   await ir(pagina, 'ajustes/categorias', 'Categorías');
-  await pagina.getByRole('button', { name: 'Qué significan las etiquetas de Aporte familiar' }).click();
+  await pagina.getByRole('button', { name: 'Qué significan las etiquetas de Ayuda familiar' }).click();
   await pagina.locator('#globo-info:not([hidden])').waitFor();
   await pagina.keyboard.press('Escape');
   await pagina.locator('#globo-info').waitFor({ state: 'hidden' });

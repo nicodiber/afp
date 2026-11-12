@@ -122,3 +122,15 @@ for (const [nombre, viewport] of [['celular', CELULAR], ['PC', ESCRITORIO]]) {
     await contexto.close();
   });
 }
+
+test('HU-38 corrección P-052 · los datos de ejemplo tienen solo «Ayuda familiar» (no «Aporte familiar»)', async () => {
+  const { contexto, pagina, errores } = await conModoPrueba({ viewport: ESCRITORIO });
+  await pagina.getByRole('button', { name: 'Cargar datos de ejemplo' }).click();
+  await pagina.getByRole('button', { name: 'Restablecer datos de ejemplo' }).waitFor();
+  const categorias = await leerBase(pagina, 'categorias');
+  assert.deepEqual(categorias.filter((c) => c.nombre.includes('familiar')).map((c) => c.nombre), ['Ayuda familiar']);
+  assert.equal(categorias.filter((c) => c.tipo === 'ingreso').length, 10, '11 de antes menos «Aporte familiar»');
+  assert.equal(new Set(categorias.map((c) => c.emoji)).size, categorias.length, 'cada categoría conserva un ícono único');
+  assert.deepEqual(errores, []);
+  await contexto.close();
+});

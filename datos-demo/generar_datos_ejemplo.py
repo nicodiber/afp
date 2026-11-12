@@ -38,7 +38,7 @@ def _slug(nombre):
     return 'cat-' + '-'.join(base.split())
 # Un emoji único por categoría (HU-31): no se repite entre categorías de ingresos y de egresos.
 ICONOS = {
-    'Trabajo': '💼', 'Ventas': '🏷️', 'Rendimientos': '💹', 'Aporte familiar': '👪', 'Regalos recibidos': '🎀',
+    'Trabajo': '💼', 'Ventas': '🏷️', 'Rendimientos': '💹', 'Regalos recibidos': '🎀',
     'Sueldo': '💵', 'Trabajos independientes': '🧰', 'Encargos': '📝', 'Clases': '🎓', 'Ayuda familiar': '🤝', 'Regalos y Reintegros': '🎁',
     'Vivienda': '🏠', 'Alquiler': '🔑', 'Electricidad': '💡', 'Internet': '🌐', 'Limpieza': '🧹',
     'Alimentación': '🍽️', 'Supermercado': '🛒', 'Verdulería': '🥦', 'Kiosco': '🍬',
@@ -52,7 +52,6 @@ def cat(tipo, nombre, padre=None, **clasif):
                        'emoji': ICONOS[nombre], 'orden': len(CATEGORIAS) + 1, 'estado': 'activa', 'esSistema': False, 'esHistorica': False, **campos})
 for hoja in ('Trabajo', 'Ventas', 'Rendimientos'):
     cat('ingreso', hoja, naturaleza='ganado')
-cat('ingreso', 'Aporte familiar', naturaleza='aporte_terceros')
 cat('ingreso', 'Regalos recibidos', naturaleza='otro')
 # HU-38: ingresos para los movimientos de ejemplo. «Trabajos independientes» es una familia con dos hojas.
 cat('ingreso', 'Sueldo', naturaleza='ganado')
@@ -90,7 +89,7 @@ def ing(id, fecha, cuenta, categoria, monto, detalle=None):
 VERDU = 'Verdulería del barrio'
 MOVIMIENTOS = [
     ing('M01', '2026-09-01', 'cue-banco', 'Trabajo', 900_000, 'Sueldo septiembre'),
-    ing('M02', '2026-09-02', 'cue-billetera-virtual', 'Aporte familiar', 150_000),
+    ing('M02', '2026-09-02', 'cue-billetera-virtual', 'Ayuda familiar', 150_000),
     egr('M03', '2026-09-05', 'cue-banco', 'Alquiler', 350_000),
     egr('M04', '2026-09-06', 'cue-billetera-virtual', 'Supermercado', 60_000, 'Compra del mes'),
     egr('M05', '2026-09-09', 'cue-billetera', 'Verdulería', 8_000, VERDU),
@@ -101,7 +100,7 @@ MOVIMIENTOS = [
     mov('M10', '2026-09-18', 'transferencia', cuentaOrigen='cue-billetera', cuentaDestino='cue-tarjeta-transporte', monto=c(20_000), detalle='Carga tarjeta'),
     egr('M11', '2026-09-20', 'cue-tarjeta-transporte', 'Transporte público', 15_000),
     ing('M12', '2026-10-01', 'cue-banco', 'Trabajo', 950_000, 'Sueldo octubre'),
-    ing('M13', '2026-10-02', 'cue-billetera-virtual', 'Aporte familiar', 150_000),
+    ing('M13', '2026-10-02', 'cue-billetera-virtual', 'Ayuda familiar', 150_000),
     mov('M14', '2026-10-03', 'egreso', cuenta='cue-billetera-virtual', partes=[{'categoria': 'Supermercado', 'monto': c(7_000)}, {'categoria': 'Limpieza', 'monto': c(3_000)}]),
     egr('M15', '2026-10-05', 'cue-banco', 'Alquiler', 350_000),
     egr('M16', '2026-10-07', 'cue-billetera-virtual', 'Supermercado', 55_000, 'Compra del mes'),
@@ -206,7 +205,7 @@ for _m in MOVIMIENTOS_EJEMPLO:
 
 RECURRENTES = [
     {'nombre': 'Trabajo', 'tipo': 'ingreso', 'cuenta': 'cue-banco', 'dia': 1, 'montoEstimado': c(950_000), 'registradas': ['M01', 'M12']},
-    {'nombre': 'Aporte familiar', 'tipo': 'ingreso', 'cuenta': 'cue-billetera-virtual', 'dia': 2, 'montoEstimado': c(150_000), 'registradas': ['M02', 'M13']},
+    {'nombre': 'Ayuda familiar', 'tipo': 'ingreso', 'cuenta': 'cue-billetera-virtual', 'dia': 2, 'montoEstimado': c(150_000), 'registradas': ['M02', 'M13']},
     {'nombre': 'Alquiler', 'tipo': 'egreso', 'cuenta': 'cue-banco', 'dia': 5, 'montoEstimado': c(350_000), 'registradas': ['M03', 'M15']},
     {'nombre': 'Internet', 'tipo': 'egreso', 'cuenta': 'cue-banco', 'dia': 10, 'montoEstimado': c(22_000), 'registradas': ['M06', 'M20']},
     {'nombre': 'Electricidad', 'tipo': 'egreso', 'cuenta': 'cue-banco', 'dia': 15, 'montoEstimado': c(27_000), 'registradas': ['M08', 'M24']},
