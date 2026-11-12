@@ -4,6 +4,13 @@ Cada entrega a la versión a probar (`/prueba/`) sube el número dentro del hito
 
 ## v0.3.0 · Movimientos (en curso)
 
+### v0.3.0-10 · HU-39
+
+- Cargar: la ventana de elegir categoría y la de elegir cuenta terminan con «＋ Nueva categoría» (o «＋ Nueva categoría en <familia>» si estás dentro de una) y «＋ Nueva cuenta». Es una opción más de la lista: en la PC se alcanza con las flechas y se elige con Enter, y aparece aunque no haya ninguna categoría o cuenta todavía (el aviso «Todavía no tenés…» ya no lleva a otra pantalla: se crea ahí mismo).
+- Al elegirla, un formulario corto ocupa el lugar de la lista dentro de la misma ventana. Categoría: nombre (con lo que escribiste en el buscador) y el ícono que AFP propone, único como en Categorías; se crea del tipo del movimiento (egreso o ingreso), dentro de la familia si estabas en una, con la clasificación por defecto de Categorías. Cuenta: nombre, tipo y saldo inicial (con el mismo formato de monto que la carga); se crea en pesos (ARS), con el ícono del tipo y el saldo a la fecha de hoy. «Crear y elegir» la crea y la deja elegida en el campo.
+- «Volver» o Esc (en la PC) vuelven a la lista sin crear nada; ese Esc no cierra la ventana ni vuelve de pantalla (otro Esc cierra la ventana, como siempre). El monto, la fecha, la hora y la descripción de la carga no se tocan. Un nombre vacío o repetido muestra el mismo aviso que Categorías o Cuentas (las validaciones son las del dominio).
+- Detrás: el formato del campo de monto pasa a `src/ui/campo-monto.js` (lo usan la carga y el formulario corto de cuenta) y el formulario corto vive en `src/ui/formulario-rapido.js`, que se carga con `import()` recién al tocar «＋ Nueva…».
+
 ### v0.3.0-8 · HU-35 y HU-38
 
 - Esc vuelve (solo en la PC): desde Cargar, Movimientos, Cuentas, Categorías, Monedas, Ajustes y sus subpantallas vuelve a la pantalla anterior; repetido, llega a Inicio, donde no hace nada. Si no hay historial dentro de AFP (por ejemplo, abriste `#ajustes/categorias` directo), va a la pantalla padre: la subpantalla a Ajustes y la pantalla a Inicio. Antes que él, lo que esté abierto: una ventana o un tooltip ⓘ se cierra y no se vuelve. Con el foco en un campo, el primer Esc lo suelta y el segundo vuelve. En Cargar, Esc equivale a «Cancelar» (vuelve sin guardar y sin preguntar, como el botón). Una tecla mantenida apretada cuenta una sola vez, y mientras se guarda un egreso no vuelve. En el celular no cambia nada. El lugar en el historial de AFP se guarda en `history.state` (sobrevive a recargar); «Cancelar» y «Guardar» de Cargar usan el mismo criterio, así que ya no salen de AFP si se llegó por una recarga directa.

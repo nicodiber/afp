@@ -2,8 +2,12 @@
 // atrapa el foco, Esc cierra y, al cerrar, el foco vuelve al control que la abrió.
 import { crear } from './dom.js';
 
-/** Abre una ventana con `contenido`; devuelve { cerrar }. `alCerrar` se llama al cerrarse de cualquier forma. */
-export function abrirVentana({ etiqueta, contenido, clase = '', alCerrar = () => {} }) {
+/**
+ * Abre una ventana con `contenido`; devuelve { cerrar }. `alCerrar` se llama al cerrarse de cualquier forma.
+ * `alEscape` (opcional) se llama al apretar Esc: si devuelve true, la ventana se queda abierta (HU-39: Esc vuelve de un
+ * formulario a la lista).
+ */
+export function abrirVentana({ etiqueta, contenido, clase = '', alCerrar = () => {}, alEscape = () => false }) {
   const origen = document.activeElement;
   const ventana = crear('dialog', { class: `ventana ${clase}`.trim(), 'aria-label': etiqueta }, [contenido]);
   document.body.append(ventana);
@@ -19,7 +23,7 @@ export function abrirVentana({ etiqueta, contenido, clase = '', alCerrar = () =>
   };
   ventana.addEventListener('close', terminar);
   // Esc: se cierra por acá para terminar de inmediato, igual que con un botón.
-  ventana.addEventListener('cancel', (evento) => { evento.preventDefault(); ventana.close(); terminar(); });
+  ventana.addEventListener('cancel', (evento) => { evento.preventDefault(); if (alEscape()) return; ventana.close(); terminar(); });
   ventana.showModal();
   return { cerrar: () => { ventana.close(); terminar(); } };
 }

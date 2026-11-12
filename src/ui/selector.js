@@ -16,29 +16,25 @@ let contador = 0;
  * @param {string|null} o.elegidoId  La opción que está elegida ahora (empieza marcada).
  * @param {(id: string) => void} o.alElegir
  * @param {boolean} o.pantallaCompleta
- * @param {{texto: string, boton: string, alTocar: () => void}=} o.vacio  Qué mostrar si no hay ninguna opción.
+ * @param {{texto: string}=} o.vacio  Qué decir si no hay ninguna opción (la lista igual ofrece «＋ Nueva…»).
  * @param {{opciones: (padreId: string|null) => {id: string, nombre: string, emoji?: string, esFamilia: boolean}[], nombreDe: (id: string) => string}=} o.nivel
+ * @param {{texto: (familiaId: string|null) => string, formulario: (c: {buscado: string, familiaId: string|null, alCancelar: () => void, alCrear: (id: string) => void}) => Promise<{elemento: HTMLElement, enfocar: () => void}>}=} o.nuevo
+ *   «＋ Nueva…» al final de la lista (HU-39): una opción más, que se alcanza con las flechas. Al elegirla, el formulario que arma
+ *   `formulario` reemplaza a la lista dentro de la misma ventana; «Volver» o Esc dejan la lista como estaba y `alCrear` la elige.
  */
-export function abrirSelector({ titulo, grupos, elegidoId, alElegir, pantallaCompleta, vacio, nivel }) {
+export function abrirSelector({ titulo, grupos, elegidoId, alElegir, pantallaCompleta, vacio, nivel, nuevo }) {
   const n = ++contador;
   const idLista = `selector-lista-${n}`;
-  const total = grupos.reduce((suma, g) => suma + g.opciones.length, 0);
   let ventana;
+  let enFormulario = false;
+  let abriendo = false;
+  let volverALista = () => {};
   const cerrar = () => ventana.cerrar();
 
   const encabezado = crear('div', { class: 'selector-cabecera' }, [
     crear('h2', { class: 'subtitulo', id: `selector-titulo-${n}`, texto: titulo }),
     (() => { const x = crear('button', { type: 'button', class: 'boton-texto', texto: 'Cerrar' }); x.addEventListener('click', cerrar); return x; })(),
   ]);
-
-  if (total === 0) {
-    const boton = crear('button', { type: 'button', class: 'boton-principal', texto: vacio.boton });
-    boton.addEventListener('click', () => { cerrar(); vacio.alTocar(); });
-    const contenido = crear('div', { class: 'selector selector-vacio' }, [encabezado, crear('p', { texto: vacio.texto }), boton]);
-    ventana = abrirVentana({ etiqueta: titulo, contenido, clase: pantallaCompleta ? 'ventana-pantalla' : 'ventana-formulario' });
-    boton.focus();
-    return;
-  }
 
   const buscador = crear('input', {
     type: 'search', class: 'selector-buscador', role: 'combobox', 'aria-label': `Buscar: ${titulo}`, 'aria-expanded': 'true',
@@ -60,6 +56,7 @@ export function abrirSelector({ titulo, grupos, elegidoId, alElegir, pantallaCom
   };
   const volver = () => { pila.pop(); dibujar(); };
   const elegir = (opcion) => {
+    if (opcion.esNueva) { abrirFormulario(); return; }
     if (opcion.esFamilia) { pila.push(opcion.id); buscador.value = ''; dibujar(); return; }
     cerrar();
     alElegir(opcion.id);
@@ -74,9 +71,12 @@ export function abrirSelector({ titulo, grupos, elegidoId, alElegir, pantallaCom
     // El foco se queda en el buscador: no se roba al apretar.
     elemento.addEventListener('mousedown', (evento) => evento.preventDefault());
     elemento.addEventListener('click', () => elegir(opcion));
+    if (opcion.esNueva) elemento.classList.add('selector-nueva');
     visibles.push({ opcion, elemento });
     return elemento;
   };
+  // La opción «＋ Nueva…»: siempre al final, dentro de la familia en la que se está (si se entró a una).
+  const opcionNueva = () => ({ id: 'nueva', nombre: nuevo.texto(pila.at(-1) ?? null), esNueva: true });
 
   const dibujar = () => {
     const buscado = buscador.value.trim();
@@ -104,11 +104,13 @@ export function abrirSelector({ titulo, grupos, elegidoId, alElegir, pantallaCom
         }
       }
     }
+    const reales = visibles.length;
+    if (nuevo) bloques.push(elementoDe(opcionNueva()));
     barra.replaceChildren(...(nivel && !buscado && pila.length ? [bloques.shift()] : []));
     barra.hidden = barra.childElementCount === 0;
     lista.replaceChildren(...bloques);
-    aviso.hidden = visibles.length > 0;
-    aviso.textContent = visibles.length ? '' : `No hay resultados para «${buscador.value.trim()}».`;
+    aviso.hidden = reales > 0;
+    aviso.textContent = reales ? '' : (buscado || !vacio ? `No hay resultados para «${buscador.value.trim()}».` : vacio.texto);
     lista.hidden = visibles.length === 0;
     const indiceElegido = nivel ? -1 : visibles.findIndex(({ opcion }) => opcion.id === elegidoId);
     marcar(visibles.length ? (buscado ? 0 : Math.max(indiceElegido, 0)) : -1);
@@ -132,7 +134,38 @@ export function abrirSelector({ titulo, grupos, elegidoId, alElegir, pantallaCom
   });
 
   const contenido = crear('div', { class: 'selector' }, [encabezado, buscador, aviso, crear('div', { class: 'selector-cuerpo' }, [barra, lista])]);
-  ventana = abrirVentana({ etiqueta: titulo, contenido, clase: `ventana-selector ${pantallaCompleta ? 'ventana-pantalla' : 'ventana-formulario'}` });
+  // El formulario corto de «＋ Nueva…» ocupa el lugar de la lista; lo escrito en el buscador y la familia abierta se conservan.
+  async function abrirFormulario() {
+    if (abriendo || enFormulario) return;
+    abriendo = true;
+    const partes = [...contenido.childNodes];
+    let hecho;
+    try {
+      hecho = await nuevo.formulario({
+        buscado: buscador.value.trim(), familiaId: pila.at(-1) ?? null,
+        alCancelar: () => volverALista(),
+        alCrear: (id) => { cerrar(); alElegir(id); },
+      });
+    } finally { abriendo = false; }
+    const { elemento, enfocar } = hecho;
+    enFormulario = true;
+    volverALista = () => {
+      if (!enFormulario) return;
+      enFormulario = false;
+      contenido.classList.remove('selector-formulario');
+      contenido.replaceChildren(...partes);
+      dibujar();
+      buscador.focus();
+    };
+    contenido.classList.add('selector-formulario');
+    contenido.replaceChildren(elemento);
+    enfocar();
+  }
+  ventana = abrirVentana({
+    etiqueta: titulo, contenido, clase: `ventana-selector ${pantallaCompleta ? 'ventana-pantalla' : 'ventana-formulario'}`,
+    // Esc en el formulario corto vuelve a la lista (HU-39 CA-3); en la lista cierra la ventana como siempre.
+    alEscape: () => { if (!enFormulario) return false; volverALista(); return true; },
+  });
   dibujar();
   buscador.focus();
 }
