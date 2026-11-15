@@ -365,6 +365,9 @@ button.fila-cuenta, a.fila-cuenta { cursor: pointer; }
 .ventana-formulario { width: min(100% - 2 * var(--margen-lateral), 520px); }
 
 .aviso-breve { position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); z-index: 60; max-width: calc(100% - 2 * var(--margen-lateral)); padding: var(--esp-3) var(--esp-4); border-radius: var(--radio-campo); background: var(--color-texto); color: var(--color-fondo); font-weight: var(--peso-semi); text-align: center; transform: translateX(-50%); }
+.aviso-cuerpo { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; column-gap: var(--esp-3); }
+.aviso-accion { min-height: var(--objetivo-tactil); padding: 0 var(--esp-2); border: 0; border-radius: var(--radio-campo); background: none; color: inherit; font: inherit; font-weight: var(--peso-negrita); text-decoration: underline; cursor: pointer; }
+.aviso-accion:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
 
 /* Categorías (aep#15, D-140): árbol con sangría, familias que se pliegan, ordenar por grupo y la ventana «Mover». */
 .seccion-categorias { display: grid; gap: var(--esp-2); margin-bottom: var(--esp-6); }

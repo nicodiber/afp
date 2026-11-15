@@ -2,7 +2,7 @@
 // Tocar una categoría la edita en una ventana (en el celular, pantalla completa); desde ahí se agrega dentro, se
 // mueve, se archiva o se elimina. «Ordenar» muestra cada grupo de hermanas con asa y flechas.
 import { crear } from '../dom.js';
-import { abrirVentana, confirmar, avisar } from '../dialogo.js';
+import { abrirVentana, confirmar, avisar, avisarCambio } from '../dialogo.js';
 import { formularioCategoria, textoDonde } from '../formulario-categoria.js';
 import { botonInfo } from '../info-etiquetas.js';
 import { NOMBRE_DE_RAIZ, TIPOS, etiquetasDe, explicacionesDe } from '../../dominio/categorias.js';
@@ -48,7 +48,7 @@ export function pantallaCategorias({ categorias, esPC, redibujar }) {
       alGuardar: async (datos) => {
         const resultado = categoria ? await categorias.editar(id, datos) : await categorias.crear(datos, { padreId: padreFinal, tipo: tipoFinal });
         if (resultado.errores) return resultado;
-        avisar(categoria ? 'Guardaste los cambios.' : `Creaste la categoría ${resultado.categoria.nombre}.`);
+        avisarCambio(categoria ? 'Guardaste los cambios.' : `Creaste la categoría ${resultado.categoria.nombre}.`);
         if (padreFinal) estadoCategorias.plegadas.delete(padreFinal);
         terminar(`categoria-${resultado.categoria.id}`);
         return resultado;
@@ -72,7 +72,7 @@ export function pantallaCategorias({ categorias, esPC, redibujar }) {
       if (!ok) return false;
     }
     await categorias.archivar(id);
-    avisar(`Archivaste ${c.nombre}.`);
+    avisarCambio(`Archivaste ${c.nombre}.`);
     return true;
   };
 
@@ -86,7 +86,7 @@ export function pantallaCategorias({ categorias, esPC, redibujar }) {
     }
     if (!await confirmar({ titulo: `¿Eliminar ${c.nombre}?`, texto: 'No se puede deshacer.', aceptar: 'Eliminar' })) return false;
     await categorias.eliminar(id);
-    avisar(`Eliminaste ${c.nombre}.`);
+    avisarCambio(`Eliminaste ${c.nombre}.`);
     return true;
   };
 
@@ -134,7 +134,7 @@ export function pantallaCategorias({ categorias, esPC, redibujar }) {
         return;
       }
       if (destino.value) estadoCategorias.plegadas.delete(destino.value);
-      avisar(alcance === 'todo' ? `Moviste ${c.nombre} a ${nombreDestino()} para todo el historial.` : `Moviste ${c.nombre} a ${nombreDestino()} desde el ${fecha.value.split('-').reverse().join('/')}.`);
+      avisarCambio(alcance === 'todo' ? `Moviste ${c.nombre} a ${nombreDestino()} para todo el historial.` : `Moviste ${c.nombre} a ${nombreDestino()} desde el ${fecha.value.split('-').reverse().join('/')}.`);
       v.cerrar();
       redibujar(`categoria-${id}`);
     });
@@ -243,7 +243,7 @@ export function pantallaCategorias({ categorias, esPC, redibujar }) {
         reactivar.addEventListener('click', async () => {
           const r = await categorias.reactivar(c.id);
           if (!r.ok) { avisar(r.motivo); return; }
-          avisar(`Reactivaste ${c.nombre}.`);
+          avisarCambio(`Reactivaste ${c.nombre}.`);
           redibujar(`categoria-${c.id}`);
         });
         return crear('li', { class: 'fila-cuenta fila-archivada' }, [

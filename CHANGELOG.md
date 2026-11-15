@@ -4,6 +4,15 @@ Cada entrega a la versión a probar (`/prueba/`) sube el número dentro del hito
 
 ## v0.3.0 · Movimientos (en curso)
 
+### v0.3.0-12 · HU-41
+
+- Deshacer y rehacer (D-183): con el cursor fuera de un campo de texto, **Ctrl + Z** deshace el último cambio guardado y **Ctrl + Y** (o **Ctrl + Mayús + Z**) lo rehace. Vale para cargar un movimiento (egreso o ingreso) y para crear, editar, archivar, reactivar, eliminar y ordenar cuentas o categorías (y mover una categoría). Un aviso dice qué se deshizo («Deshiciste: egreso de $ 12.500,00 en Mercado Pago»); con la pila vacía dice «No hay nada para deshacer» (o «…rehacer»). Se guardan hasta 20 cambios por sesión; un cambio nuevo borra lo que se podía rehacer. Los saldos y la pantalla visible se actualizan sin cambiar de ruta.
+- El aviso de cada cambio guardado («Guardaste el egreso…», «Creaste…», «Archivaste…», etc.) trae el botón **Deshacer** (también en el celular, donde no hay teclado); dura 7 s en vez de 4 y no se esconde mientras el mouse o el foco del teclado están sobre él. Después de deshacer, el mismo aviso ofrece **Rehacer**.
+- Con el cursor en un campo de texto (input, textarea, contenteditable), Ctrl + Z es del navegador y deshace lo escrito. Con una ventana abierta no hace nada.
+- Si deshacer dejaría datos huérfanos (por ejemplo, la cuenta que se creó ya tiene movimientos), no se deshace y el aviso lo explica («No se puede deshacer: Mercado Pago ya tiene movimientos»). Deshacer un movimiento que había adelantado el saldo inicial de su cuenta (D-161) devuelve también la fecha de la cuenta. Cargar o restablecer los datos de ejemplo, o borrar la base de prueba, vacía la pila; la pila vive en memoria y se pierde al recargar.
+- La ayuda de atajos de Cargar suma «Ctrl + Z deshace».
+- Detrás: la pila y las reglas de reversión son lógica pura en `src/dominio/deshacer.js`; `src/aplicacion/deshacer.js` envuelve el almacén para anotar el «antes» y el «después» de cada registro que guarda un caso de uso (movimientos, cuentas y categorías reciben un `cambio(fn, describir)`), y solo `adaptadores/` toca IndexedDB. La tecla se decide en `dominio/atajos.js` (`accionDeHistorial`).
+
 ### v0.3.0-10 · HU-39
 
 - Cargar: la ventana de elegir categoría y la de elegir cuenta terminan con «＋ Nueva categoría» (o «＋ Nueva categoría en <familia>» si estás dentro de una) y «＋ Nueva cuenta». Es una opción más de la lista: en la PC se alcanza con las flechas y se elige con Enter, y aparece aunque no haya ninguna categoría o cuenta todavía (el aviso «Todavía no tenés…» ya no lleva a otra pantalla: se crea ahí mismo).

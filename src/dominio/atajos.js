@@ -24,6 +24,19 @@ export function accionDeEscape({ tecla, ctrl, alt, meta, shift, repetida, enCamp
   return enCampo ? 'soltar-foco' : 'volver';
 }
 
+/**
+ * Qué hace Ctrl + Z, Ctrl + Y o Ctrl + Mayús + Z (HU-41): 'deshacer', 'rehacer' o 'ignorar' (no es para AFP: hay un campo
+ * de texto con el foco, donde deshace el navegador; hay una ventana abierta; Alt; una tecla repetida o sin Ctrl).
+ * @param {{tecla: string, ctrl: boolean, alt: boolean, meta: boolean, shift: boolean, repetida: boolean, enCampoDeTexto: boolean, hayVentana: boolean}} o
+ * @returns {'ignorar' | 'deshacer' | 'rehacer'}
+ */
+export function accionDeHistorial({ tecla, ctrl, alt, meta, shift, repetida, enCampoDeTexto, hayVentana }) {
+  if (!(ctrl || meta) || alt || repetida || enCampoDeTexto || hayVentana || typeof tecla !== 'string') return 'ignorar';
+  const letra = tecla.toLowerCase();
+  if (letra === 'z') return shift ? 'rehacer' : 'deshacer';
+  return letra === 'y' && !shift ? 'rehacer' : 'ignorar';
+}
+
 // --- A dónde vuelve Esc (HU-35) ---
 
 /** Pantallas de primer nivel (las que se abren desde la barra) y sus subpantallas. */

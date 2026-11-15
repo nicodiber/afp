@@ -1,7 +1,7 @@
 // Cargar (HU-02, HU-03): «Nuevo egreso» o «Nuevo ingreso». Es una pantalla propia (#cargar), no una ventana: en el celular ocupa
 // toda la pantalla y en la PC va en la columna central.
 import { formularioEgreso } from '../formulario-egreso.js';
-import { avisar } from '../dialogo.js';
+import { avisar, avisarCambio } from '../dialogo.js';
 import { formatearMonto } from '../../dominio/formato.js';
 import { formatearFecha } from '../../dominio/fecha.js';
 
@@ -25,8 +25,8 @@ export function pantallaCargar({ movimientos, cuentas, categorias, esPC, volver 
         return { errores: {} };
       }
       if (resultado.errores) return resultado;
-      if (resultado.cuentaAjustada) avisar(`Guardaste el ${formulario.tipo}. La cuenta ${resultado.cuenta.nombre} ahora empieza el ${formatearFecha(resultado.cuentaAjustada.fechaSaldoInicial)}.`);
-      else avisar(`Guardaste el ${formulario.tipo}. Saldo de ${resultado.cuenta.nombre}: ${formatearMonto(resultado.saldo, resultado.cuenta.monedaId)}.`);
+      if (resultado.cuentaAjustada) avisarCambio(`Guardaste el ${formulario.tipo}. La cuenta ${resultado.cuenta.nombre} ahora empieza el ${formatearFecha(resultado.cuentaAjustada.fechaSaldoInicial)}.`);
+      else avisarCambio(`Guardaste el ${formulario.tipo}. Saldo de ${resultado.cuenta.nombre}: ${formatearMonto(resultado.saldo, resultado.cuenta.monedaId)}.`);
       if (!otro) volver();
       return {};
     },

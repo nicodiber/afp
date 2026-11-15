@@ -46,15 +46,56 @@ export function confirmar({ titulo, texto, aceptar, cancelar = 'Cancelar' }) {
   });
 }
 
-/** Aviso breve que se lee en voz alta («¡Listo! Creaste la cuenta…»). */
-export function avisar(texto) {
+const ESPERA_AVISO = 4000;
+// Un aviso con botón («Deshacer», HU-41) dura más para dar tiempo a tocarlo (CA-3: al menos 6 s).
+const ESPERA_AVISO_CON_ACCION = 7000;
+let accionDelAviso = () => {};
+let retenido = false; // el mouse o el foco están sobre el aviso: no se esconde
+
+/** Evento con el que el botón «Deshacer» de un aviso le pide a la interfaz (ui/app.js) que deshaga el último cambio (HU-41). */
+export const EVENTO_DESHACER = 'afp:deshacer';
+
+function zonaDeAviso() {
   let zona = document.getElementById('aviso-breve');
-  if (!zona) {
-    zona = crear('div', { id: 'aviso-breve', class: 'aviso-breve', role: 'status' });
-    document.body.append(zona);
-  }
-  zona.textContent = texto;
-  zona.hidden = false;
+  if (zona) return zona;
+  const boton = crear('button', { type: 'button', class: 'aviso-accion', id: 'aviso-accion', hidden: '' });
+  boton.addEventListener('click', () => accionDelAviso());
+  zona = crear('div', { id: 'aviso-breve', class: 'aviso-breve', role: 'status' }, [crear('div', { class: 'aviso-cuerpo' }, [crear('span', { class: 'aviso-texto' }), boton])]);
+  const programar = () => { retenido = false; esperar(zona); };
+  zona.addEventListener('pointerenter', () => { retenido = true; clearTimeout(avisar.temporizador); });
+  zona.addEventListener('pointerleave', programar);
+  // Con el teclado (foco visible) el aviso espera; tocar o hacer clic en el botón no lo deja fijo.
+  zona.addEventListener('focusin', () => { if (zona.querySelector(':focus-visible')) { retenido = true; clearTimeout(avisar.temporizador); } });
+  zona.addEventListener('focusout', programar);
+  document.body.append(zona);
+  return zona;
+}
+
+function esperar(zona) {
   clearTimeout(avisar.temporizador);
-  avisar.temporizador = setTimeout(() => { zona.hidden = true; }, 4000);
+  if (retenido) return;
+  const espera = zona.querySelector('.aviso-accion').hidden ? ESPERA_AVISO : ESPERA_AVISO_CON_ACCION;
+  avisar.temporizador = setTimeout(() => { zona.hidden = true; }, espera);
+}
+
+/**
+ * Aviso breve que se lee en voz alta («¡Listo! Creaste la cuenta…»). Con `accion` ({ texto, alTocar }) lleva un botón y dura
+ * más; mientras el mouse o el foco están sobre el aviso, no desaparece.
+ */
+export function avisar(texto, accion = null) {
+  const zona = zonaDeAviso();
+  const boton = zona.querySelector('.aviso-accion');
+  zona.querySelector('.aviso-texto').textContent = texto;
+  boton.hidden = !accion;
+  boton.textContent = accion?.texto ?? '';
+  accionDelAviso = accion?.alTocar ?? (() => {});
+  // Si el aviso se vuelve a escribir con el foco en el botón, lo conserva (el mismo botón cambia de texto).
+  retenido = Boolean(zona.querySelector(':focus-visible'));
+  zona.hidden = false;
+  esperar(zona);
+}
+
+/** Aviso de un cambio guardado, con el botón «Deshacer» (HU-41). */
+export function avisarCambio(texto) {
+  avisar(texto, { texto: 'Deshacer', alTocar: () => document.dispatchEvent(new CustomEvent(EVENTO_DESHACER)) });
 }

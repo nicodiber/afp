@@ -1,7 +1,7 @@
 // Service worker de AFP (aep#2 CA-5; arquitectura §7; FC-01).
 // Guarda la app para abrir sin conexión. Cada versión usa su propia caché y los archivos se piden
 // sin la caché HTTP; la versión nueva espera a que el usuario toque «Actualizar».
-const VERSION = 'v0.3.0-10';
+const VERSION = 'v0.3.0-12';
 const CANAL = new URL(self.registration.scope).pathname.includes('/prueba/') ? 'dev' : 'real';
 const CACHE = `afp-${CANAL}-${VERSION}`;
 const ARCHIVOS = [
@@ -23,7 +23,7 @@ const ARCHIVOS = [
   'src/adaptadores/canal.js', 'src/adaptadores/preferencias-local.js', 'src/adaptadores/tema-temprano.js', 'src/adaptadores/actualizaciones.js',
   'src/dominio/movimientos.js', 'src/dominio/saldos.js', 'src/aplicacion/movimientos.js', 'src/ui/selector.js', 'src/ui/campo-monto.js', 'src/ui/formulario-rapido.js', 'src/ui/formulario-egreso.js', 'src/ui/pantallas/cargar.js',
   'src/dominio/lista-movimientos.js', 'src/dominio/tablero.js', 'src/ui/fila-movimiento.js', 'src/ui/tablero-inicio.js', 'src/ui/pantallas/movimientos.js',
-  'src/dominio/atajos.js', 'src/ui/app.js', 'src/ui/dom.js', 'src/ui/pantallas/inicio.js', 'src/ui/pantallas/ajustes.js', 'src/ui/pantallas/proximamente.js',
+  'src/dominio/deshacer.js', 'src/aplicacion/deshacer.js', 'src/dominio/atajos.js', 'src/ui/app.js', 'src/ui/dom.js', 'src/ui/pantallas/inicio.js', 'src/ui/pantallas/ajustes.js', 'src/ui/pantallas/proximamente.js',
 ];
 
 self.addEventListener('install', (evento) => {
