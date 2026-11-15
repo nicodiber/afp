@@ -24,6 +24,7 @@ const TITULOS_PROPIOS = { cargar: 'Nuevo egreso' };
 const NECESITAN_CATEGORIAS = new Set(['cargar', 'movimientos', 'ajustes', 'ajustes/categorias']);
 const subpantallas = {};
 const PC = '(min-width: 720px)';
+const TACTIL = '(pointer: coarse)';
 const SISTEMA_OSCURO = '(prefers-color-scheme: dark)';
 
 export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, datosDispositivo, cuentas, categorias, movimientos, ejemplo, alCambiarModoPrueba = () => {}, version }) {
@@ -94,6 +95,13 @@ export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, datosDi
     },
   };
 
+  // Al abrir una pantalla el foco va al título; en Cargar, en la PC, al campo «Monto» para teclear enseguida (HU-42, D-184). En el
+  // celular o con pantalla táctil no se enfoca solo, para que no se abra el teclado.
+  const enfocarAlAbrir = (ruta) => {
+    const monto = ruta === 'cargar' && esPC() && !matchMedia(TACTIL).matches ? principal.querySelector('input[name="monto"]') : null;
+    (monto ?? principal.querySelector('h1'))?.focus({ preventScroll: true });
+  };
+
   const mostrar = (moverFoco) => {
     const ruta = rutaActual();
     const destino = destinoActual();
@@ -106,7 +114,13 @@ export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, datosDi
     const faltanCategorias = NECESITAN_CATEGORIAS.has(ruta) && typeof categorias.todas !== 'function';
     if (CARGAR_SUBPANTALLA[ruta] && (!subpantallas[ruta] || faltanCategorias)) {
       // Primera vez: se carga el módulo (y las categorías, si la pantalla las usa) y se vuelve a dibujar (sin conexión, lo sirve el service worker).
-      Promise.all([CARGAR_SUBPANTALLA[ruta](), faltanCategorias ? categorias.listas() : null]).then(([modulo]) => { subpantallas[ruta] = modulo; if (rutaActual() === ruta) { rutaAnterior = null; mostrar(moverFoco); } });
+      Promise.all([CARGAR_SUBPANTALLA[ruta](), faltanCategorias ? categorias.listas() : null]).then(([modulo]) => {
+        // Si otra carga (por ejemplo, la de un redibujado mientras tanto) ya dejó la pantalla dibujada, no se vuelve a dibujar: perdería el foco (HU-42).
+        const yaDibujada = subpantallas[ruta] === modulo && rutaAnterior === ruta;
+        subpantallas[ruta] = modulo;
+        if (rutaActual() !== ruta) return;
+        if (!yaDibujada) { rutaAnterior = null; mostrar(moverFoco); } else if (moverFoco) enfocarAlAbrir(ruta); // otra carga la dibujó antes, sin foco
+      });
       const titulo = TITULOS_PROPIOS[ruta] ?? SUBPANTALLAS[ruta] ?? DESTINOS[destino];
       principal.replaceChildren(crear('h1', { class: 'titulo', tabindex: '-1', texto: titulo }));
       document.title = `${titulo} · AFP`;
@@ -137,7 +151,7 @@ export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, datosDi
     principal.replaceChildren(...pantalla);
     document.title = `${TITULOS_PROPIOS[ruta] ?? SUBPANTALLAS[ruta] ?? DESTINOS[destino]} · AFP`;
     marcarNavegacion();
-    if (moverFoco) principal.querySelector('h1')?.focus({ preventScroll: true });
+    if (moverFoco) enfocarAlAbrir(ruta);
     window.scrollTo(0, 0);
   };
 

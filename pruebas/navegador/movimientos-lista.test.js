@@ -184,17 +184,16 @@ test('HU-04 CA-2 · celular: filtros arriba (búsqueda a todo el ancho, selects 
   await contexto.close();
 });
 
-test('HU-04 CA-2 · PC: la lista a la izquierda y un panel de 280 px a la derecha con filtros, totales y «Egresos por categoría»', async () => {
+test('HU-04 CA-2 · PC: la lista con «Egresos por categoría» a su derecha; filtros y totales arriba (D-182 reemplaza el panel de D-167)', async () => {
   const { contexto, pagina, errores } = await conMovimientos({ viewport: ESCRITORIO });
   const lista = await pagina.locator('.movs-lista').boundingBox();
-  const lado = await pagina.locator('.movs-lado').boundingBox();
-  assert.ok(lista.x + lista.width <= lado.x, 'la lista está a la izquierda del panel');
-  assert.ok(Math.abs(lado.width - 280) <= 2, `el panel mide unos 280 px (${lado.width})`);
-  assert.ok(lista.width > 480, `la lista aprovecha el ancho (${lista.width})`);
+  const barras = await pagina.locator('.movs-barras').boundingBox();
+  assert.ok(lista.x + lista.width <= barras.x, 'la lista está a la izquierda de las barras');
+  assert.ok(barras.width >= 240 && barras.width <= 302, `las barras forman una columna angosta (${barras.width})`);
+  assert.ok(lista.width > 600, `la lista aprovecha el ancho (${lista.width})`);
   const filtros = await pagina.locator('.movs-filtros').boundingBox();
   const totalesCaja = await pagina.locator('.movs-totales').boundingBox();
-  const barras = await pagina.locator('.movs-barras').boundingBox();
-  assert.ok(filtros.y < totalesCaja.y && totalesCaja.y < barras.y, 'filtros, totales y barras, de arriba abajo');
+  assert.ok(filtros.y + filtros.height <= totalesCaja.y && totalesCaja.y + totalesCaja.height <= lista.y && Math.abs(lista.y - barras.y) <= 1, 'filtros, totales y, debajo, la lista con las barras');
   await pagina.getByRole('heading', { name: 'Egresos por categoría', level: 2 }).waitFor();
   // De mayor a menor: Alquiler 12.500, Verdulería 4.200, Supermercado 3.500, Electricidad 800 (solo egresos del mes).
   assert.deepEqual(await pagina.locator('.barra .barra-nombre').allTextContents(), ['🔑 Alquiler', '🥦 Verdulería', '🛒 Supermercado', '💡 Electricidad']);
@@ -217,16 +216,18 @@ test('HU-04 CA-2 · PC: la lista a la izquierda y un panel de 280 px a la derech
   await contexto.close();
 });
 
-test('HU-04 CA-3 · PC: se usa con el teclado (Tab por los filtros, las barras y la lista)', async () => {
+test('HU-04 CA-3 · PC: se usa con el teclado (Tab por los filtros, la búsqueda, las barras y la lista)', async () => {
   const { contexto, pagina, errores } = await conMovimientos({ viewport: ESCRITORIO });
-  await pagina.getByRole('searchbox', { name: 'Buscar' }).focus();
+  await pagina.getByLabel('Período', { exact: true }).focus();
   const recorrido = [];
   for (let i = 0; i < 14; i++) {
     await pagina.keyboard.press('Tab');
     recorrido.push(await pagina.evaluate(() => { const a = document.activeElement; return a.tagName === 'SELECT' ? 'select' : (a.classList.contains('barra') ? 'barra' : (a.classList.contains('movs-fila') ? 'fila' : a.tagName)); }));
   }
-  assert.deepEqual(recorrido.slice(0, 8), ['select', 'select', 'select', 'select', 'barra', 'barra', 'barra', 'barra'], 'filtros, después las barras');
-  assert.deepEqual(recorrido.slice(8, 13), ['fila', 'fila', 'fila', 'fila', 'fila'], 'y después la lista');
+  // HU-43: el orden de Tab sigue al de la pantalla: período (donde empieza) → tipo, categoría, cuenta, búsqueda, y después la lista y las barras.
+  assert.deepEqual(recorrido.slice(0, 4), ['select', 'select', 'select', 'INPUT'], 'filtros: tipo, categoría, cuenta y búsqueda');
+  assert.deepEqual(recorrido.slice(4, 9), ['fila', 'fila', 'fila', 'fila', 'fila'], 'después la lista');
+  assert.deepEqual(recorrido.slice(9, 13), ['barra', 'barra', 'barra', 'barra'], 'y después las barras');
   // Enter sobre una barra filtra; Enter de nuevo la saca.
   await pagina.locator('.barra', { hasText: 'Alquiler' }).focus();
   await pagina.keyboard.press('Enter');

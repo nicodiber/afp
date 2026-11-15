@@ -1,6 +1,6 @@
-// Movimientos (HU-04): la lista de lo que cargaste, con búsqueda, filtros, totales y, en la PC, «Egresos por categoría».
-// En el celular: filtros arriba, tarjetas y totales al pie. En la PC: la lista a la izquierda y un panel a la derecha
-// (filtros, totales y barras por categoría). Las reglas están en dominio/lista-movimientos.js.
+// Movimientos (HU-04, HU-43): la lista de lo que cargaste, con búsqueda, filtros, totales y, en la PC, «Egresos por categoría».
+// En el celular: filtros arriba, tarjetas y totales al pie. En la PC (D-182): el título, los filtros en una fila, los totales en
+// tarjetas y la lista con «Egresos por categoría» en una columna a su derecha. Las reglas están en dominio/lista-movimientos.js.
 import { crear } from '../dom.js';
 import { avisar } from '../dialogo.js';
 import { itemDeMovimiento } from '../fila-movimiento.js';
@@ -46,7 +46,7 @@ export function pantallaMovimientos({ movimientos, cuentas, categorias }) {
 
   // --- Filtros ---------------------------------------------------------------------------------------------
   const buscador = crear('input', {
-    id: id('buscar'), type: 'search', class: 'movs-buscador', autocomplete: 'off', spellcheck: 'false', placeholder: 'Buscar por descripción o categoría', 'aria-label': 'Buscar',
+    id: id('buscar'), type: 'search', class: 'movs-buscador', autocomplete: 'off', spellcheck: 'false', placeholder: 'Buscar por descripción o categoría',
   });
   buscador.value = estado.texto;
   const selector = (campo, rotulo, control, clase = '', extras = []) => crear('div', { class: `campo campo-filtro ${clase}`.trim() }, [crear('label', { for: control.id, texto: rotulo }), control, ...extras]);
@@ -90,8 +90,9 @@ export function pantallaMovimientos({ movimientos, cuentas, categorias }) {
   llenarCategorias();
   llenarCuentas();
 
+  // En el DOM (y con el teclado): período, tipo, categoría, cuenta y la búsqueda al final, como se ve en la PC (HU-43).
+  // En el celular la búsqueda se ve arriba de todo (el CSS la sube con `order`).
   const filtros = crear('section', { class: 'movs-filtros', 'aria-label': 'Filtros' }, [
-    crear('div', { class: 'movs-busqueda' }, [buscador]),
     crear('div', { class: 'movs-selects' }, [
       selector('periodo', 'Período', selectPeriodo, '', [fechasDelPeriodo]),
       selector('mes', 'Mes', entradaMes, 'campo-mes'),
@@ -99,6 +100,7 @@ export function pantallaMovimientos({ movimientos, cuentas, categorias }) {
       selector('categoria', 'Categoría', selectCategoria),
       selector('cuenta', 'Cuenta', selectCuenta),
     ]),
+    crear('div', { class: 'campo movs-busqueda' }, [crear('label', { for: buscador.id, texto: 'Buscar' }), buscador]),
   ]);
 
   // --- Lista, totales y barras -----------------------------------------------------------------------------
@@ -106,19 +108,19 @@ export function pantallaMovimientos({ movimientos, cuentas, categorias }) {
   const lista = crear('div', { class: 'movs-lista' });
   const bloqueTotales = crear('section', { class: 'movs-totales', 'aria-labelledby': id('totales-titulo') });
   const bloqueBarras = crear('section', { class: 'movs-barras', 'aria-labelledby': id('barras-titulo') });
-  const resumen = crear('aside', { class: 'movs-resumen' }, [bloqueTotales, bloqueBarras]);
-  const lado = crear('div', { class: 'movs-lado' }, [filtros, resumen]);
-  const raiz = crear('div', { class: 'movs' }, [lado, lista, resumenLectores]);
+  // Orden del DOM = orden de lectura en la PC: filtros, totales, lista y «Egresos por categoría» (HU-43).
+  const raiz = crear('div', { class: 'movs' }, [filtros, bloqueTotales, lista, bloqueBarras, resumenLectores]);
 
-  const filaTotal = (rotulo, centavos, moneda, clase, conSigno) => crear('div', { class: 'movs-total' }, [
-    crear('dt', { texto: rotulo }), crear('dd', { class: clase, texto: formatearMonto(centavos, moneda, { conSigno }) }),
+  // Un total como las tarjetas de Inicio (HU-37): rótulo y valor.
+  const filaTotal = (rotulo, centavos, moneda, clase, conSigno) => crear('div', { class: 'indicador movs-total' }, [
+    crear('dt', { class: 'indicador-rotulo', texto: rotulo }), crear('dd', { class: `indicador-valor ${clase}`.trim(), texto: formatearMonto(centavos, moneda, { conSigno }) }),
   ]);
   const pintarTotales = (movs) => {
     const porMoneda = totalesPorMoneda(movs);
     const bloques = porMoneda.length ? porMoneda : [{ monedaId: 'ARS', ingresos: 0, egresos: 0, diferencia: 0 }];
     bloqueTotales.replaceChildren(
-      crear('h2', { class: 'subtitulo', id: id('totales-titulo'), texto: 'Totales' }),
-      ...bloques.map((t) => crear('dl', { class: 'movs-total-lista', 'aria-label': bloques.length > 1 ? `Totales en ${t.monedaId}` : 'Totales del filtro' }, [
+      crear('h2', { class: 'subtitulo titulo-totales', id: id('totales-titulo'), texto: 'Totales' }),
+      ...bloques.map((t) => crear('dl', { class: 'indicadores movs-total-lista', 'aria-label': bloques.length > 1 ? `Totales en ${t.monedaId}` : 'Totales del filtro' }, [
         filaTotal('Ingresos', t.ingresos, t.monedaId, 'monto-ingreso', true),
         filaTotal('Egresos', -t.egresos, t.monedaId, 'monto-egreso', false),
         filaTotal('Diferencia', t.diferencia, t.monedaId, t.diferencia < 0 ? 'monto-egreso' : (t.diferencia > 0 ? 'monto-ingreso' : ''), true),

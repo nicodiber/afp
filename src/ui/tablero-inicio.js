@@ -3,7 +3,7 @@
 import { crear } from './dom.js';
 import { itemDeMovimiento } from './fila-movimiento.js';
 import { formatearMonto } from '../dominio/formato.js';
-import { saldosDeHoy, resumenDelMes, ultimosMovimientos } from '../dominio/tablero.js';
+import { saldosDeHoy, resumenDelMes, resumenDelMesEnDolares, ultimosMovimientos } from '../dominio/tablero.js';
 
 const indicador = (rotulo, valor, clase = '') => crear('div', { class: 'indicador' }, [
   crear('dt', { class: 'indicador-rotulo', texto: rotulo }), crear('dd', { class: `indicador-valor ${clase}`.trim(), texto: valor }),
@@ -19,16 +19,23 @@ function grupoSaldos(cuentas) {
   ]);
 }
 
-// El mes en curso con su nombre y sus fechas: ingresos, egresos y diferencia (las transferencias se suman con HU-06).
+// Una fila de tres indicadores del mes: ingresos, egresos y diferencia en una moneda.
+const filaDelMes = (t, moneda, clase = '', etiqueta = null) => crear('dl', { class: `indicadores ${clase}`.trim(), ...(etiqueta ? { 'aria-label': etiqueta } : {}) }, [
+  indicador('Ingresos', formatearMonto(t.ingresos, moneda, { conSigno: true }), 'monto-ingreso'),
+  indicador('Egresos', formatearMonto(-t.egresos, moneda), 'monto-egreso'),
+  indicador('Diferencia', formatearMonto(t.diferencia, moneda, { conSigno: true }), colorDe(t.diferencia)),
+]);
+
+// El mes en curso con su nombre y sus fechas: ingresos, egresos y diferencia (las transferencias se suman con HU-06). Si el mes tiene
+// movimientos en dólares, una segunda fila en US$, sin convertir (HU-43, D-188).
 function grupoMes(movimientos) {
-  const mes = resumenDelMes(movimientos.todos(), movimientos.hoy());
+  const todos = movimientos.todos();
+  const mes = resumenDelMes(todos, movimientos.hoy());
+  const dolares = resumenDelMesEnDolares(todos, movimientos.hoy());
   return crear('section', { class: 'grupo-indicadores grupo-mes', 'aria-labelledby': 'titulo-mes-en-curso' }, [
     crear('h2', { class: 'subtitulo', id: 'titulo-mes-en-curso', texto: mes.titulo }),
-    crear('dl', { class: 'indicadores' }, [
-      indicador('Ingresos', formatearMonto(mes.ingresos, 'ARS', { conSigno: true }), 'monto-ingreso'),
-      indicador('Egresos', formatearMonto(-mes.egresos, 'ARS'), 'monto-egreso'),
-      indicador('Diferencia', formatearMonto(mes.diferencia, 'ARS', { conSigno: true }), colorDe(mes.diferencia)),
-    ]),
+    filaDelMes(mes, 'ARS'),
+    ...(dolares ? [filaDelMes(dolares, 'USD', 'indicadores-usd', 'En dólares, sin convertir')] : []),
   ]);
 }
 

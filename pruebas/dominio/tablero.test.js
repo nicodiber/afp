@@ -1,7 +1,7 @@
 // HU-37: el tablero de Inicio (mes en curso, saldos de hoy y últimos movimientos). Valores esperados calculados a mano.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mesEnCurso, resumenDelMes, saldosDeHoy, ultimosMovimientos } from '../../src/dominio/tablero.js';
+import { mesEnCurso, resumenDelMes, resumenDelMesEnDolares, saldosDeHoy, ultimosMovimientos } from '../../src/dominio/tablero.js';
 
 const mov = (id, tipo, fecha, hora, monto, monedaId = 'ARS') => ({ id, tipo, fecha, hora, monedaId, montoTotal: monto, partes: [] });
 
@@ -48,4 +48,19 @@ test('HU-37 CA-2 · los últimos movimientos: los 5 más nuevos por fecha y hora
   assert.deepEqual(ultimosMovimientos(lista).map((m) => m.id), ['m3', 'm2', 'm5', 'm1', 'm4']);
   assert.deepEqual(ultimosMovimientos(lista, 2).map((m) => m.id), ['m3', 'm2']);
   assert.deepEqual(ultimosMovimientos([]), []);
+});
+
+test('HU-43 CA-3 · el resumen en dólares suma solo ingresos y egresos en USD del mes, sin convertir; sin ninguno, es null', () => {
+  const movimientos = [
+    mov('a', 'ingreso', '2026-10-01', '09:00', 50000, 'USD'),
+    mov('b', 'ingreso', '2026-10-31', null, 2050, 'USD'),
+    mov('c', 'egreso', '2026-10-15', '10:00', 12025, 'USD'),
+    mov('d', 'transferencia', '2026-10-20', '10:00', 999999, 'USD'),
+    mov('e', 'egreso', '2026-09-30', '10:00', 5555, 'USD'),
+    mov('f', 'egreso', '2026-11-01', '10:00', 8888, 'USD'),
+    mov('g', 'egreso', '2026-10-15', '10:00', 777, 'ARS'),
+  ];
+  assert.deepEqual(resumenDelMesEnDolares(movimientos, '2026-10-31'), { ingresos: 52050, egresos: 12025, diferencia: 40025 });
+  assert.equal(resumenDelMesEnDolares(movimientos.slice(3), '2026-10-31'), null, 'sin ingresos ni egresos en dólares este mes, no hay resumen');
+  assert.equal(resumenDelMesEnDolares([], '2026-10-31'), null);
 });
