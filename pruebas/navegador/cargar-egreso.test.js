@@ -304,7 +304,8 @@ test('HU-02 CA-3 · la carga completa con el teclado, sin un solo clic (PC)', as
   const { contexto, pagina, errores } = await enModoPrueba({ viewport: ESCRITORIO });
   await pagina.goto(`${entorno.servidor.url}#cargar`);
   await pagina.locator('.formulario-egreso').waitFor();
-  await pagina.evaluate(() => document.activeElement?.blur());
+  // HU-42: en la PC Cargar abre con el cursor en «Monto»; el recorrido con Tab parte del título (como antes, cuando Cargar abría ahí).
+  await pagina.locator('main h1').focus();
   const enfocado = () => pagina.evaluate(() => {
     const e = document.activeElement;
     const s = getComputedStyle(e);
@@ -369,7 +370,7 @@ test('HU-02 CA-3 · la carga completa con el teclado, sin un solo clic (PC)', as
   // HU-02b CA-3: toda la carga con las flechas ↓/↑ y ← →, sin clics. Se empieza en la fecha con Tab.
   await pagina.goto(`${entorno.servidor.url}#cargar`);
   await pagina.locator('.formulario-egreso').waitFor();
-  await pagina.evaluate(() => document.activeElement?.blur());
+  await pagina.locator('main h1').focus(); // HU-42: Cargar abre en «Monto»; se parte del título
   await pagina.keyboard.press('Tab');
   assert.equal((await enfocado()).id, 'egreso-tipo-egreso'); // HU-03: el segmentado va antes de la fecha
   const hacia = async (tecla, id) => { await pagina.keyboard.press(tecla); assert.equal((await enfocado()).id, id, `${tecla} → ${id}`); };

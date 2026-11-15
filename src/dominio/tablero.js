@@ -97,6 +97,16 @@ export function resumenDelMes(movimientos, hoy) {
 }
 
 /**
+ * El resumen del mes en curso en dólares, sin convertir (HU-43, D-188): { ingresos, egresos, diferencia } con los movimientos
+ * en USD del mes, o null si el mes no tiene ninguno (entonces no se muestra la fila). Los montos son centavos de dólar.
+ */
+export function resumenDelMesEnDolares(movimientos, hoy) {
+  const mes = mesEnCurso(hoy);
+  const delMes = movimientos.filter((m) => m.monedaId === 'USD' && (m.tipo === 'ingreso' || m.tipo === 'egreso') && m.fecha >= mes.desde && m.fecha <= mes.hasta);
+  return delMes.length ? totales(delMes) : null;
+}
+
+/**
  * Los saldos de hoy por moneda: [{ monedaId, rotulo, total }], pesos primero (siempre) y las otras monedas solo si hay
  * cuentas en ellas. `saldoDe(cuenta)` da el saldo en centavos; las cuentas archivadas no se cuentan.
  */
