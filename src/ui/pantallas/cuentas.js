@@ -2,7 +2,7 @@
 // «Reactivar». En la PC, crear y editar abren el formulario en una ventana sobre las cuentas; en el celular,
 // el formulario ocupa toda la pantalla.
 import { crear } from '../dom.js';
-import { avisar } from '../dialogo.js';
+import { avisar, avisarCambio } from '../dialogo.js';
 import { abrirFormularioEnVentana } from '../cuentas-comun.js';
 import { NOMBRES_DE_TIPO, iconoDeCuenta } from '../../dominio/cuentas.js';
 import { formatearMonto } from '../../dominio/formato.js';
@@ -125,7 +125,7 @@ function seccionArchivadas({ cuentas, archivadas, redibujar }) {
       reactivar.addEventListener('click', async () => {
         const resultado = await cuentas.reactivar(c.id);
         if (!resultado.ok) { avisar(resultado.motivo); return; }
-        avisar(`Reactivaste ${c.nombre}.`);
+        avisarCambio(`Reactivaste ${c.nombre}.`);
         redibujar(`cuenta-${c.id}`);
       });
       return crear('li', { class: 'fila-cuenta fila-archivada' }, [

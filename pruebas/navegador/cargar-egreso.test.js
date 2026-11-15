@@ -430,7 +430,7 @@ test('HU-02 CA-3 · los atajos se muestran junto a los botones solo en la PC', a
   const pc = await enModoPrueba({ viewport: ESCRITORIO }, { cargar: false });
   await pc.pagina.goto(`${entorno.servidor.url}#cargar`);
   await pc.pagina.locator('.formulario-egreso').waitFor();
-  assert.equal(await pc.pagina.locator('.atajos').innerText(), 'Ctrl + Enter guarda · Ctrl + Mayús + Enter guarda y carga otro');
+  assert.equal(await pc.pagina.locator('.atajos').innerText(), 'Ctrl + Enter guarda · Ctrl + Mayús + Enter guarda y carga otro · Ctrl + Z deshace');
   await pc.contexto.close();
   const cel = await enModoPrueba({ viewport: CELULAR }, { cargar: false });
   await cel.pagina.goto(`${entorno.servidor.url}#cargar`);

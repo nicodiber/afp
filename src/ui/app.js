@@ -1,6 +1,6 @@
 // Interfaz de AFP (aep#2): rutas por «#destino», navegación, tema y aviso de versión nueva.
 import { pantallaInicio } from './pantallas/inicio.js';
-import { abreCarga, accionDeEscape, destinoAlVolver } from '../dominio/atajos.js';
+import { abreCarga, accionDeEscape, accionDeHistorial, destinoAlVolver } from '../dominio/atajos.js';
 import { actualizarFranja } from './franja-prueba.js';
 import { crear } from './dom.js';
 
@@ -27,7 +27,16 @@ const PC = '(min-width: 720px)';
 const TACTIL = '(pointer: coarse)';
 const SISTEMA_OSCURO = '(prefers-color-scheme: dark)';
 
-export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, datosDispositivo, cuentas, categorias, movimientos, ejemplo, alCambiarModoPrueba = () => {}, version }) {
+// ¿El foco está en algo donde se escribe (input de texto, textarea, contenteditable)? Ahí Ctrl + Z es del navegador (HU-41 CA-4).
+const SIN_TEXTO = new Set(['checkbox', 'radio', 'button', 'submit', 'reset', 'range', 'color', 'file', 'image']);
+function esCampoDeTexto(elemento) {
+  if (!elemento) return false;
+  if (elemento.closest('textarea, [contenteditable]:not([contenteditable="false"])')) return true;
+  const entrada = elemento.closest('input');
+  return Boolean(entrada) && !SIN_TEXTO.has(entrada.type);
+}
+
+export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, datosDispositivo, cuentas, categorias, movimientos, ejemplo, deshacer, alCambiarModoPrueba = () => {}, version }) {
   const principal = document.getElementById('contenido');
   const enlaces = [...document.querySelectorAll('.nav-lista a[data-destino]')];
   const cargar = document.querySelector('.nav-item-cargar');
@@ -207,6 +216,28 @@ export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, datosDi
     if (accion === 'ignorar') return;
     evento.preventDefault();
     if (accion === 'soltar-foco') objetivo.blur(); else volverAlPadre();
+  });
+  // Ctrl + Z deshace el último cambio guardado y Ctrl + Y (o Ctrl + Mayús + Z) lo rehace (HU-41, D-183). Con el foco en un campo
+  // de texto vale el del navegador (deshace lo escrito). El botón «Deshacer» de los avisos hace lo mismo que Ctrl + Z.
+  let historial = null;
+  const alHistorial = async (sentido) => {
+    historial ??= import('./historial.js').then((m) => m.crearHistorial({
+      deshacer,
+      redibujar: () => { const foco = document.activeElement?.id; mostrar(false); if (foco) document.getElementById(foco)?.focus(); },
+    }));
+    (await historial)(sentido);
+  };
+  document.addEventListener('afp:deshacer', () => alHistorial('deshacer')); // EVENTO_DESHACER de dialogo.js
+  document.addEventListener('keydown', (evento) => {
+    if (evento.defaultPrevented) return;
+    const objetivo = evento.target instanceof Element ? evento.target : null;
+    const accion = accionDeHistorial({
+      tecla: evento.key, ctrl: evento.ctrlKey, alt: evento.altKey, meta: evento.metaKey, shift: evento.shiftKey, repetida: evento.repeat || evento.isComposing,
+      enCampoDeTexto: esCampoDeTexto(objetivo), hayVentana: Boolean(document.querySelector('dialog[open]')),
+    });
+    if (accion === 'ignorar') return;
+    evento.preventDefault();
+    alHistorial(accion);
   });
   matchMedia(SISTEMA_OSCURO).addEventListener('change', aplicarTema);
   return {

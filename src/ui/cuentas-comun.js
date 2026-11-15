@@ -1,7 +1,7 @@
 // Acciones de cuentas que comparten Inicio y Cuentas (aep#12): abrir el formulario, archivar y eliminar
 // con sus confirmaciones, y los avisos.
 import { formularioCuenta } from './formulario-cuenta.js';
-import { abrirVentana, confirmar, avisar } from './dialogo.js';
+import { abrirVentana, confirmar, avisarCambio } from './dialogo.js';
 import { formatearMonto } from '../dominio/formato.js';
 
 /** Monedas para el formulario: las activas y, al editar, también la de la cuenta. */
@@ -20,7 +20,7 @@ export async function archivarCuenta(cuentas, id) {
     if (!ok) return false;
   }
   await cuentas.archivar(id);
-  avisar(`Archivaste ${cuenta.nombre}.`);
+  avisarCambio(`Archivaste ${cuenta.nombre}.`);
   return true;
 }
 
@@ -33,7 +33,7 @@ export async function eliminarCuenta(cuentas, id) {
   }
   if (!await confirmar({ titulo: `¿Eliminar ${cuenta.nombre}?`, texto: 'No se puede deshacer.', aceptar: 'Eliminar' })) return false;
   await cuentas.eliminar(id);
-  avisar(`Eliminaste ${cuenta.nombre}.`);
+  avisarCambio(`Eliminaste ${cuenta.nombre}.`);
   return true;
 }
 
@@ -51,7 +51,7 @@ export function abrirFormularioEnVentana({ cuentas, id = null, pantallaCompleta,
     alGuardar: async (datos) => {
       const resultado = id ? await cuentas.editar(id, datos) : await cuentas.crear(datos);
       if (resultado.errores) return resultado;
-      avisar(id ? 'Guardaste los cambios.' : `¡Listo! Creaste la cuenta ${resultado.cuenta.nombre}.`);
+      avisarCambio(id ? 'Guardaste los cambios.' : `¡Listo! Creaste la cuenta ${resultado.cuenta.nombre}.`);
       terminar();
       return resultado;
     },

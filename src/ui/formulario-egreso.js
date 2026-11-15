@@ -180,7 +180,7 @@ export function formularioEgreso({ hoy, ahora, esPC, cuentas, categorias, alGuar
   const titulo = crear('h1', { class: 'titulo', tabindex: '-1', texto: 'Nuevo egreso' });
   const formulario = crear('form', { class: 'formulario-egreso', 'aria-labelledby': 'titulo-egreso', novalidate: '' });
   const atajos = crear('p', { class: 'atajos apoyo' }, [
-    crear('kbd', { texto: 'Ctrl + Enter' }), ' guarda · ', crear('kbd', { texto: 'Ctrl + Mayús + Enter' }), ' guarda y carga otro',
+    crear('kbd', { texto: 'Ctrl + Enter' }), ' guarda · ', crear('kbd', { texto: 'Ctrl + Mayús + Enter' }), ' guarda y carga otro · ', crear('kbd', { texto: 'Ctrl + Z' }), ' deshace',
   ]);
 
   formulario.append(

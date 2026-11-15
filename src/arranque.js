@@ -23,10 +23,30 @@ const modoPrueba = crearCasosModoPrueba({ preferencias: almacen, relojDelDisposi
 // Las cuentas (aep#12), las categorías (aep#15) y los movimientos (HU-02) usan la misma base; al cambiar el modo prueba se cambia todo.
 const nuevoId = (prefijo = 'cue') => `${prefijo}-${crypto.randomUUID()}`;
 const basePara = () => {
-  const almacenDatos = crearAlmacenIndexedDB(nombreDeBase({ modoPrueba: modoPrueba.estado().activo, ruta: location.pathname }));
+  const almacenReal = crearAlmacenIndexedDB(nombreDeBase({ modoPrueba: modoPrueba.estado().activo, ruta: location.pathname }));
+  // Deshacer y rehacer (HU-41): la pila vive con la base, así que al cambiar de base (modo prueba) empieza vacía. Los casos
+  // de uso escriben por un almacén que anota cada cambio y llaman a `cambio`; después de revertir, todo se vuelve a leer. Sus
+  // módulos se piden con `import()` después de dibujar Inicio (LCP) o, si hace falta antes, en el primer cambio.
+  let promesaDeRegistro = null;
+  const registroListo = () => {
+    promesaDeRegistro ??= import('./aplicacion/deshacer.js').then(({ crearCasosDeshacer }) => crearCasosDeshacer({
+      almacen: almacenReal, recargar: async () => { await Promise.all([cuentas.recargar(), movimientos.recargar(), casosDeCategorias?.recargar()]); },
+    }));
+    return promesaDeRegistro;
+  };
+  // Mientras los módulos no se pidieron, nada se está anotando (un cambio los pide antes de escribir): se escribe directo y no se
+  // demora el arranque de una base vacía, que guarda las monedas.
+  const registrado = (metodo) => (...argumentos) => (promesaDeRegistro ? promesaDeRegistro.then((r) => r.almacenRegistrado[metodo](...argumentos)) : almacenReal[metodo](...argumentos));
+  const almacenDatos = { ...almacenReal, guardar: registrado('guardar'), borrar: registrado('borrar'), reemplazar: registrado('reemplazar') };
+  const registro = {
+    cambio: async (fn, describir) => (await registroListo()).cambio(fn, describir),
+    deshacer: async () => (await registroListo()).deshacer(),
+    rehacer: async () => (await registroListo()).rehacer(),
+    precargar: registroListo,
+  };
   // Los movimientos se crean después de las cuentas y categorías, que los consultan para saldos y para saber si se usan.
   const guardados = { lista: () => [] };
-  const cuentas = crearCasosCuentas({ almacen: almacenDatos, reloj: modoPrueba.reloj, nuevoId: () => nuevoId('cue'), movimientos: async () => guardados.lista(), movimientosEnMemoria: () => guardados.lista() });
+  const cuentas = crearCasosCuentas({ almacen: almacenDatos, reloj: modoPrueba.reloj, nuevoId: () => nuevoId('cue'), movimientos: async () => guardados.lista(), movimientosEnMemoria: () => guardados.lista(), cambio: registro.cambio });
   // Las categorías no hacen falta para dibujar Inicio: sus módulos se piden después, con `listas()` (FC-19). Hasta
   // entonces la interfaz no las usa (Cargar y Categorías esperan a `listas()` antes de dibujarse).
   let casosDeCategorias = null;
@@ -34,7 +54,7 @@ const basePara = () => {
   const dispositivo = crearCasosDatosDispositivo(almacenDatos);
   const listas = () => {
     promesaDeCategorias ??= import('./aplicacion/categorias.js').then(async ({ crearCasosCategorias }) => {
-      const casos = crearCasosCategorias({ almacen: almacenDatos, reloj: modoPrueba.reloj, nuevoId, movimientos: async () => guardados.lista() });
+      const casos = crearCasosCategorias({ almacen: almacenDatos, reloj: modoPrueba.reloj, nuevoId, movimientos: async () => guardados.lista(), cambio: registro.cambio });
       // Si la base no se puede abrir, AFP sigue sin datos (igual que con las cuentas).
       if (dispositivo.estado() !== 'sin-almacenamiento') await casos.preparar().catch(() => {});
       casosDeCategorias = casos; // desde acá la interfaz las ve, ya leídas
@@ -45,7 +65,7 @@ const basePara = () => {
   const categorias = new Proxy({}, { get: (_, nombre) => (nombre === 'listas' ? listas : casosDeCategorias?.[nombre]) });
   // Los movimientos usan las categorías solo al guardar, desde Cargar, que ya las esperó.
   const movimientos = crearCasosMovimientos({
-    almacen: almacenDatos, reloj: modoPrueba.reloj, nuevoId, cuentas,
+    almacen: almacenDatos, reloj: modoPrueba.reloj, nuevoId, cuentas, cambio: registro.cambio,
     categorias: { todas: () => casosDeCategorias.todas(), buscar: (id) => casosDeCategorias.buscar(id) },
   });
   guardados.lista = movimientos.todos;
@@ -59,7 +79,7 @@ const basePara = () => {
     }
     return ejemplo;
   };
-  return { dispositivo, cuentas, categorias, movimientos, casosDeEjemplo };
+  return { dispositivo, cuentas, categorias, movimientos, casosDeEjemplo, deshacer: registro };
 };
 let base = basePara();
 const datosParaInterfaz = { estado: () => base.dispositivo.estado() };
@@ -67,6 +87,7 @@ const datosParaInterfaz = { estado: () => base.dispositivo.estado() };
 const cuentasParaInterfaz = new Proxy({}, { get: (_, nombre) => base.cuentas[nombre] });
 const categoriasParaInterfaz = new Proxy({}, { get: (_, nombre) => base.categorias[nombre] });
 const movimientosParaInterfaz = new Proxy({}, { get: (_, nombre) => base.movimientos[nombre] });
+const deshacerParaInterfaz = new Proxy({}, { get: (_, nombre) => base.deshacer[nombre] });
 const ejemploParaInterfaz = {
   leer: async () => (await import('./adaptadores/datos-ejemplo.js')).leerDatosDeEjemplo(),
   cargar: async (datos) => (await base.casosDeEjemplo()).cargar(datos),
@@ -85,8 +106,11 @@ const preparar = async (alAvanzar) => {
 };
 const interfaz = iniciarInterfaz({
   preferencias, instalacion, modoPrueba, datosDispositivo: datosParaInterfaz, version: VERSION,
-  cuentas: cuentasParaInterfaz, categorias: categoriasParaInterfaz, movimientos: movimientosParaInterfaz, ejemplo: ejemploParaInterfaz,
+  cuentas: cuentasParaInterfaz, categorias: categoriasParaInterfaz, movimientos: movimientosParaInterfaz, ejemplo: ejemploParaInterfaz, deshacer: deshacerParaInterfaz,
   alCambiarModoPrueba: () => { base = basePara(); preparar(() => interfaz.refrescar()); },
 });
 preparar(() => interfaz.refrescar());
+// Deshacer y rehacer se cargan cuando la pantalla ya terminó de cargar, para no competir con Inicio (LCP); un cambio antes de eso los pide solo.
+const precargarDeshacer = () => setTimeout(() => base.deshacer.precargar().catch(() => {}), 1500);
+if (document.readyState === 'complete') precargarDeshacer(); else addEventListener('load', precargarDeshacer, { once: true });
 registrarServiceWorker({ alHaberVersionNueva: avisarVersionNueva });
