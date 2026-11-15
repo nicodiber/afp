@@ -219,23 +219,13 @@ export function iniciarInterfaz({ preferencias, instalacion, modoPrueba, datosDi
   });
   // Ctrl + Z deshace el último cambio guardado y Ctrl + Y (o Ctrl + Mayús + Z) lo rehace (HU-41, D-183). Con el foco en un campo
   // de texto vale el del navegador (deshace lo escrito). El botón «Deshacer» de los avisos hace lo mismo que Ctrl + Z.
-  let enHistorial = false;
+  let historial = null;
   const alHistorial = async (sentido) => {
-    if (enHistorial) return;
-    enHistorial = true;
-    try {
-      const resultado = await deshacer[sentido]();
-      if (resultado.ok) {
-        const foco = document.activeElement?.id;
-        mostrar(false);
-        if (foco) document.getElementById(foco)?.focus();
-      }
-      // Deshecho, se ofrece rehacer (y al revés): en el celular no hay teclado.
-      const otro = sentido === 'deshacer' ? 'rehacer' : 'deshacer';
-      // dialogo.js se pide acá y no al arrancar: Inicio no lo necesita para dibujarse (LCP).
-      const { avisar } = await import('./dialogo.js');
-      avisar(resultado.texto, resultado.ok ? { texto: otro === 'rehacer' ? 'Rehacer' : 'Deshacer', alTocar: () => alHistorial(otro) } : null);
-    } finally { enHistorial = false; }
+    historial ??= import('./historial.js').then((m) => m.crearHistorial({
+      deshacer,
+      redibujar: () => { const foco = document.activeElement?.id; mostrar(false); if (foco) document.getElementById(foco)?.focus(); },
+    }));
+    (await historial)(sentido);
   };
   document.addEventListener('afp:deshacer', () => alHistorial('deshacer')); // EVENTO_DESHACER de dialogo.js
   document.addEventListener('keydown', (evento) => {

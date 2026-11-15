@@ -34,7 +34,9 @@ const basePara = () => {
     }));
     return promesaDeRegistro;
   };
-  const registrado = (metodo) => async (...argumentos) => (await registroListo()).almacenRegistrado[metodo](...argumentos);
+  // Mientras los módulos no se pidieron, nada se está anotando (un cambio los pide antes de escribir): se escribe directo y no se
+  // demora el arranque de una base vacía, que guarda las monedas.
+  const registrado = (metodo) => (...argumentos) => (promesaDeRegistro ? promesaDeRegistro.then((r) => r.almacenRegistrado[metodo](...argumentos)) : almacenReal[metodo](...argumentos));
   const almacenDatos = { ...almacenReal, guardar: registrado('guardar'), borrar: registrado('borrar'), reemplazar: registrado('reemplazar') };
   const registro = {
     cambio: async (fn, describir) => (await registroListo()).cambio(fn, describir),
