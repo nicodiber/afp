@@ -672,12 +672,13 @@ button.fila-cuenta, a.fila-cuenta { cursor: pointer; }
   *, *::before, *::after { transition-duration: 0s !important; }
 }
 
-/* Movimientos (HU-04): celular = filtros arriba, tarjetas y totales al pie; PC = lista a la izquierda y panel a la derecha. */
+/* Movimientos (HU-04, HU-43): celular = filtros arriba, tarjetas y totales al pie. PC (D-182): título, filtros en una fila, totales en
+   tarjetas y la lista con «Egresos por categoría» en una columna a su derecha (en ventanas angostas, debajo de la lista). */
 .movs { display: grid; gap: var(--esp-4); min-width: 0; }
-.movs-lado { display: contents; }
-.movs-filtros { order: 1; display: grid; gap: var(--esp-3); }
+.movs-filtros { order: 1; display: grid; gap: var(--esp-3); min-width: 0; }
+.movs-busqueda { order: -1; min-width: 0; }
 .movs-lista { order: 2; min-width: 0; }
-.movs-resumen { order: 3; display: grid; gap: var(--esp-4); }
+.movs-totales { order: 3; min-width: 0; }
 .movs-buscador { width: 100%; min-height: var(--objetivo-tactil); padding: 0 var(--esp-3); border: 1px solid var(--color-borde-campo); border-radius: var(--radio-campo); background: var(--color-superficie); color: var(--color-texto); font: inherit; }
 .movs-buscador:focus { outline: 2px solid var(--color-foco); outline-offset: 2px; }
 .movs-selects { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--esp-2) var(--esp-3); }
@@ -694,12 +695,14 @@ button.fila-cuenta, a.fila-cuenta { cursor: pointer; }
 .movs-monto { font-weight: var(--peso-negrita); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .monto-egreso { color: var(--color-egreso); }
 .monto-ingreso { color: var(--color-acento); }
-.movs-total-lista { display: grid; gap: var(--esp-1); margin: 0; padding: var(--esp-3); border: 1px solid var(--color-linea); border-radius: var(--radio-campo); background: var(--color-superficie); }
-.movs-total { display: flex; justify-content: space-between; gap: var(--esp-3); }
-.movs-total dt { color: var(--color-texto-suave); }
-.movs-total dd { margin: 0; font-weight: var(--peso-negrita); font-variant-numeric: tabular-nums; }
 .movs-totales { display: grid; gap: var(--esp-2); }
 .movs-totales .subtitulo, .movs-barras .subtitulo { margin-bottom: var(--esp-1); }
+@media (max-width: 719px) {
+  /* En el celular los totales siguen siendo una sola tarjeta con tres filas, al pie. */
+  .movs-totales .indicadores { gap: var(--esp-1); padding: var(--esp-3); border: 1px solid var(--color-linea); border-radius: var(--radio-campo); background: var(--color-superficie); }
+  .movs-totales .indicador { padding: 0; border: 0; background: none; box-shadow: none; }
+  .movs-busqueda label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
+}
 .movs-barras { display: none; }
 .barras-lista { display: grid; gap: var(--esp-1); margin: 0; padding: 0; list-style: none; }
 .barra { display: grid; gap: 4px; width: 100%; min-height: var(--objetivo-tactil); padding: var(--esp-1) var(--esp-2); border: 1px solid transparent; border-radius: var(--radio-chico); background: none; color: var(--color-texto); font: inherit; text-align: left; cursor: pointer; }
@@ -713,16 +716,25 @@ button.fila-cuenta, a.fila-cuenta { cursor: pointer; }
 .barra:focus-visible, .movs-fila:focus-visible { outline: 2px solid var(--color-foco); outline-offset: 2px; }
 @media (min-width: 720px) {
   body[data-ruta="movimientos"] main > * { width: min(100%, 1120px); }
-  .movs { grid-template-columns: minmax(0, 1fr) 280px; align-items: start; gap: var(--esp-6); }
-  .movs-lado { display: grid; grid-column: 2; grid-row: 1; gap: var(--esp-6); position: sticky; top: var(--esp-6); }
-  .movs-lista { grid-column: 1; grid-row: 1; order: 0; }
-  .movs-selects { grid-template-columns: 1fr; }
-  .movs-filtros, .movs-resumen { order: 0; }
-  .movs-barras { display: grid; gap: var(--esp-2); }
+  .movs { grid-template-columns: minmax(0, 1fr); gap: var(--esp-5); }
+  .movs-filtros { order: 0; display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--esp-3); }
+  .movs-selects { display: contents; }
+  .campo-filtro { flex: 1 1 150px; }
+  .movs-busqueda { order: 0; flex: 2 1 240px; }
+  .movs-lista, .movs-totales { order: 0; }
+  .movs-totales > .subtitulo { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
+  .movs-barras { display: grid; gap: var(--esp-2); align-content: start; min-width: 0; }
   .movs-items { gap: 0; border: 1px solid var(--color-linea); border-radius: var(--radio-campo); background: var(--color-superficie); overflow: hidden; }
   .movs-fila { border: 0; border-bottom: 1px solid var(--color-linea); border-radius: 0; }
   .movs-items li:last-child .movs-fila { border-bottom: 0; }
   .movs-fila:hover { background: var(--color-acento-tenue); }
+}
+/* Ventana ancha: la lista a la izquierda y «Egresos por categoría» a su derecha (lista ancha, gráfico angosto). */
+@media (min-width: 1000px) {
+  .movs { grid-template-columns: minmax(0, 1fr) minmax(240px, 300px); column-gap: var(--esp-6); }
+  .movs-filtros, .movs-totales { grid-column: 1 / -1; }
+  .movs-lista { grid-column: 1; grid-row: 3; }
+  .movs-barras { grid-column: 2; grid-row: 3; }
 }
 
 /* La PC aprovecha el ancho (D-171): Categorías (HU-36) e Inicio (HU-37) usan hasta 1120 px. */

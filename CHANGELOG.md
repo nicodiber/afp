@@ -4,6 +4,13 @@ Cada entrega a la versión a probar (`/prueba/`) sube el número dentro del hito
 
 ## v0.3.0 · Movimientos (en curso)
 
+### v0.3.0-11 · HU-43 y HU-42
+
+- Movimientos en la PC (HU-43, D-182): de arriba abajo, el título, los filtros en una fila (período con sus fechas, tipo, categoría, cuenta y la búsqueda al final; si no entran, bajan a una segunda línea), los totales (ingresos, egresos y diferencia) en tarjetas con el mismo estilo que las de Inicio y la lista con «Egresos por categoría» en una columna a su derecha. En ventanas de menos de 1000 px no hay lugar al costado y las barras van debajo de la lista. En el celular el orden no cambia. Tab sigue el orden de la pantalla (filtros, lista, barras).
+- Barra lateral (HU-43, D-181): se comprobó con una prueba en 720, 1024, 1280 y 1366 px, en Movimientos, Inicio, Cuentas y Categorías, que al expandirse empuja el contenido y este se angosta sin tapar nada ni desbordar, y que el monto de la primera fila queda dentro de la ventana y de su fila.
+- Inicio (HU-43, D-188): si el mes en curso tiene movimientos en dólares, el resumen suma una segunda fila en US$ (ingresos, egresos y diferencia, sin convertir); sin ellos no aparece. Nueva `resumenDelMesEnDolares` en `dominio/tablero.js`.
+- Cargar (HU-42, D-184): en la PC el cursor queda en «Monto» al abrirla (menú, botón ＋ o tecla «c»); en el celular o con pantalla táctil no se enfoca solo (no se abre el teclado). Esc sigue igual: el primero saca el cursor y el segundo vuelve.
+
 ### v0.3.0-10 · HU-39
 
 - Cargar: la ventana de elegir categoría y la de elegir cuenta terminan con «＋ Nueva categoría» (o «＋ Nueva categoría en <familia>» si estás dentro de una) y «＋ Nueva cuenta». Es una opción más de la lista: en la PC se alcanza con las flechas y se elige con Enter, y aparece aunque no haya ninguna categoría o cuenta todavía (el aviso «Todavía no tenés…» ya no lleva a otra pantalla: se crea ahí mismo).
