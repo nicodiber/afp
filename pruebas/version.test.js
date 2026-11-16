@@ -46,3 +46,12 @@ test('aep#12 · index.html precarga todos los módulos que usa la app (y solo es
   alcanzables.delete('src/arranque.js');
   assert.deepEqual(precargados, [...alcanzables].sort());
 });
+
+test('HU-41 · index.html precarga los módulos del más grande al más chico (LCP, FC-19)', async () => {
+  const html = await readFile(join(RAIZ, 'index.html'), 'utf8');
+  const precargados = [...html.matchAll(/<link rel="modulepreload" href="([^"]+)">/g)].map((m) => m[1]);
+  const tamanios = [];
+  for (const ruta of precargados) tamanios.push((await readFile(join(RAIZ, ruta))).length);
+  const ordenados = [...tamanios].sort((a, b) => b - a);
+  assert.deepEqual(tamanios, ordenados, 'la precarga tiene que ir de mayor a menor tamaño');
+});

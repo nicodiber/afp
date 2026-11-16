@@ -12,34 +12,36 @@
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/app.css">
 <script type="module" src="src/arranque.js"></script>
-<!-- Precarga de los módulos de la app: el navegador los pide todos juntos en vez de en cadena (LCP, aep#12). -->
-<link rel="modulepreload" href="src/adaptadores/actualizaciones.js">
-<link rel="modulepreload" href="src/adaptadores/almacen-indexeddb.js">
-<link rel="modulepreload" href="src/adaptadores/canal.js">
-<link rel="modulepreload" href="src/adaptadores/instalacion-navegador.js">
-<link rel="modulepreload" href="src/adaptadores/preferencias-local.js">
-<link rel="modulepreload" href="src/adaptadores/reloj.js">
-<link rel="modulepreload" href="src/aplicacion/cuentas.js">
-<link rel="modulepreload" href="src/aplicacion/datos-dispositivo.js">
-<link rel="modulepreload" href="src/aplicacion/instalacion.js">
-<link rel="modulepreload" href="src/aplicacion/modo-prueba.js">
-<link rel="modulepreload" href="src/aplicacion/movimientos.js">
-<link rel="modulepreload" href="src/aplicacion/preferencias.js">
-<link rel="modulepreload" href="src/dominio/atajos.js">
-<link rel="modulepreload" href="src/dominio/configuracion.js">
-<link rel="modulepreload" href="src/dominio/cuentas.js">
-<link rel="modulepreload" href="src/dominio/fecha.js">
-<link rel="modulepreload" href="src/dominio/formato.js">
-<link rel="modulepreload" href="src/dominio/instalacion.js">
-<link rel="modulepreload" href="src/dominio/monedas.js">
-<link rel="modulepreload" href="src/dominio/saldos.js">
-<link rel="modulepreload" href="src/dominio/tema.js">
-<link rel="modulepreload" href="src/dominio/texto.js">
+<!-- Precarga de los módulos de la app: el navegador los pide todos juntos en vez de en cadena (LCP, aep#12). Van del más grande al más
+     chico: con pocas conexiones se piden en este orden, y el último en llegar (que es el que demora el primer dibujo) tiene que ser un
+     módulo chico, no `ui/app.js` (HU-41, FC-19). Al sumar un módulo, ubicarlo según su tamaño. -->
 <link rel="modulepreload" href="src/ui/app.js">
-<link rel="modulepreload" href="src/ui/dom.js">
-<link rel="modulepreload" href="src/ui/franja-prueba.js">
-<link rel="modulepreload" href="src/ui/instalacion.js">
+<link rel="modulepreload" href="src/dominio/formato.js">
+<link rel="modulepreload" href="src/dominio/cuentas.js">
+<link rel="modulepreload" href="src/aplicacion/cuentas.js">
 <link rel="modulepreload" href="src/ui/pantallas/inicio.js">
+<link rel="modulepreload" href="src/adaptadores/almacen-indexeddb.js">
+<link rel="modulepreload" href="src/dominio/atajos.js">
+<link rel="modulepreload" href="src/aplicacion/movimientos.js">
+<link rel="modulepreload" href="src/ui/instalacion.js">
+<link rel="modulepreload" href="src/adaptadores/preferencias-local.js">
+<link rel="modulepreload" href="src/adaptadores/instalacion-navegador.js">
+<link rel="modulepreload" href="src/aplicacion/modo-prueba.js">
+<link rel="modulepreload" href="src/adaptadores/actualizaciones.js">
+<link rel="modulepreload" href="src/dominio/fecha.js">
+<link rel="modulepreload" href="src/aplicacion/instalacion.js">
+<link rel="modulepreload" href="src/dominio/monedas.js">
+<link rel="modulepreload" href="src/aplicacion/datos-dispositivo.js">
+<link rel="modulepreload" href="src/adaptadores/canal.js">
+<link rel="modulepreload" href="src/dominio/configuracion.js">
+<link rel="modulepreload" href="src/dominio/tema.js">
+<link rel="modulepreload" href="src/dominio/instalacion.js">
+<link rel="modulepreload" href="src/adaptadores/reloj.js">
+<link rel="modulepreload" href="src/aplicacion/preferencias.js">
+<link rel="modulepreload" href="src/dominio/saldos.js">
+<link rel="modulepreload" href="src/ui/franja-prueba.js">
+<link rel="modulepreload" href="src/ui/dom.js">
+<link rel="modulepreload" href="src/dominio/texto.js">
 <link rel="modulepreload" href="src/version.js">
 </head>
 <body>
