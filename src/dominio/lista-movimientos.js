@@ -12,7 +12,7 @@ export const PERIODOS = Object.freeze([
   ['este-mes', 'Este mes'], ['mes-anterior', 'Mes anterior'], ['ultimos-3', 'Últimos 3 meses'],
   ['este-anio', 'Este año'], ['todo', 'Todo'], ['mes', 'Elegir un mes…'],
 ]);
-export const TIPOS_DE_FILTRO = Object.freeze([['todos', 'Todos'], ['egreso', 'Egresos'], ['ingreso', 'Ingresos']]);
+export const TIPOS_DE_FILTRO = Object.freeze([['todos', 'Todos'], ['egreso', 'Egresos'], ['ingreso', 'Ingresos'], ['transferencia', 'Transferencias'], ['cambio_moneda', 'Cambios de moneda']]);
 
 /**
  * El texto con las fechas del período, debajo del selector (HU-38, P-043): «01/09/2026 al 31/10/2026». Para «Todo» no hay
@@ -30,7 +30,7 @@ const nombresDeCategorias = (m, categoriasPorId) => (m.partes ?? []).map((p) => 
 
 /**
  * Los movimientos que cumplen los filtros, del más nuevo al más viejo por fecha y hora.
- * filtros: { texto, desde, hasta, tipo ('todos'|'egreso'|'ingreso'), categoriaIds (Set|null), cuentaId (null = todas) }.
+ * filtros: { texto, desde, hasta, tipo ('todos'|'egreso'|'ingreso'|'transferencia'|'cambio_moneda'), categoriaIds (Set|null), cuentaId (null = todas) }.
  * La búsqueda mira la descripción y el nombre de la categoría, sin distinguir mayúsculas ni tildes.
  */
 export function filtrarMovimientos(movimientos, filtros, categoriasPorId) {
@@ -40,7 +40,7 @@ export function filtrarMovimientos(movimientos, filtros, categoriasPorId) {
     if (desde && m.fecha < desde) return false;
     if (hasta && m.fecha > hasta) return false;
     if (tipo !== 'todos' && m.tipo !== tipo) return false;
-    if (cuentaId && m.cuentaId !== cuentaId) return false;
+    if (cuentaId && m.cuentaId !== cuentaId && m.cuentaDestinoId !== cuentaId) return false; // una transferencia se ve en ambas cuentas
     if (categoriaIds && !(m.partes ?? []).some((p) => categoriaIds.has(p.categoriaId))) return false;
     if (buscado && !normalizarBusqueda(`${m.descripcion ?? ''} ${nombresDeCategorias(m, categoriasPorId).join(' ')}`).includes(buscado)) return false;
     return true;

@@ -4,6 +4,16 @@ Cada entrega a la versión a probar (`/prueba/`) sube el número dentro del hito
 
 ## v0.3.0 · Movimientos (en curso)
 
+### v0.3.0-14 · HU-06 y HU-07
+
+- Cargar suma dos pestañas, **Transferencia** y **Cambio**, al lado de Egreso e Ingreso (D-190, D-191); en la PC, ← y → recorren las cuatro. «Guardar y cargar otro» mantiene la pestaña, y la fecha, la hora y la descripción funcionan como en las otras.
+- **Transferencia (HU-06):** Monto, «Desde», ⇅ (invierte origen y destino) y «Hacia». Mueve el monto de una cuenta a la otra sin tocar los ingresos ni los egresos. No guarda con el mismo origen y destino, con un monto en 0 ni con una cuenta sin elegir; si las cuentas son de distinta moneda, el error ofrece «Ir a «Cambio»» y conserva lo escrito.
+- **Cambio (HU-07):** «Entregás» (cuenta y monto) y «Recibís» (cuenta, monto y tipo de cambio), con ⇅ para invertir. Si escribís el monto que recibís se calcula el tipo de cambio, si escribís el tipo de cambio se calcula el monto, y cambiar uno recalcula el otro: manda el último que tocaste, y el monto que entregás recalcula al que manda. Montos a centavos; el tipo de cambio (siempre pesos por dólar) se ve con 2 decimales y se guarda con 4 como texto (`1450.0000`), calculado de los dos montos (modelo de datos 3.7.5). Con cuentas de la misma moneda ofrece ir a «Transferencia».
+- En las listas (Movimientos y «Últimos movimientos» de Inicio) una transferencia es una sola fila «⇄ Caja → Billetera» y un cambio, «💱 Banco → Dólares billete» con «$ 145.000,00 → US$ 100,00» y «TC 1.450,00»; el monto va en gris (`--color-neutro`) y sin signo, y no cuentan como ingreso ni egreso. El filtro Tipo de Movimientos suma «Transferencias» y «Cambios de moneda», y el filtro por cuenta las muestra en la cuenta de origen y en la de destino.
+- Se pueden deshacer y rehacer (HU-41; «transferencia de $ 10.000,00 de Caja a Billetera»). Una cuenta que solo es destino de una transferencia o un cambio no se puede eliminar, y deshacer la creación de una cuenta con movimientos como destino tampoco.
+- Detrás: reglas en `src/dominio/traspasos.js` (validación, armado con el núcleo de partida doble y tipo de cambio con BigInt, sin coma flotante); el caso de uso `src/aplicacion/traspasos.js` se carga con `import()` al guardar y el cálculo cruzado de la pestaña, en `src/ui/cambio-moneda.js` (FC-21: el arranque casi no crece; el LCP de Inicio queda en 2,29 s).
+- Pendiente: tocar una transferencia o un cambio en la lista todavía no abre su formulario (llega con HU-05, v0.3.0-13).
+
 ### v0.3.0-12 · HU-41
 
 - Deshacer y rehacer (D-183): con el cursor fuera de un campo de texto, **Ctrl + Z** deshace el último cambio guardado y **Ctrl + Y** (o **Ctrl + Mayús + Z**) lo rehace. Vale para cargar un movimiento (egreso o ingreso) y para crear, editar, archivar, reactivar, eliminar y ordenar cuentas o categorías (y mover una categoría). Un aviso dice qué se deshizo («Deshiciste: egreso de $ 12.500,00 en Mercado Pago»); con la pila vacía dice «No hay nada para deshacer» (o «…rehacer»). Se guardan hasta 20 cambios por sesión; un cambio nuevo borra lo que se podía rehacer. Los saldos y la pantalla visible se actualizan sin cambiar de ruta.

@@ -424,6 +424,12 @@ button.fila-cuenta, a.fila-cuenta { cursor: pointer; }
 .formulario-egreso[data-tipo="egreso"] .entrada-monto { color: var(--color-error); }
 .formulario-egreso[data-tipo="ingreso"] .entrada-monto { color: var(--color-acento); }
 .segmentado-tipo { width: 100%; }
+.formulario-egreso [hidden] { display: none; }
+.formulario-egreso[data-tipo="transferencia"] .entrada-monto, .formulario-egreso[data-tipo="cambio_moneda"] .entrada-monto { color: var(--color-neutro); }
+.invertir { display: grid; justify-items: center; }
+.boton-invertir { width: var(--objetivo-tactil); }
+.formulario-egreso .boton-texto { justify-self: start; }
+.segmentado-tipo button { padding: 0 var(--esp-1); }
 .boton-campo { display: flex; align-items: center; justify-content: space-between; gap: var(--esp-3); width: 100%; min-height: var(--alto-boton); padding: 0 var(--esp-3); border: 1px solid var(--color-borde-campo); border-radius: var(--radio-campo); background: var(--color-superficie); color: var(--color-texto); font: inherit; text-align: left; cursor: pointer; }
 .boton-campo-valor { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .boton-campo-valor.sin-elegir { color: var(--color-texto-suave); }
@@ -698,6 +704,7 @@ button.fila-cuenta, a.fila-cuenta { cursor: pointer; }
 .movs-monto { font-weight: var(--peso-negrita); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .monto-egreso { color: var(--color-egreso); }
 .monto-ingreso { color: var(--color-acento); }
+.monto-neutro { color: var(--color-neutro); }
 .movs-totales { display: grid; gap: var(--esp-2); }
 .movs-totales .subtitulo, .movs-barras .subtitulo { margin-bottom: var(--esp-1); }
 @media (max-width: 719px) {

@@ -52,6 +52,7 @@ export function totales(movimientos) {
 export function totalesPorMoneda(movimientos) {
   const porMoneda = new Map();
   for (const m of movimientos) {
+    if (m.tipo !== 'ingreso' && m.tipo !== 'egreso') continue; // las transferencias y los cambios no son ingresos ni egresos (HU-06, HU-07)
     if (!porMoneda.has(m.monedaId)) porMoneda.set(m.monedaId, []);
     porMoneda.get(m.monedaId).push(m);
   }
@@ -60,8 +61,27 @@ export function totalesPorMoneda(movimientos) {
     .sort((a, b) => (a.monedaId === 'ARS' ? -1 : b.monedaId === 'ARS' ? 1 : a.monedaId.localeCompare(b.monedaId)));
 }
 
-/** Datos de una fila de la lista: título, línea de detalle y monto con signo. */
+/**
+ * Datos de una fila de la lista: título, línea de detalle y monto con signo. Una transferencia («⇄ Caja → Billetera») o un cambio de
+ * moneda («💱 Banco → Dólares billete», con `montoDestino`, `monedaDestinoId` y `tipoCambio`) es una sola fila, sin categoría.
+ */
 export function filaDeMovimiento(m, { categoriasPorId, cuentasPorId }) {
+  if (m.tipo === 'transferencia' || m.tipo === 'cambio_moneda') {
+    const cambio = m.tipo === 'cambio_moneda';
+    const [a, mes, d] = m.fecha.split('-');
+    const origen = cuentasPorId.get(m.cuentaId);
+    const destino = cuentasPorId.get(m.cuentaDestinoId);
+    return {
+      id: m.id,
+      emoji: cambio ? '💱' : '⇄',
+      titulo: `${origen?.nombre ?? 'Cuenta'} → ${destino?.nombre ?? 'Cuenta'}`,
+      detalle: [`${d}/${mes}/${a}`, m.hora, m.descripcion, cambio ? null : 'Transferencia'].filter(Boolean).join(' · '),
+      monto: m.montoTotal,
+      tipo: m.tipo,
+      monedaId: m.monedaId,
+      ...(cambio ? { montoDestino: m.montoRecibido, monedaDestinoId: destino?.monedaId, tipoCambio: m.tipoCambioOperacion } : {}),
+    };
+  }
   const categorias = (m.partes ?? []).map((p) => categoriasPorId.get(p.categoriaId)).filter(Boolean);
   const nombreCategoria = categorias.map((c) => c.nombre).join(', ') || 'Sin categoría';
   const [a, mes, d] = m.fecha.split('-');

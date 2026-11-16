@@ -58,7 +58,7 @@ for (const [nombre, viewport] of VIEWPORTS) {
     const { contexto, pagina, errores } = await enModoPrueba({ viewport });
     await abrirCarga(pagina);
     // Al abrir: Egreso elegido, monto en rojo (color de error).
-    assert.deepEqual(await grupoTipo(pagina).getByRole('button').allTextContents(), ['Egreso', 'Ingreso']);
+    assert.deepEqual(await grupoTipo(pagina).getByRole('button').allTextContents(), ['Egreso', 'Ingreso', 'Transferencia', 'Cambio']);
     assert.equal(await botonTipo(pagina, 'Egreso').getAttribute('aria-pressed'), 'true');
     assert.equal(await botonTipo(pagina, 'Ingreso').getAttribute('aria-pressed'), 'false');
     assert.equal(await colorMonto(pagina), ERROR);
@@ -179,8 +179,11 @@ test('HU-03 CA-1 · con el teclado en la PC: ← y → cambian de tipo y ↑/↓
   await pagina.getByRole('heading', { name: 'Nuevo ingreso', level: 1 }).waitFor();
   assert.equal(await botonTipo(pagina, 'Ingreso').evaluate((b) => b === document.activeElement), true, 'el foco acompaña al tipo elegido');
   assert.equal(await botonTipo(pagina, 'Ingreso').getAttribute('aria-pressed'), 'true');
-  await pagina.keyboard.press('ArrowRight'); // no hay más a la derecha
-  assert.equal(await botonTipo(pagina, 'Ingreso').getAttribute('aria-pressed'), 'true');
+  // HU-06: ahora hay dos pestañas más a la derecha (Transferencia y Cambio): → pasa a Transferencia y ← vuelve a Ingreso.
+  await pagina.keyboard.press('ArrowRight');
+  await pagina.getByRole('heading', { name: 'Nueva transferencia', level: 1 }).waitFor();
+  await pagina.keyboard.press('ArrowLeft');
+  await pagina.getByRole('heading', { name: 'Nuevo ingreso', level: 1 }).waitFor();
   await pagina.keyboard.press('ArrowLeft');
   await pagina.getByRole('heading', { name: 'Nuevo egreso', level: 1 }).waitFor();
   assert.equal(await botonTipo(pagina, 'Egreso').evaluate((b) => b === document.activeElement), true);

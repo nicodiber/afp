@@ -1,9 +1,14 @@
-// Cargar (HU-02, HU-03): «Nuevo egreso» o «Nuevo ingreso». Es una pantalla propia (#cargar), no una ventana: en el celular ocupa
+// Cargar (HU-02, HU-03, HU-06, HU-07): un egreso, un ingreso, una transferencia o un cambio de moneda. Es una pantalla propia (#cargar), no una ventana: en el celular ocupa
 // toda la pantalla y en la PC va en la columna central.
 import { formularioEgreso } from '../formulario-egreso.js';
 import { avisar, avisarCambio } from '../dialogo.js';
 import { formatearMonto } from '../../dominio/formato.js';
 import { formatearFecha } from '../../dominio/fecha.js';
+
+const NOMBRES = {
+  egreso: { articulo: 'el egreso' }, ingreso: { articulo: 'el ingreso' },
+  transferencia: { articulo: 'la transferencia' }, cambio_moneda: { articulo: 'el cambio de moneda' },
+};
 
 /**
  * @param {Object} o
@@ -21,12 +26,15 @@ export function pantallaCargar({ movimientos, cuentas, categorias, esPC, volver 
       try {
         resultado = await movimientos.registrar(formulario.tipo, formulario);
       } catch {
-        avisar(`No se pudo guardar el ${formulario.tipo}. Probá de nuevo.`);
+        avisar(`No se pudo guardar ${NOMBRES[formulario.tipo].articulo}. Probá de nuevo.`);
         return { errores: {} };
       }
       if (resultado.errores) return resultado;
-      if (resultado.cuentaAjustada) avisarCambio(`Guardaste el ${formulario.tipo}. La cuenta ${resultado.cuenta.nombre} ahora empieza el ${formatearFecha(resultado.cuentaAjustada.fechaSaldoInicial)}.`);
-      else avisarCambio(`Guardaste el ${formulario.tipo}. Saldo de ${resultado.cuenta.nombre}: ${formatearMonto(resultado.saldo, resultado.cuenta.monedaId)}.`);
+      const que = NOMBRES[formulario.tipo];
+      if (resultado.cuentaAjustada) avisarCambio(`Guardaste ${que.articulo}. La cuenta ${resultado.cuentaAjustada.nombre} ahora empieza el ${formatearFecha(resultado.cuentaAjustada.fechaSaldoInicial)}.`);
+      else if (resultado.cuentaDestino) {
+        avisarCambio(`Guardaste ${que.articulo}. Saldo de ${resultado.cuenta.nombre}: ${formatearMonto(resultado.saldo, resultado.cuenta.monedaId)} · ${resultado.cuentaDestino.nombre}: ${formatearMonto(resultado.saldoDestino, resultado.cuentaDestino.monedaId)}.`);
+      } else avisarCambio(`Guardaste ${que.articulo}. Saldo de ${resultado.cuenta.nombre}: ${formatearMonto(resultado.saldo, resultado.cuenta.monedaId)}.`);
       if (!otro) volver();
       return {};
     },

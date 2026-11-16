@@ -36,8 +36,16 @@ export function crearCasosMovimientos({ almacen, reloj, nuevoId, cuentas, catego
      * Devuelve { errores } o { movimiento, cuenta, saldo } con el saldo nuevo de la cuenta. Se puede deshacer (HU-41).
      */
     registrar(tipo, formulario) {
+      if (tipo === 'transferencia' || tipo === 'cambio_moneda') return this.registrarTraspaso(tipo, formulario);
       const texto = (r) => (r.movimiento ? `${tipo} de ${formatearMonto(r.movimiento.montoTotal, r.movimiento.monedaId)} en ${r.cuenta.nombre}` : null);
       return cambio(() => guardarNuevo(tipo, formulario), texto);
+    },
+    // Transferencia o cambio de moneda (HU-06, HU-07): se carga aparte, al guardar (LCP, FC-21). Se puede deshacer (HU-41).
+    registrarTraspaso(tipo, formulario) {
+      const guardar = async () => (await import('./traspasos.js')).guardarTraspaso(tipo, formulario, {
+        almacen, reloj, nuevoId, cuentas, agregar: (m) => { movimientos = [...movimientos, m]; },
+      });
+      return cambio(guardar, (r) => r.texto ?? null);
     },
     registrarEgreso(formulario) { return this.registrar('egreso', formulario); },
     registrarIngreso(formulario) { return this.registrar('ingreso', formulario); },
