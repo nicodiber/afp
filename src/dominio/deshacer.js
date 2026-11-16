@@ -77,7 +77,7 @@ export function problemaAlAplicar(operaciones, { cuentas, categorias, movimiento
   const usaCategoria = (m, id) => (m.partes ?? []).some((p) => p.categoriaId === id);
 
   for (const id of cuentasBorradas) {
-    if (movimientosQueQuedan.some((m) => m.cuentaId === id)) return { motivo: `${cuentas.find((c) => c.id === id)?.nombre ?? 'La cuenta'} ya tiene movimientos` };
+    if (movimientosQueQuedan.some((m) => m.cuentaId === id || m.cuentaDestinoId === id)) return { motivo: `${cuentas.find((c) => c.id === id)?.nombre ?? 'La cuenta'} ya tiene movimientos` };
   }
   for (const id of categoriasBorradas) {
     const nombre = categorias.find((c) => c.id === id)?.nombre ?? 'La categoría';
@@ -85,7 +85,8 @@ export function problemaAlAplicar(operaciones, { cuentas, categorias, movimiento
     if (categoriasQueQuedan.some((c) => c.padreId === id)) return { motivo: `${nombre} ya tiene subcategorías` };
   }
   for (const m of guarda('movimientos')) {
-    const faltaCuenta = !cuentasQueQuedan.some((c) => c.id === m.cuentaId);
+    const existe = (id) => cuentasQueQuedan.some((c) => c.id === id);
+    const faltaCuenta = !existe(m.cuentaId) || (m.cuentaDestinoId != null && !existe(m.cuentaDestinoId));
     const faltaCategoria = (m.partes ?? []).some((p) => !categoriasQueQuedan.some((c) => c.id === p.categoriaId));
     if (faltaCuenta || faltaCategoria) return { motivo: 'la cuenta o la categoría del movimiento ya no existe' };
   }
